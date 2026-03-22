@@ -1,0 +1,17 @@
+{
+  "name": "shift-scheduler",
+  "version": "1.0.0",
+  "description": "Shift scheduling platform for teams",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && node src/index.js",
+    "dev:client": "cd client && npx vite --host",
+    "build": "cd client && npx vite build",
+    "start": "cd server && NODE_ENV=production node src/index.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
