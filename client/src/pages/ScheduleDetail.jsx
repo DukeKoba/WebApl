@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
-import { Wand2, Plus, Trash2, UserPlus, ArrowLeft, AlertCircle, Send } from 'lucide-react';
+import { Wand2, Plus, Trash2, UserPlus, ArrowLeft, AlertCircle, Send, BarChart3, DollarSign, Scale, MessageSquare } from 'lucide-react';
 
 const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -21,6 +21,14 @@ export default function ScheduleDetail() {
   const [warnings, setWarnings] = useState([]);
   const [shiftForm, setShiftForm] = useState({ member_id: '', date: '', start_time: '09:00', end_time: '17:00', template_id: '' });
 
+  // New features from competitor analysis
+  const [availabilityMap, setAvailabilityMap] = useState(null);
+  const [fairness, setFairness] = useState(null);
+  const [laborCost, setLaborCost] = useState(null);
+  const [showStats, setShowStats] = useState(false);
+  const [showNotes, setShowNotes] = useState(null);
+  const [noteText, setNoteText] = useState('');
+
   const loadSchedule = async () => {
     try {
       const data = await api.getSchedule(id);
@@ -33,9 +41,25 @@ export default function ScheduleDetail() {
     }
   };
 
-  useEffect(() => { loadSchedule(); }, [id]);
+  const loadExtras = async () => {
+    if (!schedule || !currentOrg) return;
+    try {
+      const [avail, fair, cost] = await Promise.all([
+        api.getAvailabilityMap(currentOrg.id, schedule.start_date, schedule.end_date),
+        api.getFairness(currentOrg.id, id),
+        api.getLaborCost(currentOrg.id, id),
+      ]);
+      setAvailabilityMap(avail);
+      setFairness(fair);
+      setLaborCost(cost);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-  // Generate date range
+  useEffect(() => { loadSchedule(); }, [id]);
+  useEffect(() => { if (schedule) loadExtras(); }, [schedule]);
+
   const dates = useMemo(() => {
     if (!schedule) return [];
     const result = [];
@@ -47,7 +71,6 @@ export default function ScheduleDetail() {
     return result;
   }, [schedule]);
 
-  // Group shifts by date
   const shiftsByDate = useMemo(() => {
     const map = {};
     dates.forEach(d => { map[d] = []; });
@@ -56,6 +79,15 @@ export default function ScheduleDetail() {
     });
     return map;
   }, [shifts, dates]);
+
+  // Get available members for a specific date
+  const getAvailableForDate = (date) => {
+    if (!availabilityMap) return [];
+    return availabilityMap.members.filter(m => {
+      const dateInfo = m.dates.find(d => d.date === date);
+      return dateInfo && (dateInfo.status === 'available' || dateInfo.status === 'flexible');
+    });
+  };
 
   const handleAutoGenerate = async () => {
     if (templates.length === 0) {
@@ -68,6 +100,7 @@ export default function ScheduleDetail() {
       setShifts(result.shifts);
       setWarnings(result.warnings || []);
       showToast(`${result.generated} 件のシフトを自動生成しました`);
+      loadExtras();
     } catch (e) {
       showToast(e.message, 'error');
     } finally {
@@ -80,6 +113,7 @@ export default function ScheduleDetail() {
     setShifts([...shifts, shift]);
     setShowAddShift(false);
     showToast('シフトを追加しました');
+    loadExtras();
   };
 
   const handleDeleteShift = async (shiftId) => {
@@ -107,6 +141,14 @@ export default function ScheduleDetail() {
     showToast('スケジュールを公開しました');
   };
 
+  const handleSaveNote = async (shift) => {
+    await api.updateShift(shift.id, { notes: noteText });
+    setShifts(shifts.map(s => s.id === shift.id ? { ...s, notes: noteText } : s));
+    setShowNotes(null);
+    setNoteText('');
+    showToast('引継ぎメモを保存しました');
+  };
+
   if (loading) {
     return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
   }
@@ -129,6 +171,9 @@ export default function ScheduleDetail() {
           </div>
         </div>
         <div className="flex gap-2 flex-wrap">
+          <button onClick={() => setShowStats(!showStats)} className="btn-secondary flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" /> 統計
+          </button>
           <button onClick={handleAutoGenerate} disabled={generating} className="btn-primary flex items-center gap-2">
             <Wand2 className="w-4 h-4" />
             {generating ? '生成中...' : '自動生成'}
@@ -143,6 +188,116 @@ export default function ScheduleDetail() {
           )}
         </div>
       </div>
+
+      {/* Stats Panel - Fairness Score + Labor Cost */}
+      {showStats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Fairness Score */}
+          {fairness && (
+            <div className="card">
+              <div className="flex items-center gap-2 mb-3">
+                <Scale className="w-5 h-5 text-blue-500" />
+                <h3 className="font-semibold">公平性スコア</h3>
+              </div>
+              <div className="flex items-end gap-2 mb-2">
+                <span className={`text-3xl font-bold ${fairness.score >= 70 ? 'text-green-600' : fairness.score >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>
+                  {fairness.score}
+                </span>
+                <span className="text-gray-400 text-sm mb-1">/ 100</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">時間配分の均等性（100 = 完全に均等）</p>
+              <div className="space-y-1.5">
+                {fairness.members.slice(0, 5).map(m => (
+                  <div key={m.id} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                      <span className="truncate max-w-[80px]">{m.name}</span>
+                    </div>
+                    <span className="font-mono">{m.total_hours.toFixed(1)}h / {m.shift_count}回</span>
+                  </div>
+                ))}
+              </div>
+              {fairness.weekendFairness !== undefined && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-500">土日の公平性</span>
+                    <span className={`font-bold ${fairness.weekendFairness >= 70 ? 'text-green-600' : 'text-yellow-600'}`}>{fairness.weekendFairness}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Labor Cost */}
+          {laborCost && (
+            <div className="card">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-5 h-5 text-green-500" />
+                <h3 className="font-semibold">人件費予測</h3>
+              </div>
+              <div className="flex items-end gap-2 mb-2">
+                <span className="text-3xl font-bold text-gray-900">¥{laborCost.totalCost.toLocaleString()}</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">合計 {laborCost.totalHours}時間</p>
+              {laborCost.dailyCosts.length > 0 && (
+                <div className="space-y-1">
+                  {laborCost.dailyCosts.map(d => {
+                    const maxCost = Math.max(...laborCost.dailyCosts.map(x => x.cost), 1);
+                    return (
+                      <div key={d.date} className="flex items-center gap-2 text-xs">
+                        <span className="w-16 text-gray-500">{d.date.slice(5)}</span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                          <div className="h-full bg-green-400 rounded-full" style={{ width: `${(d.cost / maxCost) * 100}%` }} />
+                        </div>
+                        <span className="w-16 text-right font-mono">¥{Math.round(d.cost).toLocaleString()}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Availability Heatmap */}
+          {availabilityMap && (
+            <div className="card">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 className="w-5 h-5 text-purple-500" />
+                <h3 className="font-semibold">勤務可能状況</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <div className="space-y-1">
+                  {availabilityMap.members.slice(0, 8).map(m => (
+                    <div key={m.id} className="flex items-center gap-1">
+                      <span className="w-14 text-xs truncate text-gray-600">{m.name}</span>
+                      <div className="flex gap-0.5">
+                        {m.dates.map(d => {
+                          const colors = {
+                            available: 'bg-green-400',
+                            flexible: 'bg-blue-300',
+                            unavailable: 'bg-gray-200',
+                            absent: 'bg-red-400',
+                          };
+                          return (
+                            <div key={d.date} className={`w-5 h-5 rounded-sm ${colors[d.status] || 'bg-gray-200'}`}
+                              title={`${d.date}: ${d.status === 'available' ? '出勤可' : d.status === 'flexible' ? '応相談' : d.status === 'absent' ? '欠勤' : '不可'}`} />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3 mt-2 text-xs text-gray-500">
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-green-400" /> 出勤可</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-blue-300" /> 応相談</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-red-400" /> 欠勤</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-gray-200" /> 不可</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Warnings */}
       {warnings.length > 0 && (
@@ -165,6 +320,7 @@ export default function ScheduleDetail() {
           const d = new Date(date);
           const dayShifts = shiftsByDate[date] || [];
           const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+          const availableCount = getAvailableForDate(date).length;
 
           return (
             <div key={date} className={`card ${isWeekend ? 'bg-gray-50' : ''}`}>
@@ -175,7 +331,26 @@ export default function ScheduleDetail() {
                   </span>
                   <span className="font-medium">{date}</span>
                   <span className="text-sm text-gray-400">{dayShifts.length} シフト</span>
+                  {availabilityMap && (
+                    <span className={`badge ${availableCount >= dayShifts.length ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                      出勤可能 {availableCount}名
+                    </span>
+                  )}
                 </div>
+                {/* Inline availability dots */}
+                {availabilityMap && (
+                  <div className="flex gap-0.5">
+                    {availabilityMap.members.map(m => {
+                      const dateInfo = m.dates.find(dd => dd.date === date);
+                      const isAssigned = dayShifts.some(s => s.member_id === m.id);
+                      return (
+                        <div key={m.id} title={`${m.name}: ${dateInfo?.status === 'available' ? '出勤可' : dateInfo?.status === 'flexible' ? '応相談' : '不可'}${isAssigned ? ' (割当済)' : ''}`}
+                          className={`w-3 h-3 rounded-full border ${isAssigned ? 'border-gray-800 border-2' : 'border-transparent'}`}
+                          style={{ backgroundColor: dateInfo?.status === 'available' || dateInfo?.status === 'flexible' ? m.color : '#e5e7eb' }} />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {dayShifts.length === 0 ? (
@@ -198,8 +373,16 @@ export default function ScheduleDetail() {
                         )}
                         {shift.template_name && <span className="badge bg-gray-200 text-gray-600">{shift.template_name}</span>}
                         {shift.status === 'reassigned' && <span className="badge bg-yellow-100 text-yellow-700">代替</span>}
+                        {shift.notes && (
+                          <span className="badge bg-blue-100 text-blue-600 cursor-pointer" onClick={() => { setShowNotes(shift); setNoteText(shift.notes); }}>
+                            <MessageSquare className="w-3 h-3 mr-1" /> メモあり
+                          </span>
+                        )}
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => { setShowNotes(shift); setNoteText(shift.notes || ''); }} className="p-1.5 hover:bg-white rounded" title="引継ぎメモ">
+                          <MessageSquare className="w-4 h-4 text-gray-400" />
+                        </button>
                         <button onClick={() => handleFindReplacements(shift)} className="p-1.5 hover:bg-white rounded" title="代替を探す">
                           <UserPlus className="w-4 h-4 text-blue-500" />
                         </button>
@@ -255,11 +438,50 @@ export default function ScheduleDetail() {
               {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
           </div>
+          {/* Inline availability when date is selected */}
+          {shiftForm.date && availabilityMap && (
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs font-medium text-gray-500 mb-2">この日の出勤可能メンバー:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {getAvailableForDate(shiftForm.date).map(m => (
+                  <button key={m.id} type="button" onClick={() => setShiftForm({ ...shiftForm, member_id: m.id })}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs border transition-colors ${shiftForm.member_id === m.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                    {m.name}
+                  </button>
+                ))}
+                {getAvailableForDate(shiftForm.date).length === 0 && (
+                  <span className="text-xs text-gray-400">出勤可能なメンバーがいません</span>
+                )}
+              </div>
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <button className="btn-secondary" onClick={() => setShowAddShift(false)}>キャンセル</button>
             <button className="btn-primary" onClick={handleAddShift}>追加</button>
           </div>
         </div>
+      </Modal>
+
+      {/* Shift Handoff Notes Modal */}
+      <Modal isOpen={!!showNotes} onClose={() => setShowNotes(null)} title="引継ぎメモ">
+        {showNotes && (
+          <div className="space-y-4">
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+              {showNotes.date} {showNotes.start_time}〜{showNotes.end_time}
+              {showNotes.member_name && ` / ${showNotes.member_name}`}
+            </div>
+            <div>
+              <label className="label">引継ぎ内容</label>
+              <textarea className="input min-h-[120px]" value={noteText} onChange={e => setNoteText(e.target.value)}
+                placeholder="次のシフトへの引継ぎ事項を記入..." />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button className="btn-secondary" onClick={() => setShowNotes(null)}>キャンセル</button>
+              <button className="btn-primary" onClick={() => handleSaveNote(showNotes)}>保存</button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Replacements Modal */}

@@ -62,4 +62,7 @@ export const api = {
   // Analytics
   getDashboard: (orgId) => request(`/analytics/dashboard?org_id=${orgId}`),
   getWorkload: (orgId, start, end) => request(`/analytics/workload?org_id=${orgId}${start ? `&start_date=${start}` : ''}${end ? `&end_date=${end}` : ''}`),
+  getFairness: (orgId, scheduleId) => request(`/analytics/fairness?org_id=${orgId}${scheduleId ? `&schedule_id=${scheduleId}` : ''}`),
+  getLaborCost: (orgId, scheduleId) => request(`/analytics/labor-cost?org_id=${orgId}${scheduleId ? `&schedule_id=${scheduleId}` : ''}`),
+  getAvailabilityMap: (orgId, start, end) => request(`/analytics/availability-map?org_id=${orgId}&start_date=${start}&end_date=${end}`),
 };
