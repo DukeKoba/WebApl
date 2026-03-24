@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { api } from '../utils/api';
 import Modal from '../components/Modal';
-import { Wand2, Plus, Trash2, UserPlus, ArrowLeft, AlertCircle, Send, BarChart3, DollarSign, Scale, MessageSquare } from 'lucide-react';
+import { Wand2, Plus, Trash2, UserPlus, ArrowLeft, AlertCircle, Send, BarChart3, DollarSign, Scale, MessageSquare, Sparkles, Users, ShieldAlert, Heart, UserX, RefreshCw, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 const DAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -29,6 +29,19 @@ export default function ScheduleDetail() {
   const [showNotes, setShowNotes] = useState(null);
   const [noteText, setNoteText] = useState('');
 
+  // AI-powered features (competitive differentiation)
+  const [suggestions, setSuggestions] = useState([]);
+  const [optimization, setOptimization] = useState(null);
+  const [staffingGaps, setStaffingGaps] = useState(null);
+  const [burnoutAlerts, setBurnoutAlerts] = useState([]);
+  const [prefSatisfaction, setPrefSatisfaction] = useState(null);
+  const [showOptimizer, setShowOptimizer] = useState(false);
+  const [showStaffing, setShowStaffing] = useState(false);
+  const [showBurnout, setShowBurnout] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
+  const [selectedChanges, setSelectedChanges] = useState(new Set());
+
   const loadSchedule = async () => {
     try {
       const data = await api.getSchedule(id);
@@ -44,14 +57,22 @@ export default function ScheduleDetail() {
   const loadExtras = async () => {
     if (!schedule || !currentOrg) return;
     try {
-      const [avail, fair, cost] = await Promise.all([
+      const [avail, fair, cost, sug, gaps, burnout, pref] = await Promise.all([
         api.getAvailabilityMap(currentOrg.id, schedule.start_date, schedule.end_date),
         api.getFairness(currentOrg.id, id),
         api.getLaborCost(currentOrg.id, id),
+        api.getSuggestions(id).catch(() => []),
+        api.getStaffingGaps(id).catch(() => null),
+        api.getBurnoutRisks(id).catch(() => []),
+        api.getPreferenceSatisfaction(id).catch(() => null),
       ]);
       setAvailabilityMap(avail);
       setFairness(fair);
       setLaborCost(cost);
+      setSuggestions(sug);
+      setStaffingGaps(gaps);
+      setBurnoutAlerts(burnout);
+      setPrefSatisfaction(pref);
     } catch (e) {
       console.error(e);
     }
@@ -135,6 +156,32 @@ export default function ScheduleDetail() {
     showToast('代替スタッフを割り当てました');
   };
 
+  const handleShowOptimizer = async () => {
+    try {
+      const result = await api.getOptimization(id);
+      setOptimization(result);
+      setSelectedChanges(new Set(result.changes.map(c => c.shift_id)));
+      setShowOptimizer(true);
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  };
+
+  const handleApplyOptimization = async () => {
+    setOptimizing(true);
+    try {
+      const result = await api.applyOptimization(id, [...selectedChanges]);
+      setShifts(result.shifts);
+      setShowOptimizer(false);
+      showToast(`${result.applied}件のシフトを最適化しました`);
+      loadExtras();
+    } catch (e) {
+      showToast(e.message, 'error');
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
   const handlePublish = async () => {
     await api.publishSchedule(id);
     setSchedule({ ...schedule, status: 'published' });
@@ -173,6 +220,9 @@ export default function ScheduleDetail() {
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => setShowStats(!showStats)} className="btn-secondary flex items-center gap-2">
             <BarChart3 className="w-4 h-4" /> 統計
+          </button>
+          <button onClick={handleShowOptimizer} className="btn-secondary flex items-center gap-2 text-purple-600 border-purple-200 hover:bg-purple-50">
+            <Sparkles className="w-4 h-4" /> AI最適化
           </button>
           <button onClick={handleAutoGenerate} disabled={generating} className="btn-primary flex items-center gap-2">
             <Wand2 className="w-4 h-4" />
@@ -299,6 +349,169 @@ export default function ScheduleDetail() {
         </div>
       )}
 
+      {/* AI Smart Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="card border-l-4 border-l-purple-500">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            <h3 className="font-semibold">AIアシスタント</h3>
+            <span className="badge bg-purple-100 text-purple-700">{suggestions.length}件の提案</span>
+          </div>
+          <div className="space-y-2">
+            {suggestions.map((s, i) => {
+              const icons = { users: Users, alert: ShieldAlert, scale: Scale, 'user-x': UserX, heart: Heart };
+              const Icon = icons[s.icon] || AlertCircle;
+              const colors = { high: 'text-red-600 bg-red-50', medium: 'text-yellow-600 bg-yellow-50', low: 'text-blue-600 bg-blue-50' };
+              return (
+                <div key={i} className={`flex items-center justify-between p-3 rounded-lg ${colors[s.priority] || 'bg-gray-50'}`}>
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{s.title}</p>
+                      <p className="text-xs opacity-75">{s.description}</p>
+                    </div>
+                  </div>
+                  <button className="text-xs px-3 py-1.5 rounded bg-white border shadow-sm hover:bg-gray-50 flex-shrink-0"
+                    onClick={() => {
+                      if (s.action === 'optimize') handleShowOptimizer();
+                      else if (s.action === 'staffing_gaps') setShowStaffing(!showStaffing);
+                      else if (s.action === 'burnout_alerts') setShowBurnout(!showBurnout);
+                      else if (s.action === 'preferences') setShowPreferences(!showPreferences);
+                      else if (s.action === 'auto_generate') handleAutoGenerate();
+                    }}>
+                    対応する
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Staffing Gaps Panel */}
+      {showStaffing && staffingGaps && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-orange-500" />
+              <h3 className="font-semibold">人員過不足</h3>
+              <span className={`badge ${staffingGaps.coverageRate >= 90 ? 'bg-green-100 text-green-700' : staffingGaps.coverageRate >= 70 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                カバー率 {staffingGaps.coverageRate}%
+              </span>
+            </div>
+            <button onClick={() => setShowStaffing(false)} className="text-gray-400 hover:text-gray-600">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+            <div className="text-center p-2 bg-gray-50 rounded">
+              <div className="text-2xl font-bold">{staffingGaps.totalRequired}</div>
+              <div className="text-xs text-gray-500">必要人員</div>
+            </div>
+            <div className="text-center p-2 bg-green-50 rounded">
+              <div className="text-2xl font-bold text-green-600">{staffingGaps.totalAssigned}</div>
+              <div className="text-xs text-gray-500">配置済み</div>
+            </div>
+            <div className="text-center p-2 bg-red-50 rounded">
+              <div className="text-2xl font-bold text-red-600">{staffingGaps.totalRequired - staffingGaps.totalAssigned}</div>
+              <div className="text-xs text-gray-500">不足</div>
+            </div>
+            <div className="text-center p-2 bg-yellow-50 rounded">
+              <div className="text-2xl font-bold text-yellow-600">{staffingGaps.totalUnassigned}</div>
+              <div className="text-xs text-gray-500">未割当</div>
+            </div>
+          </div>
+          {/* Daily staffing bar */}
+          <div className="space-y-1 mb-3">
+            {staffingGaps.dailySummary.map(d => (
+              <div key={d.date} className="flex items-center gap-2 text-xs">
+                <span className="w-20 text-gray-500">{d.date.slice(5)}</span>
+                <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden relative">
+                  <div className={`h-full rounded-full ${d.status === 'ok' ? 'bg-green-400' : d.status === 'warning' ? 'bg-yellow-400' : 'bg-red-400'}`}
+                    style={{ width: `${Math.min(100, (d.assigned / Math.max(d.required, 1)) * 100)}%` }} />
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">{d.assigned}/{d.required}</span>
+                </div>
+                {d.status !== 'ok' && <span className={`${d.status === 'critical' ? 'text-red-500' : 'text-yellow-500'}`}>-{d.required - d.assigned}</span>}
+              </div>
+            ))}
+          </div>
+          {staffingGaps.gaps.length > 0 && (
+            <details className="mt-2">
+              <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700">不足の詳細 ({staffingGaps.gaps.length}件)</summary>
+              <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                {staffingGaps.gaps.map((g, i) => (
+                  <div key={i} className={`text-xs p-2 rounded ${g.severity === 'critical' ? 'bg-red-50 text-red-700' : g.severity === 'high' ? 'bg-orange-50 text-orange-700' : 'bg-yellow-50 text-yellow-700'}`}>
+                    {g.date} {g.time} {g.template_name}: {g.assigned}/{g.required}名 (不足{g.shortage}名)
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
+      )}
+
+      {/* Burnout Risk Alerts */}
+      {showBurnout && burnoutAlerts.length > 0 && (
+        <div className="card border-l-4 border-l-red-400">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-red-500" />
+              <h3 className="font-semibold">燃え尽きリスク検出</h3>
+              <span className="badge bg-red-100 text-red-700">{burnoutAlerts.length}件</span>
+            </div>
+            <button onClick={() => setShowBurnout(false)} className="text-gray-400 hover:text-gray-600">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {burnoutAlerts.map((a, i) => (
+              <div key={i} className={`flex items-center gap-3 p-3 rounded-lg ${a.severity === 'high' ? 'bg-red-50' : 'bg-yellow-50'}`}>
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: a.member_color }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{a.member_name}</p>
+                  <p className="text-xs text-gray-600">{a.message}</p>
+                </div>
+                <span className={`badge flex-shrink-0 ${a.type === 'clopening' ? 'bg-purple-100 text-purple-700' : a.type === 'consecutive_days' ? 'bg-orange-100 text-orange-700' : a.type === 'overwork' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {a.type === 'clopening' ? 'クロペン' : a.type === 'consecutive_days' ? '連勤' : a.type === 'overwork' ? '過重労働' : '短い休息'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Preference Satisfaction */}
+      {showPreferences && prefSatisfaction && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Heart className="w-5 h-5 text-pink-500" />
+              <h3 className="font-semibold">希望充足率</h3>
+              <span className={`badge ${prefSatisfaction.overall >= 80 ? 'bg-green-100 text-green-700' : prefSatisfaction.overall >= 60 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
+                全体 {prefSatisfaction.overall}%
+              </span>
+            </div>
+            <button onClick={() => setShowPreferences(false)} className="text-gray-400 hover:text-gray-600">
+              <XCircle className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {prefSatisfaction.members.map(m => (
+              <div key={m.id} className="flex items-center gap-3">
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: m.color }} />
+                <span className="text-sm w-20 truncate">{m.name}</span>
+                <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                  <div className={`h-full rounded-full ${m.satisfaction >= 80 ? 'bg-green-400' : m.satisfaction >= 60 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                    style={{ width: `${m.satisfaction}%` }} />
+                </div>
+                <span className="text-xs font-mono w-10 text-right">{m.satisfaction}%</span>
+                <span className="text-xs text-gray-400">{m.matched}/{m.shifts}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Warnings */}
       {warnings.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
@@ -373,6 +586,7 @@ export default function ScheduleDetail() {
                         )}
                         {shift.template_name && <span className="badge bg-gray-200 text-gray-600">{shift.template_name}</span>}
                         {shift.status === 'reassigned' && <span className="badge bg-yellow-100 text-yellow-700">代替</span>}
+                        {shift.status === 'optimized' && <span className="badge bg-purple-100 text-purple-700">AI最適化</span>}
                         {shift.notes && (
                           <span className="badge bg-blue-100 text-blue-600 cursor-pointer" onClick={() => { setShowNotes(shift); setNoteText(shift.notes); }}>
                             <MessageSquare className="w-3 h-3 mr-1" /> メモあり
@@ -523,6 +737,76 @@ export default function ScheduleDetail() {
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* AI Optimizer Modal */}
+      <Modal isOpen={showOptimizer} onClose={() => setShowOptimizer(false)} title="AI シフト最適化" size="lg">
+        {optimization && (
+          <div className="space-y-4">
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                <span className="font-medium text-purple-800">公平性に基づく自動再配分</span>
+              </div>
+              <p className="text-sm text-purple-700">
+                AIが時間配分の偏りを分析し、勤務可能時間・スキル・既存シフトを考慮して最適な再配分を提案します。
+                適用する変更を選択できます。
+              </p>
+            </div>
+            {optimization.changes.length === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
+                <p className="text-gray-600 font-medium">現在のシフト配分は最適です</p>
+                <p className="text-sm text-gray-400 mt-1">大きな偏りは検出されませんでした</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">{optimization.changes.length}件の最適化を提案</span>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={selectedChanges.size === optimization.changes.length}
+                      onChange={e => setSelectedChanges(e.target.checked ? new Set(optimization.changes.map(c => c.shift_id)) : new Set())}
+                      className="rounded" />
+                    すべて選択
+                  </label>
+                </div>
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {optimization.changes.map(c => (
+                    <label key={c.shift_id} className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors ${selectedChanges.has(c.shift_id) ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50 border border-transparent'}`}>
+                      <input type="checkbox" checked={selectedChanges.has(c.shift_id)}
+                        onChange={e => {
+                          const next = new Set(selectedChanges);
+                          e.target.checked ? next.add(c.shift_id) : next.delete(c.shift_id);
+                          setSelectedChanges(next);
+                        }}
+                        className="rounded mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-mono text-gray-500">{c.date}</span>
+                          <span className="text-gray-400">{c.time}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 text-sm">
+                          <span className="text-red-600 line-through">{c.from_member}</span>
+                          <RefreshCw className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-green-600 font-medium">{c.to_member}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{c.reason}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <div className="flex justify-end gap-2 pt-2 border-t">
+                  <button className="btn-secondary" onClick={() => setShowOptimizer(false)}>キャンセル</button>
+                  <button className="btn-primary flex items-center gap-2" onClick={handleApplyOptimization}
+                    disabled={optimizing || selectedChanges.size === 0}>
+                    <Sparkles className="w-4 h-4" />
+                    {optimizing ? '適用中...' : `${selectedChanges.size}件を適用`}
+                  </button>
+                </div>
+              </>
             )}
           </div>
         )}

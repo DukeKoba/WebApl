@@ -44,6 +44,12 @@ export const api = {
   deleteSchedule: (id) => request(`/schedules/${id}`, { method: 'DELETE' }),
   autoGenerate: (id) => request(`/schedules/${id}/auto-generate`, { method: 'POST' }),
   publishSchedule: (id) => request(`/schedules/${id}/publish`, { method: 'POST' }),
+  getOptimization: (id) => request(`/schedules/${id}/optimize`),
+  applyOptimization: (id, changeIds) => request(`/schedules/${id}/optimize`, { method: 'POST', body: { changeIds } }),
+  getStaffingGaps: (id) => request(`/schedules/${id}/staffing-gaps`),
+  getBurnoutRisks: (id) => request(`/schedules/${id}/burnout-risks`),
+  getSuggestions: (id) => request(`/schedules/${id}/suggestions`),
+  getPreferenceSatisfaction: (id) => request(`/schedules/${id}/preference-satisfaction`),
 
   // Shifts
   getShifts: (params) => request(`/shifts?${new URLSearchParams(params)}`),

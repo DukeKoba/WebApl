@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { v4 as uuid } from 'uuid';
 import db from '../database.js';
-import { autoGenerateShifts } from '../services/scheduler.js';
+import { autoGenerateShifts, optimizeSchedule, applyOptimization, analyzeStaffingGaps, detectBurnoutRisks, generateSuggestions, calculatePreferenceSatisfaction } from '../services/scheduler.js';
 
 const router = Router();
 
@@ -57,6 +57,52 @@ router.post('/:id/publish', (req, res) => {
     SELECT org_id, 'schedule_published', ? FROM schedules WHERE id = ?`)
     .run(JSON.stringify({ schedule_id: req.params.id }), req.params.id);
   res.json(db.prepare('SELECT * FROM schedules WHERE id = ?').get(req.params.id));
+});
+
+// AI optimizer - analyze and suggest rebalancing
+router.get('/:id/optimize', (req, res) => {
+  try {
+    const result = optimizeSchedule(req.params.id);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Apply optimization changes
+router.post('/:id/optimize', (req, res) => {
+  try {
+    const { changeIds } = req.body || {};
+    const result = applyOptimization(req.params.id, changeIds);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Staffing gap analysis
+router.get('/:id/staffing-gaps', (req, res) => {
+  const result = analyzeStaffingGaps(req.params.id);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+  res.json(result);
+});
+
+// Burnout risk detection
+router.get('/:id/burnout-risks', (req, res) => {
+  const alerts = detectBurnoutRisks(req.params.id);
+  res.json(alerts);
+});
+
+// AI suggestions
+router.get('/:id/suggestions', (req, res) => {
+  const suggestions = generateSuggestions(req.params.id);
+  res.json(suggestions);
+});
+
+// Preference satisfaction
+router.get('/:id/preference-satisfaction', (req, res) => {
+  const result = calculatePreferenceSatisfaction(req.params.id);
+  res.json(result);
 });
 
 router.put('/:id', (req, res) => {
