@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Trophy, TrendingUp, Target, BarChart3, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trophy, TrendingUp, Target, BarChart3, Zap, ChevronDown, ChevronUp, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { getPrediction } from '../data/raceData';
+import { fetchOdds } from '../data/oddsFetcher';
 
 const wakuColors = {
   1: 'bg-white text-black border border-gray-400',
@@ -26,8 +27,40 @@ export default function RaceDetail() {
   const { id } = useParams();
   const [expandedHorse, setExpandedHorse] = useState(null);
   const [activeTab, setActiveTab] = useState('prediction');
+  const [liveOdds, setLiveOdds] = useState(null);
+  const [oddsLoading, setOddsLoading] = useState(false);
+  const [oddsStatus, setOddsStatus] = useState(null); // { success, updatedAt, source }
 
   const prediction = useMemo(() => getPrediction(parseInt(id)), [id]);
+
+  // オッズ取得関数
+  const loadOdds = useCallback(async () => {
+    if (!prediction) return;
+    setOddsLoading(true);
+    try {
+      const result = await fetchOdds(prediction.race.raceNum);
+      if (result.success) {
+        setLiveOdds(result.odds);
+        setOddsStatus({ success: true, updatedAt: result.updatedAt, source: result.source });
+      } else {
+        setOddsStatus({ success: false, updatedAt: null, source: null });
+      }
+    } catch {
+      setOddsStatus({ success: false, updatedAt: null, source: null });
+    }
+    setOddsLoading(false);
+  }, [prediction]);
+
+  // 初回ロード時にオッズ取得
+  useEffect(() => {
+    loadOdds();
+  }, [loadOdds]);
+
+  // オッズを適用（ライブデータがあればそちらを使用）
+  const getOdds = (horseNum, fallback) => {
+    if (liveOdds && liveOdds[horseNum]) return liveOdds[horseNum];
+    return fallback;
+  };
 
   if (!prediction) {
     return <div className="text-center py-20 text-gray-400">レースデータが見つかりません</div>;
@@ -50,6 +83,37 @@ export default function RaceDetail() {
           <span>馬場: {race.trackCondition}</span>
           <span>賞金: {race.purse}万</span>
         </div>
+      </div>
+
+      {/* オッズ更新ステータスバー */}
+      <div className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 mb-4 border border-gray-700">
+        <div className="flex items-center gap-2 text-xs">
+          {oddsStatus?.success ? (
+            <>
+              <Wifi size={14} className="text-green-400" />
+              <span className="text-green-400">LIVE オッズ</span>
+              <span className="text-gray-500">({oddsStatus.source} {oddsStatus.updatedAt})</span>
+            </>
+          ) : oddsLoading ? (
+            <>
+              <RefreshCw size={14} className="text-yellow-400 animate-spin" />
+              <span className="text-yellow-400">オッズ取得中...</span>
+            </>
+          ) : (
+            <>
+              <WifiOff size={14} className="text-gray-500" />
+              <span className="text-gray-500">シミュレーションオッズ</span>
+            </>
+          )}
+        </div>
+        <button
+          onClick={loadOdds}
+          disabled={oddsLoading}
+          className="flex items-center gap-1 text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-1 rounded-md transition-all disabled:opacity-50"
+        >
+          <RefreshCw size={12} className={oddsLoading ? 'animate-spin' : ''} />
+          更新
+        </button>
       </div>
 
       {/* Tabs */}
@@ -132,7 +196,11 @@ export default function RaceDetail() {
                 <div className="mt-3 pt-3 border-t border-gray-700">
                   <div className="grid grid-cols-2 gap-2 mb-3">
                     <div className="text-xs text-gray-400">
-                      <span className="text-gray-500">オッズ:</span> <span className="text-white font-bold">{horse.odds}倍</span>
+                      <span className="text-gray-500">オッズ:</span>{' '}
+                      <span className={`font-bold ${liveOdds && liveOdds[horse.num] ? 'text-green-400' : 'text-white'}`}>
+                        {getOdds(horse.num, horse.odds)}倍
+                        {liveOdds && liveOdds[horse.num] && <span className="text-green-500 text-[10px] ml-1">LIVE</span>}
+                      </span>
                     </div>
                     <div className="text-xs text-gray-400">
                       <span className="text-gray-500">人気:</span> <span className="text-white font-bold">{horse.popularity}番人気</span>
@@ -207,7 +275,10 @@ export default function RaceDetail() {
                   <div className="text-xs text-gray-400">{horse.sex} / {horse.weight}kg ({horse.weightChange > 0 ? '+' : ''}{horse.weightChange})</div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <div className="text-yellow-400 font-bold">{horse.odds}倍</div>
+                  <div className={`font-bold ${liveOdds && liveOdds[horse.num] ? 'text-green-400' : 'text-yellow-400'}`}>
+                    {getOdds(horse.num, horse.odds)}倍
+                    {liveOdds && liveOdds[horse.num] && <span className="text-green-500 text-[10px] ml-1">LIVE</span>}
+                  </div>
                   <span className={`badge text-xs ${horse.popularity <= 3 ? 'bg-red-900 text-red-300' : 'bg-gray-700 text-gray-300'}`}>
                     {horse.popularity}番人気
                   </span>
