@@ -32,8 +32,8 @@ export default function RaceList() {
             <span>大井競馬場</span>
           </div>
           <div className="flex items-center gap-1 text-indigo-200">
-            <Cloud size={14} />
-            <span>曇/良〜稍重</span>
+            <Sun size={14} />
+            <span>晴/ダート重</span>
           </div>
           <div className="flex items-center gap-1 text-indigo-200">
             <Clock size={14} />

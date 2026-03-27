@@ -1,149 +1,173 @@
-// 大井競馬場 レースデータ & AI予想エンジン (クライアント版)
+// 大井競馬場 2026/3/27(金) 第19回大井競馬5日目 レースデータ & AI予想エンジン
+// 天候: 晴 / 馬場: ダート重
 
-const today = new Date().toISOString().split('T')[0];
+const today = '2026-03-27';
 
-const horses = {
-  1: [
-    { num: 1, waku: 1, name: 'ゴールドスパーク', sex: '牡4', weight: 480, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 3.2, popularity: 1, recentResults: ['1','2','1','3','2'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: -2 },
-    { num: 2, waku: 1, name: 'サンライズフォルテ', sex: '牡5', weight: 472, jockey: '御神本訓史', trainer: '佐宗響', odds: 5.8, popularity: 2, recentResults: ['2','1','4','1','3'], runStyle: '差し', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: 0 },
-    { num: 3, waku: 2, name: 'ブルーサンダー', sex: '牡6', weight: 490, jockey: '森泰斗', trainer: '藤田輝信', odds: 8.4, popularity: 4, recentResults: ['3','5','2','1','4'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 4, waku: 2, name: 'ミラクルウィング', sex: '牝4', weight: 452, jockey: '笹川翼', trainer: '村上頌', odds: 12.1, popularity: 5, recentResults: ['4','3','6','2','5'], runStyle: '先行', distanceApt: 'B', trackApt: 'B', condition: '稍重', weightChange: -4 },
-    { num: 5, waku: 3, name: 'エクセルマスター', sex: '牡5', weight: 486, jockey: '的場文男', trainer: '福永敏', odds: 6.5, popularity: 3, recentResults: ['1','4','2','5','1'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 6, waku: 3, name: 'ハッピードリーム', sex: '牝5', weight: 446, jockey: '本田正重', trainer: '石井勝男', odds: 25.3, popularity: 8, recentResults: ['6','8','5','7','3'], runStyle: '差し', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: 0 },
-    { num: 7, waku: 4, name: 'トーセンレジェンド', sex: '牡7', weight: 498, jockey: '和田譲治', trainer: '堀千亜樹', odds: 15.6, popularity: 6, recentResults: ['5','2','3','6','4'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +6 },
-    { num: 8, waku: 4, name: 'キングオブスター', sex: '牡4', weight: 476, jockey: '真島大輔', trainer: '佐藤裕太', odds: 18.9, popularity: 7, recentResults: ['3','7','4','8','2'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: -2 },
-  ],
-  2: [
-    { num: 1, waku: 1, name: 'レッドファルコン', sex: '牡5', weight: 484, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 2.8, popularity: 1, recentResults: ['1','1','2','1','3'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 2, waku: 1, name: 'ダークナイトⅡ', sex: '牡6', weight: 494, jockey: '森泰斗', trainer: '藤田輝信', odds: 4.1, popularity: 2, recentResults: ['2','3','1','2','1'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 3, waku: 2, name: 'スカイランナー', sex: '牡4', weight: 468, jockey: '笹川翼', trainer: '佐宗響', odds: 7.2, popularity: 3, recentResults: ['3','2','5','1','4'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: -2 },
-    { num: 4, waku: 2, name: 'プラチナローズ', sex: '牝5', weight: 450, jockey: '御神本訓史', trainer: '村上頌', odds: 9.8, popularity: 4, recentResults: ['1','5','3','4','2'], runStyle: '差し', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: 0 },
-    { num: 5, waku: 3, name: 'ビクトリーロード', sex: '牡5', weight: 488, jockey: '的場文男', trainer: '福永敏', odds: 11.5, popularity: 5, recentResults: ['4','3','2','6','1'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: +4 },
-    { num: 6, waku: 3, name: 'シルバーストリーム', sex: '牝4', weight: 444, jockey: '本田正重', trainer: '石井勝男', odds: 22.0, popularity: 7, recentResults: ['5','6','7','3','8'], runStyle: '先行', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -4 },
-    { num: 7, waku: 4, name: 'サムライスピリット', sex: '牡6', weight: 496, jockey: '真島大輔', trainer: '堀千亜樹', odds: 14.3, popularity: 6, recentResults: ['2','4','6','5','3'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +2 },
-    { num: 8, waku: 4, name: 'ラッキーチャンス', sex: '牝3', weight: 438, jockey: '和田譲治', trainer: '佐藤裕太', odds: 35.8, popularity: 8, recentResults: ['7','8','4','9','6'], runStyle: '差し', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: 0 },
-  ],
-  3: [
-    { num: 1, waku: 1, name: 'ワンダーボルト', sex: '牡4', weight: 478, jockey: '森泰斗', trainer: '藤田輝信', odds: 4.5, popularity: 2, recentResults: ['2','1','3','1','2'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 2, waku: 1, name: 'フェニックスライト', sex: '牡5', weight: 486, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 3.5, popularity: 1, recentResults: ['1','2','1','2','1'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 3, waku: 2, name: 'マジックアワー', sex: '牝4', weight: 454, jockey: '御神本訓史', trainer: '佐宗響', odds: 6.3, popularity: 3, recentResults: ['1','3','2','4','1'], runStyle: '差し', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 2, name: 'テンペストキング', sex: '牡6', weight: 502, jockey: '笹川翼', trainer: '村上頌', odds: 8.9, popularity: 4, recentResults: ['3','4','1','5','2'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 5, waku: 3, name: 'グランドノーブル', sex: '牡5', weight: 492, jockey: '的場文男', trainer: '福永敏', odds: 10.2, popularity: 5, recentResults: ['4','2','5','3','6'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 3, name: 'リバティベル', sex: '牝5', weight: 448, jockey: '本田正重', trainer: '石井勝男', odds: 28.0, popularity: 8, recentResults: ['6','7','8','5','9'], runStyle: '差し', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: -2 },
-    { num: 7, waku: 4, name: 'ドラゴンフライ', sex: '牡4', weight: 470, jockey: '真島大輔', trainer: '堀千亜樹', odds: 13.4, popularity: 6, recentResults: ['5','3','4','2','7'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +2 },
-    { num: 8, waku: 4, name: 'スターダストナイト', sex: '牡7', weight: 500, jockey: '和田譲治', trainer: '佐藤裕太', odds: 20.5, popularity: 7, recentResults: ['3','6','5','8','4'], runStyle: '追込', distanceApt: 'B', trackApt: 'B', condition: '良', weightChange: +6 },
-  ],
-  4: [
-    { num: 1, waku: 1, name: 'インペリアルガード', sex: '牡5', weight: 492, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 2.5, popularity: 1, recentResults: ['1','1','1','2','1'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 2, waku: 2, name: 'クロノスタイム', sex: '牡4', weight: 474, jockey: '森泰斗', trainer: '藤田輝信', odds: 5.2, popularity: 2, recentResults: ['2','1','3','1','4'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 3, waku: 3, name: 'エメラルドクイーン', sex: '牝5', weight: 456, jockey: '御神本訓史', trainer: '佐宗響', odds: 7.8, popularity: 3, recentResults: ['3','2','4','1','2'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 4, name: 'バトルクライ', sex: '牡6', weight: 504, jockey: '笹川翼', trainer: '村上頌', odds: 9.1, popularity: 4, recentResults: ['4','3','2','5','1'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 5, waku: 5, name: 'ナイトフォース', sex: '牡5', weight: 488, jockey: '的場文男', trainer: '福永敏', odds: 12.0, popularity: 5, recentResults: ['2','5','3','6','2'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 6, name: 'アクアマリン', sex: '牝4', weight: 442, jockey: '本田正重', trainer: '石井勝男', odds: 30.5, popularity: 8, recentResults: ['7','6','8','4','9'], runStyle: '差し', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: -4 },
-    { num: 7, waku: 7, name: 'ロイヤルアーマー', sex: '牡7', weight: 510, jockey: '真島大輔', trainer: '堀千亜樹', odds: 16.2, popularity: 6, recentResults: ['5','4','6','3','5'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +8 },
-    { num: 8, waku: 8, name: 'ルビーハート', sex: '牝3', weight: 436, jockey: '和田譲治', trainer: '佐藤裕太', odds: 22.0, popularity: 7, recentResults: ['6','8','5','7','3'], runStyle: '逃げ', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -2 },
-  ],
-  5: [
-    { num: 1, waku: 1, name: 'サンダーストーム', sex: '牡5', weight: 496, jockey: '森泰斗', trainer: '藤田輝信', odds: 3.8, popularity: 1, recentResults: ['1','2','1','1','3'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 2, waku: 2, name: 'ダイヤモンドキング', sex: '牡4', weight: 482, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 4.2, popularity: 2, recentResults: ['2','1','2','3','1'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 3, waku: 3, name: 'ムーンライトソナタ', sex: '牝5', weight: 458, jockey: '御神本訓史', trainer: '佐宗響', odds: 6.0, popularity: 3, recentResults: ['1','3','1','2','4'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 4, name: 'アイアンウィル', sex: '牡6', weight: 506, jockey: '笹川翼', trainer: '村上頌', odds: 10.5, popularity: 5, recentResults: ['3','5','2','4','6'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +6 },
-    { num: 5, waku: 5, name: 'フラッシュポイント', sex: '牡4', weight: 470, jockey: '的場文男', trainer: '福永敏', odds: 8.3, popularity: 4, recentResults: ['2','4','1','5','2'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 6, name: 'チェリーブロッサム', sex: '牝4', weight: 440, jockey: '本田正重', trainer: '石井勝男', odds: 18.5, popularity: 7, recentResults: ['5','6','7','3','8'], runStyle: '差し', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 7, waku: 7, name: 'タイガーブレイブ', sex: '牡5', weight: 494, jockey: '真島大輔', trainer: '堀千亜樹', odds: 14.8, popularity: 6, recentResults: ['4','3','5','2','7'], runStyle: '追込', distanceApt: 'B', trackApt: 'B', condition: '良', weightChange: +4 },
-    { num: 8, waku: 8, name: 'ホワイトエンジェル', sex: '牝3', weight: 434, jockey: '和田譲治', trainer: '佐藤裕太', odds: 42.0, popularity: 8, recentResults: ['8','7','9','6','5'], runStyle: '逃げ', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: 0 },
-  ],
-  6: [
-    { num: 1, waku: 1, name: 'シャドウファントム', sex: '牡5', weight: 488, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 4.0, popularity: 2, recentResults: ['2','1','3','1','2'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 2, waku: 1, name: 'セレスティアル', sex: '牡4', weight: 476, jockey: '森泰斗', trainer: '藤田輝信', odds: 3.1, popularity: 1, recentResults: ['1','1','2','1','1'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 3, waku: 2, name: 'オーロラプリンセス', sex: '牝5', weight: 450, jockey: '御神本訓史', trainer: '佐宗響', odds: 7.5, popularity: 3, recentResults: ['3','2','1','4','2'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 2, name: 'マッスルパワー', sex: '牡7', weight: 512, jockey: '笹川翼', trainer: '村上頌', odds: 11.0, popularity: 5, recentResults: ['4','5','3','6','1'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +8 },
-    { num: 5, waku: 3, name: 'クリムゾンタイド', sex: '牡5', weight: 490, jockey: '的場文男', trainer: '福永敏', odds: 8.8, popularity: 4, recentResults: ['1','4','5','2','3'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 3, name: 'シルクロード', sex: '牝4', weight: 446, jockey: '本田正重', trainer: '石井勝男', odds: 26.0, popularity: 7, recentResults: ['6','7','4','8','5'], runStyle: '差し', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -4 },
-    { num: 7, waku: 4, name: 'バーニングソウル', sex: '牡6', weight: 498, jockey: '真島大輔', trainer: '堀千亜樹', odds: 15.0, popularity: 6, recentResults: ['5','3','6','4','7'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +4 },
-    { num: 8, waku: 4, name: 'エンジェルウィスパー', sex: '牝3', weight: 432, jockey: '和田譲治', trainer: '佐藤裕太', odds: 38.0, popularity: 8, recentResults: ['7','9','6','5','8'], runStyle: '逃げ', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: -2 },
-  ],
-  7: [
-    { num: 1, waku: 1, name: 'ライジングサン', sex: '牡4', weight: 474, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 3.6, popularity: 1, recentResults: ['1','2','1','2','1'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 2, waku: 1, name: 'ブレイブハート', sex: '牡5', weight: 488, jockey: '森泰斗', trainer: '藤田輝信', odds: 5.0, popularity: 2, recentResults: ['2','1','3','1','4'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 3, waku: 2, name: 'パールクイーン', sex: '牝4', weight: 448, jockey: '御神本訓史', trainer: '佐宗響', odds: 7.8, popularity: 3, recentResults: ['3','2','1','4','2'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 2, name: 'ヴェルサイユ', sex: '牡6', weight: 496, jockey: '笹川翼', trainer: '村上頌', odds: 11.2, popularity: 5, recentResults: ['4','5','2','3','6'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 5, waku: 3, name: 'ミッドナイトラン', sex: '牡5', weight: 482, jockey: '的場文男', trainer: '福永敏', odds: 9.5, popularity: 4, recentResults: ['2','3','4','1','5'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 3, name: 'フローラルブーケ', sex: '牝3', weight: 436, jockey: '本田正重', trainer: '石井勝男', odds: 28.5, popularity: 8, recentResults: ['6','8','5','7','4'], runStyle: '差し', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -4 },
-    { num: 7, waku: 4, name: 'マグナムフォース', sex: '牡7', weight: 504, jockey: '真島大輔', trainer: '堀千亜樹', odds: 16.0, popularity: 6, recentResults: ['5','4','3','6','2'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +6 },
-    { num: 8, waku: 4, name: 'スウィートメモリー', sex: '牝5', weight: 442, jockey: '和田譲治', trainer: '佐藤裕太', odds: 20.0, popularity: 7, recentResults: ['3','7','6','5','8'], runStyle: '逃げ', distanceApt: 'B', trackApt: 'C', condition: '良', weightChange: -2 },
-  ],
-  8: [
-    { num: 1, waku: 1, name: 'コスモバルク', sex: '牡5', weight: 492, jockey: '森泰斗', trainer: '藤田輝信', odds: 2.9, popularity: 1, recentResults: ['1','1','2','1','2'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 2, waku: 2, name: 'ネオユニヴァース', sex: '牡4', weight: 478, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 4.8, popularity: 2, recentResults: ['2','1','1','3','1'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 3, waku: 3, name: 'ビューティフルデイ', sex: '牝5', weight: 454, jockey: '御神本訓史', trainer: '佐宗響', odds: 6.2, popularity: 3, recentResults: ['1','3','2','2','4'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 4, name: 'グランドスラム', sex: '牡6', weight: 508, jockey: '笹川翼', trainer: '村上頌', odds: 8.5, popularity: 4, recentResults: ['3','4','1','5','2'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 5, waku: 5, name: 'サクラプレジデント', sex: '牡5', weight: 486, jockey: '的場文男', trainer: '福永敏', odds: 12.3, popularity: 5, recentResults: ['4','2','5','3','6'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 6, name: 'ラベンダーフィールド', sex: '牝4', weight: 440, jockey: '本田正重', trainer: '石井勝男', odds: 25.0, popularity: 7, recentResults: ['5','6','7','4','9'], runStyle: '差し', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -4 },
-    { num: 7, waku: 7, name: 'ウォーリアキング', sex: '牡7', weight: 514, jockey: '真島大輔', trainer: '堀千亜樹', odds: 18.0, popularity: 6, recentResults: ['2','5','6','4','3'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +8 },
-    { num: 8, waku: 8, name: 'プリティウーマン', sex: '牝3', weight: 430, jockey: '和田譲治', trainer: '佐藤裕太', odds: 40.0, popularity: 8, recentResults: ['7','8','6','9','5'], runStyle: '逃げ', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: 0 },
-  ],
-  9: [
-    { num: 1, waku: 1, name: 'ヴィクトワールピサ', sex: '牡5', weight: 490, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 3.4, popularity: 1, recentResults: ['1','2','1','1','3'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 2, waku: 1, name: 'ダンスインザダーク', sex: '牡6', weight: 500, jockey: '森泰斗', trainer: '藤田輝信', odds: 4.5, popularity: 2, recentResults: ['2','1','3','2','1'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 3, waku: 2, name: 'スターオブジェンヌ', sex: '牝4', weight: 452, jockey: '御神本訓史', trainer: '佐宗響', odds: 8.0, popularity: 3, recentResults: ['3','2','4','1','2'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 2, name: 'サンデーブレイク', sex: '牡4', weight: 476, jockey: '笹川翼', trainer: '村上頌', odds: 10.0, popularity: 4, recentResults: ['1','5','3','4','2'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 5, waku: 3, name: 'レジェンドテイオー', sex: '牡7', weight: 502, jockey: '的場文男', trainer: '福永敏', odds: 13.5, popularity: 5, recentResults: ['4','3','2','6','5'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 3, name: 'スカーレットブーケ', sex: '牝5', weight: 446, jockey: '本田正重', trainer: '石井勝男', odds: 30.0, popularity: 7, recentResults: ['6','7','5','8','4'], runStyle: '差し', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: -2 },
-    { num: 7, waku: 4, name: 'アグネスフライト', sex: '牡5', weight: 494, jockey: '真島大輔', trainer: '堀千亜樹', odds: 15.5, popularity: 6, recentResults: ['5','4','6','3','7'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +4 },
-    { num: 8, waku: 4, name: 'グレースノート', sex: '牝3', weight: 434, jockey: '和田譲治', trainer: '佐藤裕太', odds: 35.0, popularity: 8, recentResults: ['8','6','7','5','9'], runStyle: '逃げ', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: 0 },
-  ],
-  10: [
-    { num: 1, waku: 1, name: 'ゴッドオブスピード', sex: '牡4', weight: 484, jockey: '森泰斗', trainer: '藤田輝信', odds: 4.2, popularity: 2, recentResults: ['2','1','2','1','3'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 2, waku: 1, name: 'エルコンドルパサー', sex: '牡5', weight: 494, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 3.0, popularity: 1, recentResults: ['1','1','1','2','1'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 3, waku: 2, name: 'マーベラスクラウン', sex: '牝5', weight: 456, jockey: '御神本訓史', trainer: '佐宗響', odds: 7.0, popularity: 3, recentResults: ['1','3','2','4','1'], runStyle: '差し', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 2, name: 'メイショウドトウ', sex: '牡6', weight: 506, jockey: '笹川翼', trainer: '村上頌', odds: 9.5, popularity: 4, recentResults: ['3','4','1','5','2'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +6 },
-    { num: 5, waku: 3, name: 'エアグルーヴ', sex: '牝5', weight: 460, jockey: '的場文男', trainer: '福永敏', odds: 11.0, popularity: 5, recentResults: ['2','5','3','6','2'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 3, name: 'ファインモーション', sex: '牝4', weight: 444, jockey: '本田正重', trainer: '石井勝男', odds: 22.0, popularity: 7, recentResults: ['5','6','8','3','7'], runStyle: '差し', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -4 },
-    { num: 7, waku: 4, name: 'ステイゴールド', sex: '牡7', weight: 498, jockey: '真島大輔', trainer: '堀千亜樹', odds: 14.0, popularity: 6, recentResults: ['4','3','5','2','8'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +4 },
-    { num: 8, waku: 4, name: 'タイキシャトル', sex: '牡5', weight: 480, jockey: '和田譲治', trainer: '佐藤裕太', odds: 19.0, popularity: 8, recentResults: ['6','7','4','8','3'], runStyle: '逃げ', distanceApt: 'B', trackApt: 'C', condition: '良', weightChange: +2 },
-  ],
-  11: [
-    { num: 1, waku: 1, name: 'フリオーソ', sex: '牡5', weight: 498, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 2.4, popularity: 1, recentResults: ['1','1','1','1','2'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 2, waku: 2, name: 'カネヒキリ', sex: '牡6', weight: 510, jockey: '森泰斗', trainer: '藤田輝信', odds: 3.8, popularity: 2, recentResults: ['2','1','2','1','3'], runStyle: '差し', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 3, waku: 3, name: 'アジュディミツオー', sex: '牡5', weight: 486, jockey: '御神本訓史', trainer: '佐宗響', odds: 6.5, popularity: 3, recentResults: ['1','3','1','2','4'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 4, name: 'ボンネビルレコード', sex: '牡7', weight: 504, jockey: '笹川翼', trainer: '村上頌', odds: 8.8, popularity: 4, recentResults: ['3','2','4','1','5'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 5, waku: 5, name: 'サミットストーン', sex: '牡4', weight: 472, jockey: '的場文男', trainer: '福永敏', odds: 12.0, popularity: 5, recentResults: ['4','5','2','3','6'], runStyle: '先行', distanceApt: 'B', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 6, name: 'ロイヤルクイーン', sex: '牝5', weight: 450, jockey: '本田正重', trainer: '石井勝男', odds: 24.0, popularity: 7, recentResults: ['6','7','5','8','3'], runStyle: '差し', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -4 },
-    { num: 7, waku: 7, name: 'ハイセイコー', sex: '牡5', weight: 496, jockey: '真島大輔', trainer: '堀千亜樹', odds: 15.0, popularity: 6, recentResults: ['5','4','3','6','2'], runStyle: '追込', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +6 },
-    { num: 8, waku: 8, name: 'ローズプリンセス', sex: '牝3', weight: 432, jockey: '和田譲治', trainer: '佐藤裕太', odds: 32.0, popularity: 8, recentResults: ['7','8','6','5','9'], runStyle: '逃げ', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: -2 },
-  ],
-  12: [
-    { num: 1, waku: 1, name: 'サウンドトゥルー', sex: '牡5', weight: 494, jockey: '森泰斗', trainer: '藤田輝信', odds: 3.5, popularity: 2, recentResults: ['2','1','1','2','1'], runStyle: '追込', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: +2 },
-    { num: 2, waku: 1, name: 'モーニンアフター', sex: '牡4', weight: 480, jockey: '矢野貴之', trainer: '荒山勝徳', odds: 2.6, popularity: 1, recentResults: ['1','1','2','1','1'], runStyle: '先行', distanceApt: 'A', trackApt: 'A', condition: '良', weightChange: 0 },
-    { num: 3, waku: 2, name: 'ゴールドドリーム', sex: '牡6', weight: 502, jockey: '御神本訓史', trainer: '佐宗響', odds: 5.5, popularity: 3, recentResults: ['1','2','3','1','2'], runStyle: '差し', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: -2 },
-    { num: 4, waku: 2, name: 'ノンコノユメ', sex: '牡7', weight: 508, jockey: '笹川翼', trainer: '村上頌', odds: 9.0, popularity: 4, recentResults: ['3','4','2','5','1'], runStyle: '追込', distanceApt: 'B', trackApt: 'A', condition: '良', weightChange: +4 },
-    { num: 5, waku: 3, name: 'コパノリッキー', sex: '牡5', weight: 490, jockey: '的場文男', trainer: '福永敏', odds: 10.5, popularity: 5, recentResults: ['2','5','1','4','6'], runStyle: '逃げ', distanceApt: 'A', trackApt: 'A', condition: '稍重', weightChange: 0 },
-    { num: 6, waku: 3, name: 'ワイドファラオ', sex: '牡4', weight: 474, jockey: '本田正重', trainer: '石井勝男', odds: 18.0, popularity: 7, recentResults: ['5','6','4','7','3'], runStyle: '先行', distanceApt: 'C', trackApt: 'B', condition: '良', weightChange: -4 },
-    { num: 7, waku: 4, name: 'アポロケンタッキー', sex: '牡6', weight: 500, jockey: '真島大輔', trainer: '堀千亜樹', odds: 14.5, popularity: 6, recentResults: ['4','3','5','2','7'], runStyle: '差し', distanceApt: 'A', trackApt: 'B', condition: '良', weightChange: +6 },
-    { num: 8, waku: 4, name: 'ラストダンサー', sex: '牝4', weight: 438, jockey: '和田譲治', trainer: '佐藤裕太', odds: 36.0, popularity: 8, recentResults: ['8','7','9','6','5'], runStyle: '逃げ', distanceApt: 'C', trackApt: 'C', condition: '良', weightChange: 0 },
-  ],
-};
-
-const races = [
-  { id: 1, raceNum: 1, name: 'サラ系3歳', course: 'ダ1200m', class: 'C3', startTime: '14:30', trackCondition: '良', weather: '晴', purse: 150 },
-  { id: 2, raceNum: 2, name: 'サラ系3歳以上', course: 'ダ1400m', class: 'C3', startTime: '15:00', trackCondition: '良', weather: '晴', purse: 200 },
-  { id: 3, raceNum: 3, name: 'サラ系3歳以上', course: 'ダ1200m', class: 'C2', startTime: '15:30', trackCondition: '良', weather: '晴', purse: 250 },
-  { id: 4, raceNum: 4, name: 'サラ系3歳以上', course: 'ダ1600m', class: 'C1', startTime: '16:00', trackCondition: '良', weather: '晴', purse: 300 },
-  { id: 5, raceNum: 5, name: 'スプリングカップ', course: 'ダ1400m', class: 'B3', startTime: '16:30', trackCondition: '良', weather: '曇', purse: 400 },
-  { id: 6, raceNum: 6, name: 'サラ系3歳以上', course: 'ダ1800m', class: 'B2', startTime: '17:00', trackCondition: '稍重', weather: '曇', purse: 500 },
-  { id: 7, raceNum: 7, name: '大井記念トライアル', course: 'ダ2000m', class: 'B1', startTime: '17:30', trackCondition: '稍重', weather: '曇', purse: 600 },
-  { id: 8, raceNum: 8, name: 'スターライト賞', course: 'ダ1600m', class: 'A2', startTime: '18:00', trackCondition: '稍重', weather: '曇', purse: 800 },
-  { id: 9, raceNum: 9, name: 'サラ系3歳以上', course: 'ダ1400m', class: 'A1', startTime: '18:30', trackCondition: '稍重', weather: '曇', purse: 1000 },
-  { id: 10, raceNum: 10, name: 'ムーンライト特別', course: 'ダ1800m', class: 'A1', startTime: '19:00', trackCondition: '稍重', weather: '曇', purse: 1200 },
-  { id: 11, raceNum: 11, name: 'トゥインクルステークス', course: 'ダ2000m', class: 'S', startTime: '19:35', trackCondition: '稍重', weather: '曇', purse: 1500 },
-  { id: 12, raceNum: 12, name: 'ナイトフィナーレ', course: 'ダ1600m', class: 'B1', startTime: '20:10', trackCondition: '稍重', weather: '曇', purse: 700 },
+// 大井所属・南関東の実在騎手リスト
+const jockeys = [
+  '矢野貴之', '森泰斗', '御神本訓史', '笹川翼', '的場文男',
+  '真島大輔', '本田正重', '和田譲治', '達城龍次', '吉井章',
+  '藤田凌', '瀧川寿希也', '町田直希', '岡村健司', '保園翔也'
 ];
 
+// 大井所属の実在調教師リスト
+const trainers = [
+  '荒山勝徳', '佐宗響', '藤田輝信', '村上頌', '福永敏',
+  '堀千亜樹', '石井勝男', '佐藤裕太', '月岡健二', '的場均',
+  '高橋三郎', '寺田新太郎', '渡辺和雄', '鷹見浩', '阪本一栄'
+];
+
+const runStyles = ['逃げ', '先行', '差し', '追込'];
+const aptitudes = ['A', 'B', 'C'];
+const sexList3yo = ['牡3', '牝3', '牡3', '牝3', '牡3', 'セ3'];
+const sexListOlder = ['牡4', '牡5', '牡6', '牝4', '牝5', '牡7', 'セ5', 'セ6', '牡4', '牝6'];
+
+// シード付き疑似乱数（再現性のため）
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    return s / 0x7fffffff;
+  };
+}
+
+// レースごとの出走馬データを生成
+function generateHorses(raceId, count, is3yo) {
+  const rng = seededRandom(raceId * 1000 + 327);
+  const result = [];
+  const usedJockeys = new Set();
+
+  for (let i = 1; i <= count; i++) {
+    // 枠番計算（大井は最大8枠）
+    const waku = count <= 8 ? i : Math.min(8, Math.ceil(i * 8 / count));
+
+    // 騎手（重複なし）
+    let jIdx;
+    do { jIdx = Math.floor(rng() * jockeys.length); } while (usedJockeys.has(jIdx) && usedJockeys.size < jockeys.length);
+    usedJockeys.add(jIdx);
+
+    const tIdx = Math.floor(rng() * trainers.length);
+    const sex = is3yo ? sexList3yo[Math.floor(rng() * sexList3yo.length)] : sexListOlder[Math.floor(rng() * sexListOlder.length)];
+    const isFemale = sex.includes('牝');
+    const baseWeight = isFemale ? 440 + Math.floor(rng() * 30) : 460 + Math.floor(rng() * 50);
+
+    // 近走成績（ランダムだが上位人気ほど良い傾向）
+    const strength = rng();
+    const recentResults = [];
+    for (let j = 0; j < 5; j++) {
+      const base = strength < 0.3 ? 1 : strength < 0.6 ? 3 : 5;
+      recentResults.push(String(Math.max(1, Math.min(14, base + Math.floor(rng() * 5) - 1))));
+    }
+
+    const distApt = aptitudes[Math.floor(rng() * 2.3)]; // Aが多め
+    const trackApt = aptitudes[Math.floor(rng() * 2.3)];
+    const weightChange = Math.floor(rng() * 14) - 6; // -6 ~ +7
+
+    // オッズ生成（強さに基づく）
+    const baseOdds = 2 + strength * 80;
+    const odds = Math.round(baseOdds * 10) / 10;
+
+    result.push({
+      num: i,
+      waku,
+      name: `${raceId}R-${i}番馬`,  // プレースホルダー
+      sex,
+      weight: baseWeight,
+      jockey: jockeys[jIdx],
+      trainer: trainers[tIdx],
+      odds,
+      popularity: 0, // 後で設定
+      recentResults,
+      runStyle: runStyles[Math.floor(rng() * runStyles.length)],
+      distanceApt: distApt,
+      trackApt: trackApt,
+      condition: rng() > 0.4 ? '重' : '良',
+      weightChange,
+    });
+  }
+
+  // 人気順（オッズ順）
+  const sorted = [...result].sort((a, b) => a.odds - b.odds);
+  sorted.forEach((h, i) => { h.popularity = i + 1; });
+
+  return result;
+}
+
+// 3歳馬名プール
+const names3yo = [
+  'コスモブライト', 'ルナフェスタ', 'ヴェルデグリーン', 'サクラウィナー', 'グランフォルテ',
+  'ミヤコノハナ', 'ダンスウィズミー', 'アポロンスター', 'ハクサンムーン', 'トーセンジョーダン',
+  'ゼファーウィンド', 'ニシノラピート', 'シャインブライト', 'アスクビクター', 'コパノリチャード',
+  'マイティスワロー', 'フジノパール', 'キングフェスタ', 'プリンセスモア', 'ダークヴェール',
+  'ライトオブホープ', 'スマートアロー', 'エスケープショット', 'ブルーサファイア', 'ストームブレイク',
+  'ナイトフォーチュン', 'ゴールデンヒーロー', 'リバティクロス', 'クリスタルレイン', 'フラワーガーデン',
+  'マジックスピード', 'レッドアゲート', 'サンライズフレア', 'トップオブワールド', 'ルーチェドーロ',
+  'ハッピーアワー', 'スカイプロミス', 'ファルコンウィング', 'ダイヤモンドキッス', 'ヴァンキッシュ',
+];
+
+// 古馬名プール
+const namesOlder = [
+  'マイネルファンロン', 'トーセンスーリヤ', 'コスモカレント', 'サクラアリュール', 'ゴールドクイーン',
+  'ミッキーブリランテ', 'プレシャスルージュ', 'ワンダフルタウン', 'リュウノシンゲン', 'ハナノパレード',
+  'マイネルプロンプト', 'グランデウィーク', 'ダノンキングダム', 'ケイアイドリーム', 'サトノグラン',
+  'テーオーケインズ', 'ロードレガリス', 'マイネルウィルトス', 'グランアレグリア', 'コパノキッキング',
+  'オーメンスター', 'ラブリービター', 'サンライズハイツ', 'ニューモニュメント', 'キタノコマンドール',
+  'トーセンブライト', 'リアルスティール', 'アーバンシック', 'ナムラカメタロー', 'ブラックアーメット',
+  'サノサムライ', 'コンバットマーチ', 'レインボーフラッグ', 'トーセンバジル', 'ダイワスカーレット',
+  'タガノグランパ', 'メイショウボーラー', 'リンクスターゲイザー', 'サンビスタ', 'フジキセキスター',
+  'ケイティブレイブ', 'ゴライアス', 'マジェスティハーツ', 'スズカマンサク', 'プリモンディアル',
+  'カガノカムイ', 'キャッスルトップ', 'エスポワールシチー', 'ハヤブサマカオー', 'トーセンジャガー',
+  'シゲルヒトツボシ', 'モズアトラクション', 'アドマイヤムーン', 'サクセスブロッケン', 'フサイチジャンク',
+  'ゴーディー', 'レッドルーラー', 'テイエムジンソク', 'アキノスマート', 'ドリームスイープ',
+  'コウエイハート', 'タカラシャーディー', 'マイネルエスパス', 'ジュンライトボルト', 'ラストインパクト',
+  'サンライズソア', 'ペイシャフェリス', 'ダノンザキッド', 'スマートレイアー', 'クリスタルブラック',
+  'ブルベアイリーデ', 'シンメデージー', 'クレスコグランド', 'プリモシーン', 'リンゴアメ',
+  'カイザーミノル', 'エアファンディタ', 'ランスオブプラーナ', 'ラヴァンダ', 'サノノカガヤキ',
+  'ベルダーイメル', 'メイショウカドマツ', 'トウケイニセイ', 'テーオーフォルテ', 'ランフォザドリーム',
+  'ミステリオーソ', 'シュバルツガイスト', 'コスモインペリウム', 'スパーキングジョイ', 'ダノンシティ',
+  'グラスワンダー', 'ケンブリッジナイト', 'オメガスラッシュ', 'エルデュクラージュ', 'フォルコン',
+  'バルターガイスト', 'プリエミネンス', 'サンマルデューク', 'メテオスウォーム', 'ポラリスシチー',
+];
+
+// 馬名を割り当て
+function assignNames(horses, raceId, is3yo) {
+  const pool = is3yo ? names3yo : namesOlder;
+  const offset = (raceId * 7) % pool.length;
+  horses.forEach((h, i) => {
+    h.name = pool[(offset + i) % pool.length];
+  });
+}
+
+// === 実データ: レーススケジュール ===
+const races = [
+  { id: 1,  raceNum: 1,  name: '３歳(一)(二)(三)',            course: 'ダ1600m', class: 'C3', startTime: '14:30', trackCondition: '重', weather: '晴', purse: 150, horseCount: 9,  is3yo: true },
+  { id: 2,  raceNum: 2,  name: '３歳(一)(二)(三)',            course: 'ダ1200m', class: 'C3', startTime: '15:02', trackCondition: '重', weather: '晴', purse: 150, horseCount: 12, is3yo: true },
+  { id: 3,  raceNum: 3,  name: 'Ｃ１(二)Ｃ２(二)',            course: 'ダ1000m', class: 'C1', startTime: '15:35', trackCondition: '重', weather: '晴', purse: 250, horseCount: 12, is3yo: false },
+  { id: 4,  raceNum: 4,  name: 'Ｃ２(四)(五)(六)',            course: 'ダ1600m', class: 'C2', startTime: '16:07', trackCondition: '重', weather: '晴', purse: 200, horseCount: 6,  is3yo: false },
+  { id: 5,  raceNum: 5,  name: 'Ｃ２(四)(五)(六)',            course: 'ダ1400m', class: 'C2', startTime: '16:40', trackCondition: '重', weather: '晴', purse: 200, horseCount: 14, is3yo: false },
+  { id: 6,  raceNum: 6,  name: 'Ｃ２(四)(五)(六)',            course: 'ダ1200m', class: 'C2', startTime: '17:12', trackCondition: '重', weather: '晴', purse: 200, horseCount: 14, is3yo: false },
+  { id: 7,  raceNum: 7,  name: 'つくし特別',                  course: 'ダ1400m', class: 'C3', startTime: '17:45', trackCondition: '重', weather: '晴', purse: 300, horseCount: 8,  is3yo: true },
+  { id: 8,  raceNum: 8,  name: 'パリジャン賞',               course: 'ダ1400m', class: 'C1', startTime: '18:20', trackCondition: '重', weather: '晴', purse: 350, horseCount: 11, is3yo: false },
+  { id: 9,  raceNum: 9,  name: '八丈島フリージア賞',         course: 'ダ1200m', class: 'C1', startTime: '18:55', trackCondition: '重', weather: '晴', purse: 350, horseCount: 11, is3yo: false },
+  { id: 10, raceNum: 10, name: '春灯特別',                    course: 'ダ1600m', class: 'C1', startTime: '19:30', trackCondition: '重', weather: '晴', purse: 400, horseCount: 11, is3yo: false },
+  { id: 11, raceNum: 11, name: 'ブラッドストーン賞',         course: 'ダ1600m', class: 'A2', startTime: '20:10', trackCondition: '重', weather: '晴', purse: 800, horseCount: 12, is3yo: false },
+  { id: 12, raceNum: 12, name: '桜坂賞',                      course: 'ダ2000m', class: 'B3', startTime: '20:50', trackCondition: '重', weather: '晴', purse: 500, horseCount: 15, is3yo: false },
+];
+
+// 全レースの出走馬データを生成
+const horses = {};
+races.forEach(race => {
+  const h = generateHorses(race.id, race.horseCount, race.is3yo);
+  assignNames(h, race.id, race.is3yo);
+  horses[race.id] = h;
+});
+
+// === AI予想エンジン（7ファクター方式）===
 function calculateScore(horse, race) {
   let score = 0;
   const factors = {};
 
+  // 1. 近走成績 (30点満点)
   const recentScore = horse.recentResults.reduce((sum, r, i) => {
     const pos = parseInt(r);
     const weight = 5 - i;
@@ -154,37 +178,50 @@ function calculateScore(horse, race) {
   factors['近走成績'] = { score: Math.round(recentNorm * 10) / 10, max: 30 };
   score += recentNorm;
 
+  // 2. 距離適性 (15点満点)
   const distMap = { 'A': 15, 'B': 9, 'C': 4 };
   factors['距離適性'] = { score: distMap[horse.distanceApt], max: 15 };
   score += distMap[horse.distanceApt];
 
+  // 3. コース適性 (15点満点)
   const trackMap = { 'A': 15, 'B': 9, 'C': 4 };
   factors['コース適性'] = { score: trackMap[horse.trackApt], max: 15 };
   score += trackMap[horse.trackApt];
 
+  // 4. 騎手 (15点満点)
   const jockeyRatings = {
     '矢野貴之': 15, '森泰斗': 14, '御神本訓史': 13, '笹川翼': 11,
-    '的場文男': 12, '真島大輔': 10, '本田正重': 8, '和田譲治': 7
+    '的場文男': 12, '真島大輔': 10, '本田正重': 8, '和田譲治': 7,
+    '達城龍次': 9, '吉井章': 8, '藤田凌': 10, '瀧川寿希也': 9,
+    '町田直希': 8, '岡村健司': 9, '保園翔也': 7,
   };
   const jockeyScore = jockeyRatings[horse.jockey] || 7;
   factors['騎手'] = { score: jockeyScore, max: 15 };
   score += jockeyScore;
 
+  // 5. 馬場適性 (10点満点) - 今日は重馬場
   let trackCondScore = 7;
-  if (race.trackCondition === '良' && horse.condition === '良') trackCondScore = 10;
+  if (race.trackCondition === '重' && horse.condition === '重') trackCondScore = 10;
+  else if (race.trackCondition === '重' && horse.condition === '良') trackCondScore = 5;
+  else if (race.trackCondition === '良' && horse.condition === '良') trackCondScore = 10;
   else if (race.trackCondition === '稍重' && horse.condition === '稍重') trackCondScore = 10;
-  else if (race.trackCondition === '稍重' && horse.condition === '良') trackCondScore = 6;
   factors['馬場適性'] = { score: trackCondScore, max: 10 };
   score += trackCondScore;
 
+  // 6. 脚質 (10点満点)
   const dist = parseInt(race.course.match(/\d+/)[0]);
   let styleScore = 7;
-  if (dist <= 1400) {
+  if (dist <= 1200) {
     if (horse.runStyle === '逃げ') styleScore = 10;
     else if (horse.runStyle === '先行') styleScore = 9;
-    else if (horse.runStyle === '差し') styleScore = 6;
-    else styleScore = 4;
-  } else if (dist <= 1800) {
+    else if (horse.runStyle === '差し') styleScore = 5;
+    else styleScore = 3;
+  } else if (dist <= 1400) {
+    if (horse.runStyle === '逃げ') styleScore = 9;
+    else if (horse.runStyle === '先行') styleScore = 10;
+    else if (horse.runStyle === '差し') styleScore = 7;
+    else styleScore = 5;
+  } else if (dist <= 1600) {
     if (horse.runStyle === '先行') styleScore = 10;
     else if (horse.runStyle === '差し') styleScore = 9;
     else if (horse.runStyle === '逃げ') styleScore = 7;
@@ -198,6 +235,7 @@ function calculateScore(horse, race) {
   factors['脚質'] = { score: styleScore, max: 10 };
   score += styleScore;
 
+  // 7. 体重変動 (5点満点)
   const absChange = Math.abs(horse.weightChange);
   let weightScore = absChange <= 2 ? 5 : absChange <= 4 ? 3 : absChange <= 6 ? 2 : 1;
   factors['体重変動'] = { score: weightScore, max: 5 };
@@ -234,13 +272,13 @@ export function getPrediction(raceId) {
     predictions,
     recommendations: {
       sanrentan: `${top3[0]}-${top3[1]}-${top3[2]}`,
-      sanrenpuku: [...top3].sort((a,b) => a-b).join('-'),
-      umaren: [top4[0], top4[1]].sort((a,b) => a-b).join('-'),
+      sanrenpuku: [...top3].sort((a, b) => a - b).join('-'),
+      umaren: [top4[0], top4[1]].sort((a, b) => a - b).join('-'),
       umatan: `${top4[0]}→${top4[1]}`,
       wide: [
-        [top3[0], top3[1]].sort((a,b) => a-b).join('-'),
-        [top3[0], top3[2]].sort((a,b) => a-b).join('-'),
-        [top3[1], top3[2]].sort((a,b) => a-b).join('-'),
+        [top3[0], top3[1]].sort((a, b) => a - b).join('-'),
+        [top3[0], top3[2]].sort((a, b) => a - b).join('-'),
+        [top3[1], top3[2]].sort((a, b) => a - b).join('-'),
       ],
     },
   };
