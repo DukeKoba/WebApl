@@ -8,9 +8,12 @@ export default function RaceList() {
 
   const classColors = {
     'S': 'from-yellow-600 to-yellow-500 text-yellow-100',
+    'A1': 'from-red-800 to-red-700 text-red-100',
     'A2': 'from-red-700 to-red-600 text-red-100',
     'B1': 'from-blue-700 to-blue-600 text-blue-100',
+    'B2': 'from-blue-600 to-blue-500 text-blue-100',
     'B3': 'from-blue-600 to-blue-500 text-blue-100',
+    'C1': 'from-green-700 to-green-600 text-green-100',
     'C2': 'from-green-700 to-green-600 text-green-100',
     'C3': 'from-green-600 to-green-500 text-green-100',
   };
