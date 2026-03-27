@@ -2,13 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import orgRoutes from './routes/organizations.js';
-import memberRoutes from './routes/members.js';
-import scheduleRoutes from './routes/schedules.js';
-import shiftRoutes from './routes/shifts.js';
-import absenceRoutes from './routes/absences.js';
-import templateRoutes from './routes/templates.js';
-import analyticsRoutes from './routes/analytics.js';
+import { getRaces, getRaceById, getPrediction } from './raceData.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -18,13 +12,21 @@ app.use(cors());
 app.use(express.json());
 
 // API routes
-app.use('/api/organizations', orgRoutes);
-app.use('/api/members', memberRoutes);
-app.use('/api/schedules', scheduleRoutes);
-app.use('/api/shifts', shiftRoutes);
-app.use('/api/absences', absenceRoutes);
-app.use('/api/templates', templateRoutes);
-app.use('/api/analytics', analyticsRoutes);
+app.get('/api/races', (req, res) => {
+  res.json(getRaces());
+});
+
+app.get('/api/races/:id', (req, res) => {
+  const race = getRaceById(parseInt(req.params.id));
+  if (!race) return res.status(404).json({ error: 'レースが見つかりません' });
+  res.json(race);
+});
+
+app.get('/api/races/:id/prediction', (req, res) => {
+  const prediction = getPrediction(parseInt(req.params.id));
+  if (!prediction) return res.status(404).json({ error: 'レースが見つかりません' });
+  res.json(prediction);
+});
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
@@ -36,5 +38,5 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.listen(PORT, () => {
-  console.log(`ShiftScheduler API running on http://localhost:${PORT}`);
+  console.log(`大井競馬場予想サーバー起動: http://localhost:${PORT}`);
 });
