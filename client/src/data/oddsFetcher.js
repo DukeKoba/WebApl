@@ -1,116 +1,232 @@
-// リアルタイムオッズ取得 (keiba.go.jp経由)
-// CORSプロキシを使用してユーザーのブラウザから直接取得
+// リアルタイムオッズ取得 - 複数ソース対応
+// ユーザーのブラウザから CORSプロキシ経由で取得
 
 const CORS_PROXIES = [
   (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
   (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
 ];
 
-const BABA_CODE = '20'; // 大井競馬場
-const RACE_DATE = '2026/03/27';
-
-// keiba.go.jp 単勝・複勝オッズURL
-function getOddsUrl(raceNo) {
-  return `https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/OddsTanFuku?k_raceDate=${RACE_DATE}&k_raceNo=${raceNo}&k_babaCode=${BABA_CODE}`;
+// === ソース1: netkeiba NAR (地方競馬) ===
+// race_id: 2026 + 44(大井) + 0327(日付) + XX(レース番号)
+function getNetkeibaRaceId(raceNo) {
+  return `2026440327${String(raceNo).padStart(2, '0')}`;
 }
 
-// HTMLからオッズデータをパース
-function parseOddsHtml(html) {
+function getNetkeibaOddsUrl(raceNo) {
+  const raceId = getNetkeibaRaceId(raceNo);
+  return `https://nar.netkeiba.com/odds/index.html?type=b1&race_id=${raceId}&rf=shutuba_submenu`;
+}
+
+// netkeiba HTMLパーサー
+function parseNetkeibaOdds(html) {
   const odds = {};
   try {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    // keiba.go.jpのオッズテーブルからデータ抽出
-    const rows = doc.querySelectorAll('table tr');
+    // odds_tan_block 内のテーブルを探す
+    const tanBlock = doc.querySelector('#odds_tan_block') || doc;
+
+    // テーブル行を走査
+    const rows = tanBlock.querySelectorAll('tr');
     rows.forEach(row => {
-      const cells = row.querySelectorAll('td');
-      if (cells.length >= 3) {
-        // 馬番とオッズを取得
-        const numText = cells[0]?.textContent?.trim();
-        const oddsText = cells[2]?.textContent?.trim();
-        const num = parseInt(numText);
-        const oddsVal = parseFloat(oddsText);
-        if (num > 0 && oddsVal > 0) {
+      const numEl = row.querySelector('.Umaban, .umaban, td:first-child');
+      const oddsEl = row.querySelector('.Odds, .odds, .OddsTan');
+      if (numEl && oddsEl) {
+        const num = parseInt(numEl.textContent.trim());
+        const oddsVal = parseFloat(oddsEl.textContent.trim());
+        if (num > 0 && num <= 16 && oddsVal > 0) {
           odds[num] = oddsVal;
         }
       }
     });
 
-    // 別のテーブル構造にも対応
+    // テーブルが見つからなかった場合: pd.read_html互換の解析
     if (Object.keys(odds).length === 0) {
-      const allText = html;
-      // 正規表現でオッズパターンを探す
-      // パターン: 馬番 ... オッズ値
-      const pattern = /class="(?:umaban|horse_number|num)"[^>]*>(\d+)<[\s\S]*?class="(?:odds|tanOdds)"[^>]*>([\d.]+)</g;
-      let match;
-      while ((match = pattern.exec(allText)) !== null) {
-        const num = parseInt(match[1]);
-        const oddsVal = parseFloat(match[2]);
-        if (num > 0 && oddsVal > 0) {
-          odds[num] = oddsVal;
+      const tables = doc.querySelectorAll('table');
+      for (const table of tables) {
+        const trs = table.querySelectorAll('tr');
+        for (const tr of trs) {
+          const tds = tr.querySelectorAll('td');
+          if (tds.length >= 2) {
+            for (let i = 0; i < tds.length - 1; i++) {
+              const numText = tds[i].textContent.trim();
+              const num = parseInt(numText);
+              if (num > 0 && num <= 16 && numText.length <= 2) {
+                // 次のセルまたはその後にオッズ値がないか探す
+                for (let j = i + 1; j < tds.length; j++) {
+                  const oText = tds[j].textContent.trim();
+                  const oVal = parseFloat(oText);
+                  if (oVal > 1.0 && oVal < 9999) {
+                    odds[num] = oVal;
+                    break;
+                  }
+                }
+                break;
+              }
+            }
+          }
         }
+        if (Object.keys(odds).length > 0) break;
       }
     }
 
-    // さらに別パターン
+    // 正規表現フォールバック（複数パターン）
     if (Object.keys(odds).length === 0) {
-      const pattern2 = /<td[^>]*>\s*(\d{1,2})\s*<\/td>[\s\S]*?<td[^>]*>\s*([\d.]+)\s*<\/td>/g;
-      let match;
-      while ((match = pattern2.exec(html)) !== null) {
-        const num = parseInt(match[1]);
-        const oddsVal = parseFloat(match[2]);
-        if (num > 0 && num <= 16 && oddsVal > 0) {
-          odds[num] = oddsVal;
-        }
+      // パターン1: Umaban + Odds クラス
+      const p1 = /class="[^"]*[Uu]maban[^"]*"[^>]*>\s*(\d{1,2})\s*<[\s\S]*?class="[^"]*[Oo]dds[^"]*"[^>]*>\s*([\d.]+)/g;
+      let m;
+      while ((m = p1.exec(html)) !== null) {
+        const n = parseInt(m[1]), o = parseFloat(m[2]);
+        if (n > 0 && n <= 16 && o > 1) odds[n] = o;
+      }
+    }
+    if (Object.keys(odds).length === 0) {
+      // パターン2: 汎用テーブル行
+      const p2 = /<td[^>]*>\s*(\d{1,2})\s*<\/td>[\s\S]*?<td[^>]*>\s*([\d]+\.[\d]+)\s*<\/td>/g;
+      let m;
+      while ((m = p2.exec(html)) !== null) {
+        const n = parseInt(m[1]), o = parseFloat(m[2]);
+        if (n > 0 && n <= 16 && o > 1) odds[n] = o;
       }
     }
   } catch (e) {
-    console.warn('オッズパース失敗:', e);
+    console.warn('netkeiba パース失敗:', e);
   }
   return odds;
 }
 
-// オッズ取得（プロキシをフォールバック）
-export async function fetchOdds(raceNo) {
-  const targetUrl = getOddsUrl(raceNo);
+// === ソース2: keiba.go.jp (地方競馬情報サイト) ===
+function getKeibaGoJpUrl(raceNo) {
+  return `https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/OddsTanFuku?k_raceDate=2026/03/27&k_raceNo=${raceNo}&k_babaCode=20`;
+}
 
-  for (const proxyFn of CORS_PROXIES) {
-    try {
-      const proxyUrl = proxyFn(targetUrl);
-      const res = await fetch(proxyUrl, {
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!res.ok) continue;
-
-      const html = await res.text();
-      const odds = parseOddsHtml(html);
-
-      if (Object.keys(odds).length > 0) {
-        return { success: true, odds, source: 'keiba.go.jp', updatedAt: new Date().toLocaleTimeString('ja-JP') };
+function parseKeibaGoJpOdds(html) {
+  const odds = {};
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const rows = doc.querySelectorAll('table tr');
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      for (let i = 0; i < cells.length - 1; i++) {
+        const numText = cells[i].textContent.trim();
+        const num = parseInt(numText);
+        if (num > 0 && num <= 16 && numText.length <= 2) {
+          for (let j = i + 1; j < cells.length; j++) {
+            const oText = cells[j].textContent.trim();
+            const oVal = parseFloat(oText);
+            if (oVal > 1.0 && oVal < 9999) {
+              odds[num] = oVal;
+              break;
+            }
+          }
+        }
       }
-    } catch (e) {
-      console.warn('プロキシ失敗:', e.message);
-      continue;
+    });
+  } catch (e) {
+    console.warn('keiba.go.jp パース失敗:', e);
+  }
+  return odds;
+}
+
+// === ソース3: nankankeiba.com (南関東4競馬場公式) ===
+function getNankanUrl(raceNo) {
+  // URL形式: odds_nin/{date}{babaCode}{session}{day}{raceNo}{page}.do
+  // 大井=20, 第19回, 5日目
+  const rn = String(raceNo).padStart(2, '0');
+  return `https://www.nankankeiba.com/odds/tanfuku/20260327201905${rn}00.do`;
+}
+
+function parseNankanOdds(html) {
+  const odds = {};
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    // nankankeiba.com のテーブルを探す
+    const rows = doc.querySelectorAll('table tr, .oddsTable tr');
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      for (let i = 0; i < cells.length - 1; i++) {
+        const numText = cells[i].textContent.trim();
+        const num = parseInt(numText);
+        if (num > 0 && num <= 16 && numText.length <= 2) {
+          for (let j = i + 1; j < cells.length; j++) {
+            const oText = cells[j].textContent.trim();
+            const oVal = parseFloat(oText);
+            if (oVal > 1.0 && oVal < 9999) {
+              odds[num] = oVal;
+              break;
+            }
+          }
+        }
+      }
+    });
+  } catch (e) {
+    console.warn('nankankeiba パース失敗:', e);
+  }
+  return odds;
+}
+
+// === メイン: 複数ソースを順番に試行 ===
+const SOURCES = [
+  { name: 'netkeiba', getUrl: getNetkeibaOddsUrl, parse: parseNetkeibaOdds },
+  { name: 'keiba.go.jp', getUrl: getKeibaGoJpUrl, parse: parseKeibaGoJpOdds },
+  { name: 'nankankeiba', getUrl: getNankanUrl, parse: parseNankanOdds },
+];
+
+export async function fetchOdds(raceNo) {
+  for (const source of SOURCES) {
+    const targetUrl = source.getUrl(raceNo);
+
+    for (const proxyFn of CORS_PROXIES) {
+      try {
+        const proxyUrl = proxyFn(targetUrl);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        const res = await fetch(proxyUrl, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'text/html,application/xhtml+xml,*/*',
+          },
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) continue;
+
+        const html = await res.text();
+        if (html.length < 100) continue; // 空レスポンス
+
+        const odds = source.parse(html);
+
+        if (Object.keys(odds).length >= 3) {
+          console.log(`オッズ取得成功: ${source.name} (${Object.keys(odds).length}頭)`);
+          return {
+            success: true,
+            odds,
+            source: source.name,
+            updatedAt: new Date().toLocaleTimeString('ja-JP'),
+          };
+        }
+      } catch (e) {
+        // タイムアウトまたはネットワークエラー
+        continue;
+      }
     }
   }
 
   return { success: false, odds: {}, source: null, updatedAt: null };
 }
 
-// 全レースオッズを一括取得
+// 全レースオッズ一括取得
 export async function fetchAllOdds(raceCount = 12) {
   const results = {};
-  const promises = [];
-
-  for (let i = 1; i <= raceCount; i++) {
-    promises.push(
-      fetchOdds(i).then(result => {
-        results[i] = result;
-      })
-    );
-  }
-
-  await Promise.allSettled(promises);
+  await Promise.allSettled(
+    Array.from({ length: raceCount }, (_, i) =>
+      fetchOdds(i + 1).then(r => { results[i + 1] = r; })
+    )
+  );
   return results;
 }

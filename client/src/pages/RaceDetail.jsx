@@ -51,9 +51,11 @@ export default function RaceDetail() {
     setOddsLoading(false);
   }, [prediction]);
 
-  // 初回ロード時にオッズ取得
+  // 初回ロード時にオッズ取得 + 60秒ごと自動更新
   useEffect(() => {
     loadOdds();
+    const interval = setInterval(loadOdds, 60000);
+    return () => clearInterval(interval);
   }, [loadOdds]);
 
   // オッズを適用（ライブデータがあればそちらを使用）
