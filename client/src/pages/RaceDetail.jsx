@@ -58,7 +58,7 @@ export default function RaceDetail() {
           <span className="text-yellow-400 font-mono font-bold text-lg">{race.startTime}</span>
         </div>
         <h2 className="text-xl font-bold text-white">{race.name}</h2>
-        <div className="flex gap-4 mt-1 text-sm text-indigo-200">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-indigo-200">
           <span>{race.course}</span>
           <span>クラス: {race.class}</span>
           <span>馬場: {race.trackCondition}</span>
@@ -209,43 +209,43 @@ export default function RaceDetail() {
 
       {/* Horse Table Tab */}
       {activeTab === 'horses' && (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-gray-400 border-b border-gray-700">
-                <th className="py-2 px-1 text-left">枠</th>
-                <th className="py-2 px-1 text-left">馬名</th>
-                <th className="py-2 px-1">性齢</th>
-                <th className="py-2 px-1">斤量</th>
-                <th className="py-2 px-1">騎手</th>
-                <th className="py-2 px-1">脚質</th>
-                <th className="py-2 px-1">オッズ</th>
-                <th className="py-2 px-1">人気</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(prediction.race ? predictions.sort((a, b) => a.num - b.num) : []).map(horse => (
-                <tr key={horse.num} className="border-b border-gray-800 hover:bg-gray-800/50">
-                  <td className="py-2 px-1">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${wakuColors[horse.waku]}`}>
-                      {horse.num}
-                    </div>
-                  </td>
-                  <td className="py-2 px-1 font-bold text-white">{horse.name}</td>
-                  <td className="py-2 px-1 text-center text-gray-400">{horse.sex}</td>
-                  <td className="py-2 px-1 text-center text-gray-400">{horse.weight}</td>
-                  <td className="py-2 px-1 text-center text-gray-300">{horse.jockey}</td>
-                  <td className="py-2 px-1 text-center text-gray-400">{horse.runStyle}</td>
-                  <td className="py-2 px-1 text-center text-yellow-400 font-bold">{horse.odds}</td>
-                  <td className="py-2 px-1 text-center">
-                    <span className={`badge ${horse.popularity <= 3 ? 'bg-red-900 text-red-300' : 'bg-gray-700 text-gray-300'}`}>
-                      {horse.popularity}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {[...predictions].sort((a, b) => a.num - b.num).map(horse => (
+            <div key={horse.num} className="card">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${wakuColors[horse.waku]}`}>
+                  {horse.num}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-white text-sm">{horse.name}</div>
+                  <div className="text-xs text-gray-400">{horse.sex} / {horse.weight}kg ({horse.weightChange > 0 ? '+' : ''}{horse.weightChange})</div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-yellow-400 font-bold">{horse.odds}倍</div>
+                  <span className={`badge text-xs ${horse.popularity <= 3 ? 'bg-red-900 text-red-300' : 'bg-gray-700 text-gray-300'}`}>
+                    {horse.popularity}番人気
+                  </span>
+                </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-gray-700 grid grid-cols-3 gap-2 text-xs text-gray-400">
+                <div><span className="text-gray-500">騎手</span> <span className="text-gray-200">{horse.jockey}</span></div>
+                <div><span className="text-gray-500">脚質</span> <span className="text-gray-200">{horse.runStyle}</span></div>
+                <div><span className="text-gray-500">調教師</span> <span className="text-gray-200">{horse.trainer}</span></div>
+              </div>
+              <div className="mt-2 flex gap-1">
+                {horse.recentResults.map((r, j) => (
+                  <div key={j} className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold ${
+                    r === '1' ? 'bg-yellow-500 text-yellow-900' :
+                    r === '2' ? 'bg-gray-300 text-gray-800' :
+                    r === '3' ? 'bg-amber-700 text-amber-100' :
+                    parseInt(r) <= 5 ? 'bg-gray-600 text-gray-200' :
+                    'bg-gray-800 text-gray-500'
+                  }`}>{r}</div>
+                ))}
+                <span className="text-xs text-gray-500 self-center ml-1">近走</span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
