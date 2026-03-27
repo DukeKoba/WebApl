@@ -86,8 +86,31 @@ export default function RaceList() {
         ))}
       </div>
 
+      {/* オッズ・出馬表 外部リンク */}
+      <div className="mt-4 card border-indigo-600/30">
+        <p className="text-xs text-gray-400 mb-2">最新オッズ・出馬表を確認</p>
+        <div className="grid grid-cols-2 gap-2">
+          <a href="https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/TodayRaceInfoTop" target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1 text-xs text-white bg-blue-700 hover:bg-blue-600 py-2.5 rounded-md transition-all">
+            地方競馬公式オッズ
+          </a>
+          <a href="https://nar.netkeiba.com/race/shutuba.html?race_id=202644032701" target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1 text-xs text-white bg-green-700 hover:bg-green-600 py-2.5 rounded-md transition-all">
+            netkeiba 出馬表
+          </a>
+          <a href="https://keiba.rakuten.co.jp/race_card/list/RACEID/202603272015190500" target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1 text-xs text-white bg-red-700 hover:bg-red-600 py-2.5 rounded-md transition-all">
+            楽天競馬
+          </a>
+          <a href="https://www.nankankeiba.com/" target="_blank" rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1 text-xs text-white bg-purple-700 hover:bg-purple-600 py-2.5 rounded-md transition-all">
+            南関東公式
+          </a>
+        </div>
+      </div>
+
       {/* Footer */}
-      <div className="mt-6 text-center text-xs text-gray-600">
+      <div className="mt-4 text-center text-xs text-gray-600">
         <p>※ AI予想は参考情報です。投票は自己責任でお願いします。</p>
       </div>
     </div>
