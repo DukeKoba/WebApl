@@ -1,25 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, MapPin, Cloud, Sun, ChevronRight, Zap } from 'lucide-react';
+import { getRaces } from '../data/raceData';
 
 export default function RaceList() {
-  const [races, setRaces] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/races')
-      .then(r => r.json())
-      .then(data => { setRaces(data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
+  const races = getRaces();
 
   const classColors = {
     'S': 'from-yellow-600 to-yellow-500 text-yellow-100',

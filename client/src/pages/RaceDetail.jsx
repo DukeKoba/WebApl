@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Trophy, TrendingUp, Target, BarChart3, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { getPrediction } from '../data/raceData';
 
 const wakuColors = {
   1: 'bg-white text-black border border-gray-400',
@@ -23,25 +24,10 @@ const confidenceColors = {
 
 export default function RaceDetail() {
   const { id } = useParams();
-  const [prediction, setPrediction] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [expandedHorse, setExpandedHorse] = useState(null);
   const [activeTab, setActiveTab] = useState('prediction');
 
-  useEffect(() => {
-    fetch(`/api/races/${id}/prediction`)
-      .then(r => r.json())
-      .then(data => { setPrediction(data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-400"></div>
-      </div>
-    );
-  }
+  const prediction = useMemo(() => getPrediction(parseInt(id)), [id]);
 
   if (!prediction) {
     return <div className="text-center py-20 text-gray-400">レースデータが見つかりません</div>;
