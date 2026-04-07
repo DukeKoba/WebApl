@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "大井競馬AI予想",
+    "slug": "oi-keiba-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.oikeiba.ai"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.oikeiba.ai"
+    }
+  }
+}

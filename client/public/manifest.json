@@ -1,0 +1,18 @@
+{
+  "name": "大井競馬場 AI予想",
+  "short_name": "大井AI予想",
+  "description": "大井競馬場のレース予想・買い目推奨アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#1e1b4b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "buildCommand": "cd client && npx vite build",
+  "outputDirectory": "client/dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/races/:id/prediction", "destination": "/api/races/[id]/prediction" },
+    { "source": "/api/races/:id", "destination": "/api/races/[id]" },
+    { "source": "/api/races", "destination": "/api/races" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}

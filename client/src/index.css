@@ -4,33 +4,71 @@
 
 @layer base {
   body {
-    @apply antialiased text-gray-900;
+    @apply antialiased text-gray-100 bg-gray-900;
   }
 }
 
 @layer components {
-  .btn-primary {
-    @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed;
-  }
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium;
-  }
-  .btn-danger {
-    @apply bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors font-medium;
-  }
-  .btn-success {
-    @apply bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium;
-  }
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
-  }
-  .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all;
-  }
-  .label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-4;
   }
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold;
+  }
+  .badge-gold {
+    @apply bg-yellow-500 text-yellow-900;
+  }
+  .badge-silver {
+    @apply bg-gray-300 text-gray-800;
+  }
+  .badge-bronze {
+    @apply bg-amber-700 text-amber-100;
   }
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 3px;
+}
+
+/* Safe area for notch devices */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Prevent pull-to-refresh on mobile */
+html {
+  overscroll-behavior-y: contain;
+}
+
+/* Tap highlight removal */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Horse number colors */
+.waku-1 { background-color: #ffffff; color: #000; }
+.waku-2 { background-color: #000000; color: #fff; }
+.waku-3 { background-color: #e53e3e; color: #fff; }
+.waku-4 { background-color: #3182ce; color: #fff; }
+.waku-5 { background-color: #ecc94b; color: #000; }
+.waku-6 { background-color: #38a169; color: #fff; }
+.waku-7 { background-color: #ed8936; color: #fff; }
+.waku-8 { background-color: #d53f8c; color: #fff; }

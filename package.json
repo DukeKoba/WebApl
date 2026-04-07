@@ -1,7 +1,7 @@
 {
-  "name": "shift-scheduler",
+  "name": "oi-keiba-prediction",
   "version": "1.0.0",
-  "description": "Shift scheduling platform for teams",
+  "description": "大井競馬場予想アプリ",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
