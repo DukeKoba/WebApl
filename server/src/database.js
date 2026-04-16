@@ -134,6 +134,41 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
   );
+
+  -- SNS posts (Eiken/AiEdu → X, Ramen → Instagram)
+  CREATE TABLE IF NOT EXISTS sns_posts (
+    id TEXT PRIMARY KEY,
+    app_type TEXT NOT NULL,
+    post_text TEXT NOT NULL,
+    image_path TEXT,
+    image_analysis TEXT,
+    metadata TEXT DEFAULT '{}',
+    social_post_id TEXT,
+    social_posted_at DATETIME,
+    status TEXT DEFAULT 'draft',
+    error_message TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  -- Agent conversations
+  CREATE TABLE IF NOT EXISTS agent_conversations (
+    id TEXT PRIMARY KEY,
+    post_id TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES sns_posts(id) ON DELETE CASCADE
+  );
+
+  -- Agent messages
+  CREATE TABLE IF NOT EXISTS agent_messages (
+    id TEXT PRIMARY KEY,
+    conversation_id TEXT NOT NULL,
+    agent_role TEXT NOT NULL,
+    agent_name TEXT NOT NULL,
+    round INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (conversation_id) REFERENCES agent_conversations(id) ON DELETE CASCADE
+  );
 `);
 
 export default db;
