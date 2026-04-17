@@ -14,6 +14,7 @@ import eikenRoutes from './routes/eiken.js';
 import ramenRoutes from './routes/ramen.js';
 import aieduRoutes from './routes/aiedu.js';
 import igAnalyticsRoutes from './routes/instagramAnalytics.js';
+import authRoutes, { getToken } from './routes/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -24,6 +25,16 @@ app.use(express.json({ limit: '10mb' }));
 
 // Serve uploaded ramen photos
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Auth
+app.use('/api/auth', authRoutes);
+
+// Auth middleware
+app.use('/api', (req, res, next) => {
+  const token = req.headers['x-auth-token'];
+  if (token !== getToken()) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+});
 
 // ShiftSync API routes
 app.use('/api/organizations', orgRoutes);

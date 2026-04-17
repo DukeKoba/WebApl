@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginScreen from './components/LoginScreen';
 import Layout from './components/Layout';
 import AppSwitcher from './components/AppSwitcher';
 import Dashboard from './pages/Dashboard';
@@ -52,6 +53,12 @@ function ShiftSyncApp() {
 }
 
 export default function App() {
+  const [token, setToken] = useState(localStorage.getItem('auth_token') || '');
+
+  if (!token) {
+    return <LoginScreen onLogin={setToken} />;
+  }
+
   return (
     <Routes>
       <Route path="/" element={<AppSwitcher />} />

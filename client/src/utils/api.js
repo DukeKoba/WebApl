@@ -1,8 +1,9 @@
 const API_BASE = '/api';
 
 async function request(path, options = {}) {
+  const token = localStorage.getItem('auth_token') || '';
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: { 'Content-Type': 'application/json', 'x-auth-token': token, ...options.headers },
     ...options,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
