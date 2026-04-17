@@ -1,10 +1,17 @@
 const API_BASE = '/api';
 
-async function request(path, options = {}) {
+export function authFetch(path, options = {}) {
   const token = localStorage.getItem('auth_token') || '';
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', 'x-auth-token': token, ...options.headers },
+  return fetch(`${API_BASE}${path}`, {
     ...options,
+    headers: { 'x-auth-token': token, ...options.headers },
+  });
+}
+
+async function request(path, options = {}) {
+  const res = await authFetch(path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options.headers },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
   if (res.status === 204) return null;
@@ -81,7 +88,7 @@ export const api = {
   deleteAiEduPost: (id) => request(`/aiedu/posts/${id}`, { method: 'DELETE' }),
 
   // Ramen
-  uploadRamenImage: (formData) => fetch('/api/ramen/upload', { method: 'POST', body: formData }).then(r => r.json()),
+  uploadRamenImage: (formData) => authFetch('/ramen/upload', { method: 'POST', body: formData }).then(r => r.json()),
   getRamenPosts: () => request('/ramen/posts'),
   getRamenPost: (id) => request(`/ramen/posts/${id}`),
   updateRamenPost: (id, data) => request(`/ramen/posts/${id}`, { method: 'PUT', body: data }),

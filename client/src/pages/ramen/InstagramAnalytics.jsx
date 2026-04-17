@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Camera, BarChart2, Heart, MessageCircle, TrendingUp, Sparkles, RefreshCw, ExternalLink } from 'lucide-react';
+import { authFetch } from '../../utils/api';
 
 export default function InstagramAnalytics() {
   const [profile, setProfile] = useState(null);
@@ -18,7 +19,7 @@ export default function InstagramAnalytics() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/instagram/posts');
+      const res = await authFetch('/instagram/posts');
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);
@@ -37,7 +38,7 @@ export default function InstagramAnalytics() {
     setIsAnalyzing(true);
     setAdvice('');
     try {
-      const res = await fetch('/api/instagram/analyze', { method: 'POST' });
+      const res = await authFetch('/instagram/analyze', { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);

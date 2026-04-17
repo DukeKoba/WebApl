@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Camera, Instagram, Clock, CheckCircle, XCircle, FileText, Trash2, MapPin } from 'lucide-react';
+import { authFetch } from '../../utils/api';
 
 const STATUS_CONFIG = {
   draft: { label: '下書き', icon: FileText, color: 'text-gray-500', bg: 'bg-gray-100' },
@@ -13,7 +14,7 @@ export default function RamenHistory() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/ramen/posts')
+    authFetch('/ramen/posts')
       .then(r => r.json())
       .then(data => { setPosts(data); setLoading(false); })
       .catch(() => setLoading(false));
@@ -21,7 +22,7 @@ export default function RamenHistory() {
 
   const handleDelete = async (id) => {
     if (!confirm('この投稿を削除しますか？')) return;
-    await fetch(`/api/ramen/posts/${id}`, { method: 'DELETE' });
+    await authFetch(`/ramen/posts/${id}`, { method: 'DELETE' });
     setPosts(prev => prev.filter(p => p.id !== id));
   };
 

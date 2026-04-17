@@ -4,6 +4,7 @@ import { Camera, Sparkles, History, ArrowLeft, MapPin, Calendar, MessageSquare, 
 import PostPreview from '../../components/shared/PostPreview';
 
 import ImageUploader from '../../components/shared/ImageUploader';
+import { authFetch } from '../../utils/api';
 
 export default function RamenHome() {
   const [imageId, setImageId] = useState(null);
@@ -33,7 +34,7 @@ export default function RamenHome() {
     formData.append('image', file);
 
     try {
-      const res = await fetch('/api/ramen/upload', { method: 'POST', body: formData });
+      const res = await authFetch('/ramen/upload', { method: 'POST', body: formData });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);
@@ -74,7 +75,7 @@ export default function RamenHome() {
     };
 
     try {
-      const res = await fetch('/api/ramen/generate', {
+      const res = await authFetch('/ramen/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -131,7 +132,7 @@ export default function RamenHome() {
   const handlePublish = async (id) => {
     setIsPublishing(true);
     try {
-      const res = await fetch(`/api/ramen/posts/${id}/publish`, { method: 'POST' });
+      const res = await authFetch(`/ramen/posts/${id}/publish`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);
