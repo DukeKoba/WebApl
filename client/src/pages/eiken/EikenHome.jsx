@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
+import { authFetch } from '../../utils/api';
 
 const QUESTION_TYPES = [
   { value: 'vocabulary', label: '語彙' },
@@ -88,7 +89,7 @@ export default function EikenHome() {
     setError('');
 
     try {
-      const res = await fetch('/api/eiken/generate', {
+      const res = await authFetch('/eiken/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionType, level }),
@@ -136,7 +137,7 @@ export default function EikenHome() {
     setError('');
 
     try {
-      const res = await fetch('/api/eiken/generate-script', {
+      const res = await authFetch('/eiken/generate-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ questionType, level }),
@@ -154,7 +155,7 @@ export default function EikenHome() {
   const handlePublish = async (id) => {
     setIsPublishing(true);
     try {
-      const res = await fetch(`/api/eiken/posts/${id}/publish`, { method: 'POST' });
+      const res = await authFetch(`/eiken/posts/${id}/publish`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);

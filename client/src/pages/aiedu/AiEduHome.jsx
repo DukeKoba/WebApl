@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brain, Sparkles, History, ArrowLeft } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
+import { authFetch } from '../../utils/api';
 
 const CONTENT_TYPES = [
   { value: 'basics', label: 'AI基礎知識' },
@@ -41,7 +42,7 @@ export default function AiEduHome() {
     setError('');
 
     try {
-      const res = await fetch('/api/aiedu/generate', {
+      const res = await authFetch('/aiedu/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contentType }),
@@ -91,7 +92,7 @@ export default function AiEduHome() {
   const handlePublish = async (id) => {
     setIsPublishing(true);
     try {
-      const res = await fetch(`/api/aiedu/posts/${id}/publish`, { method: 'POST' });
+      const res = await authFetch(`/aiedu/posts/${id}/publish`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);
