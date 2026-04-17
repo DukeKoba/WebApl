@@ -135,11 +135,7 @@ db.exec(`
     FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE
   );
 
-<<<<<<< HEAD
   -- SNS posts (Eiken/AiEdu → X, Ramen → Instagram)
-=======
-  -- SNS posts (Eiken → X, Ramen → Instagram)
->>>>>>> 1a4de76 (feat: deploy ready)
   CREATE TABLE IF NOT EXISTS sns_posts (
     id TEXT PRIMARY KEY,
     app_type TEXT NOT NULL,
