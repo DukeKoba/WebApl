@@ -65,6 +65,28 @@ export const api = {
   createAbsence: (data) => request('/absences', { method: 'POST', body: data }),
   updateAbsence: (id, data) => request(`/absences/${id}`, { method: 'PUT', body: data }),
 
+  // Eiken
+  getEikenPosts: () => request('/eiken/posts'),
+  getEikenPost: (id) => request(`/eiken/posts/${id}`),
+  updateEikenPost: (id, data) => request(`/eiken/posts/${id}`, { method: 'PUT', body: data }),
+  publishEikenPost: (id) => request(`/eiken/posts/${id}/publish`, { method: 'POST' }),
+  deleteEikenPost: (id) => request(`/eiken/posts/${id}`, { method: 'DELETE' }),
+
+  // AI Education
+  getAiEduPosts: () => request('/aiedu/posts'),
+  getAiEduPost: (id) => request(`/aiedu/posts/${id}`),
+  updateAiEduPost: (id, data) => request(`/aiedu/posts/${id}`, { method: 'PUT', body: data }),
+  publishAiEduPost: (id) => request(`/aiedu/posts/${id}/publish`, { method: 'POST' }),
+  deleteAiEduPost: (id) => request(`/aiedu/posts/${id}`, { method: 'DELETE' }),
+
+  // Ramen
+  uploadRamenImage: (formData) => fetch('/api/ramen/upload', { method: 'POST', body: formData }).then(r => r.json()),
+  getRamenPosts: () => request('/ramen/posts'),
+  getRamenPost: (id) => request(`/ramen/posts/${id}`),
+  updateRamenPost: (id, data) => request(`/ramen/posts/${id}`, { method: 'PUT', body: data }),
+  publishRamenPost: (id) => request(`/ramen/posts/${id}/publish`, { method: 'POST' }),
+  deleteRamenPost: (id) => request(`/ramen/posts/${id}`, { method: 'DELETE' }),
+
   // Analytics
   getDashboard: (orgId) => request(`/analytics/dashboard?org_id=${orgId}`),
   getWorkload: (orgId, start, end) => request(`/analytics/workload?org_id=${orgId}${start ? `&start_date=${start}` : ''}${end ? `&end_date=${end}` : ''}`),

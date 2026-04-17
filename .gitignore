@@ -6,3 +6,4 @@ build/
 *.sqlite
 .DS_Store
 *.log
+server/uploads/

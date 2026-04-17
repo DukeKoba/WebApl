@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
-import { LayoutDashboard, Users, Clock, Calendar, AlertTriangle, Settings, Menu, X, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Users, Clock, Calendar, AlertTriangle, Menu, X, ChevronDown, Grid } from 'lucide-react';
 import Toast from './Toast';
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
 export default function Layout({ children }) {
   const { currentOrg, orgs, setCurrentOrg, toast } = useApp();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [orgDropdown, setOrgDropdown] = useState(false);
 
@@ -36,7 +37,14 @@ export default function Layout({ children }) {
               </div>
               <span className="font-bold text-lg text-gray-900">ShiftSync</span>
             </div>
-            <button className="ml-auto lg:hidden" onClick={() => setSidebarOpen(false)}>
+            <button
+              onClick={() => navigate('/')}
+              className="ml-auto p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="アプリ切替"
+            >
+              <Grid className="w-4 h-4" />
+            </button>
+            <button className="lg:hidden ml-1" onClick={() => setSidebarOpen(false)}>
               <X className="w-5 h-5" />
             </button>
           </div>

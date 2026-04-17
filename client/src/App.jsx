@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
+import AppSwitcher from './components/AppSwitcher';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import Templates from './pages/Templates';
@@ -8,9 +9,16 @@ import Schedules from './pages/Schedules';
 import ScheduleDetail from './pages/ScheduleDetail';
 import Absences from './pages/Absences';
 import Setup from './pages/Setup';
+import EikenHome from './pages/eiken/EikenHome';
+import EikenHistory from './pages/eiken/EikenHistory';
+import RamenHome from './pages/ramen/RamenHome';
+import RamenHistory from './pages/ramen/RamenHistory';
+import InstagramAnalytics from './pages/ramen/InstagramAnalytics';
+import AiEduHome from './pages/aiedu/AiEduHome';
+import AiEduHistory from './pages/aiedu/AiEduHistory';
 import { useApp } from './contexts/AppContext';
 
-export default function App() {
+function ShiftSyncApp() {
   const { currentOrg, loading } = useApp();
 
   if (loading && !currentOrg) {
@@ -37,8 +45,25 @@ export default function App() {
         <Route path="/schedules" element={<Schedules />} />
         <Route path="/schedules/:id" element={<ScheduleDetail />} />
         <Route path="/absences" element={<Absences />} />
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/shiftsync" />} />
       </Routes>
     </Layout>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<AppSwitcher />} />
+      <Route path="/shiftsync/*" element={<ShiftSyncApp />} />
+      <Route path="/eiken" element={<EikenHome />} />
+      <Route path="/eiken/history" element={<EikenHistory />} />
+      <Route path="/ramen" element={<RamenHome />} />
+      <Route path="/ramen/history" element={<RamenHistory />} />
+      <Route path="/ramen/analytics" element={<InstagramAnalytics />} />
+      <Route path="/aiedu" element={<AiEduHome />} />
+      <Route path="/aiedu/history" element={<AiEduHistory />} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
