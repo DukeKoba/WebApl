@@ -13,6 +13,14 @@ const QUESTION_TYPE_LABELS = {
   writing: 'ライティング',
   listening: 'リスニング',
   interview: '面接Tips',
+  american_culture: 'アメリカ文化・独特表現',
+};
+
+// Extra instructions per question type
+const QUESTION_TYPE_EXTRA = {
+  american_culture: `アメリカの文化・習慣・スラング・慣用句に由来する英語表現を1つ取り上げてください。
+例：「It's not rocket science」「ballpark figure」「rain check」など日本人が知らない表現。
+その表現の意味・由来・使い方を簡潔に紹介し、英検${'{level}'}レベルのリーダーが実際に使えるようにしてください。`,
 };
 
 const LEVEL_CONFIG = {
@@ -93,6 +101,7 @@ function buildPrefix(level) {
 function buildEikenPrompt(questionType, level, bodyLimit) {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
   const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+  const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replace('{level}', lv.label);
 
   return `英検${lv.label}の学習コンテンツの本文部分のみを書いてください。ターゲット: **${lv.target}**
 問題タイプ: ${typeLabel}
@@ -103,7 +112,7 @@ function buildEikenPrompt(questionType, level, bodyLimit) {
 
 【本文の要件】
 - ${lv.hook}
-- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ
+${extra ? `- ${extra}` : `- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ`}
 - クイズ形式なら選択肢は①②の2択のみ
 - 絵文字は1〜2個まで
 - **本文は${bodyLimit}文字以内**（厳守）

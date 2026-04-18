@@ -11,6 +11,7 @@ const QUESTION_TYPES = [
   { value: 'writing', label: 'ライティング' },
   { value: 'listening', label: 'リスニング' },
   { value: 'interview', label: '面接Tips' },
+  { value: 'american_culture', label: '🇺🇸 文化表現' },
 ];
 
 const EIKEN_LEVELS = [
