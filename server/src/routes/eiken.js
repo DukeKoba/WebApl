@@ -54,32 +54,73 @@ const LEVEL_CONFIG = {
   },
 };
 
-function buildEikenPrompt(questionType, level) {
+const EXAM_DATES = {
+  '2': new Date('2026-05-31'),
+};
+
+function getDaysUntilExam(level) {
+  const examDate = EXAM_DATES[level];
+  if (!examDate) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
+}
+
+const CTA_URL = 'https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561';
+const CTA_TEXT = `📲 AI英検Passで詳しく解説 → ${CTA_URL}`;
+
+// X counts every URL as exactly 23 chars regardless of length
+function calcXCharCount(text) {
+  const urlRegex = /https?:\/\/\S+/g;
+  return text.replace(urlRegex, 'x'.repeat(23)).length;
+}
+
+// Build the fixed suffix (CTA + hashtags) and return it with its X char cost
+function buildSuffix(lv) {
+  const suffix = `\n${CTA_TEXT}\n${lv.hashtags}`;
+  return { suffix, cost: calcXCharCount(suffix) };
+}
+
+// Build the fixed prefix (exam countdown) and return it with its X char cost
+function buildPrefix(level) {
+  const daysUntil = getDaysUntilExam(level);
+  if (daysUntil === null) return { prefix: '', cost: 0 };
+  const prefix = `📅 1次試験まであと${daysUntil}日！\n`;
+  return { prefix, cost: prefix.length };
+}
+
+function buildEikenPrompt(questionType, level, bodyLimit) {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
   const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
 
-  return `英検${lv.label}の学習コンテンツをXに投稿します。ターゲットは**${lv.target}**です。
-
+  return `英検${lv.label}の学習コンテンツの本文部分のみを書いてください。ターゲット: **${lv.target}**
 問題タイプ: ${typeLabel}
 
-【厳守事項】
-URLはXが自動で23文字に短縮されます。
-文字数カウント方法：（本文の文字数）＋23（URL）＋ハッシュタグ文字数 ≤ 280文字
-本文＋ハッシュタグは**最大250文字以内**に収めること。
+【役割】
+あなたはSNSマーケティングと英語教育の専門家です。
+以下の本文のみを出力してください。受験日・URL・ハッシュタグはシステムが自動付与するので含めないでください。
 
-以下の要件で投稿文を1つ作成してください：
-
-【要件】
+【本文の要件】
 - ${lv.hook}
-- 英検${lv.label}の${typeLabel}に関するTipsまたは短い例文を1つ含める
-- クイズ形式の場合は選択肢を2つだけ（①②）にして短く
-- 末尾に「📲 AI英検Passで詳しく解説 → アプリをチェック！ https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561」を入れる
-- ハッシュタグは末尾に3個（例: ${lv.hashtags}）
-- 絵文字は最小限に
+- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ
+- クイズ形式なら選択肢は①②の2択のみ
+- 絵文字は1〜2個まで
+- **本文は${bodyLimit}文字以内**（厳守）
 
 【出力形式】
-投稿文のみを出力してください。前後に説明文を入れないでください。`;
+本文テキストのみ。URL・ハッシュタグ・受験日カウントダウン・前置き・説明文は一切含めないこと。`;
 }
+
+// GET /api/eiken/exam-info
+router.get('/exam-info', (req, res) => {
+  const info = {};
+  for (const [level, date] of Object.entries(EXAM_DATES)) {
+    const days = getDaysUntilExam(level);
+    info[level] = { examDate: date.toISOString().slice(0, 10), daysUntil: days };
+  }
+  res.json(info);
+});
 
 // POST /api/eiken/generate - Direct single-call generation (SSE)
 router.post('/generate', async (req, res) => {
@@ -96,19 +137,30 @@ router.post('/generate', async (req, res) => {
 
   try {
     const postId = uuidv4();
-    const prompt = buildEikenPrompt(questionType, level);
+    const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+    const { prefix } = buildPrefix(level);
+    const { suffix, cost: suffixCost } = buildSuffix(lv);
+    const prefixCost = prefix.length;
+    const bodyLimit = 280 - prefixCost - suffixCost - 2; // 2 for safety margin
 
-    const postText = await generateTextFull(
-      'あなたはSNSマーケティングと英語教育の専門家です。高校生向けに英検2級学習コンテンツをXに投稿します。',
-      prompt,
-      { maxTokens: 600 }
-    );
+    const systemPrompt = 'あなたはSNSマーケティングと英語教育の専門家です。';
+
+    let body = '';
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
+      const prompt = buildEikenPrompt(questionType, level, limitForAttempt);
+      body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 400 })).trim();
+      if (body.length <= bodyLimit) break;
+    }
+    if (body.length > bodyLimit) body = body.slice(0, bodyLimit).trimEnd();
+
+    const postText = `${prefix}${body}${suffix}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'eiken', postText.trim(), JSON.stringify({ questionType, level }), 'draft'
+      postId, 'eiken', postText, JSON.stringify({ questionType, level }), 'draft'
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText.trim() });
+    sendEvent('final_post', { post_id: postId, post_text: postText });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });
@@ -122,6 +174,10 @@ router.post('/generate-script', async (req, res) => {
   const { questionType = 'vocabulary', level = '2' } = req.body;
   const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
+
+  const daysUntilScript = getDaysUntilExam(level);
+  const examHook = daysUntilScript !== null
+    ? `\n- フック冒頭で「1次試験まであと${daysUntilScript}日！」を必ず入れる` : '';
 
   const prompt = `英検${lv.label}の学習コンテンツのTikTok・Instagram Reels用動画台本を作成してください。
 ターゲット: ${lv.target}
@@ -151,7 +207,7 @@ router.post('/generate-script', async (req, res) => {
 ナレーション: （アプリへ誘導する言葉）
 
 【要件】
-- 高校生が最初の3秒で止まりたくなるフック
+- 高校生が最初の3秒で止まりたくなるフック${examHook}
 - 実際の英検${lv.label}レベルのサンプル問題を使う
 - ナレーションは話し言葉で自然に
 - 画面テキストは短く大きく
