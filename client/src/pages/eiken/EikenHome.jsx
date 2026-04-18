@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check } from 'lucide-react';
+import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check, CalendarClock } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
 
@@ -67,6 +67,16 @@ function ScriptPreview({ script, onScriptChange }) {
       </div>
     </div>
   );
+}
+
+const EXAM_DATES = { '2': '2026-05-31' };
+
+function getDaysUntil(dateStr) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(dateStr);
+  const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : 0;
 }
 
 export default function EikenHome() {
@@ -196,6 +206,22 @@ export default function EikenHome() {
       </div>
 
       <div className="max-w-2xl mx-auto p-4 lg:p-6 space-y-4">
+        {/* Exam countdown banner */}
+        {EXAM_DATES[level] && (
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <CalendarClock className="w-5 h-5 text-amber-500 shrink-0" />
+            <div className="text-sm">
+              <span className="font-semibold text-amber-800">
+                英検{EIKEN_LEVELS.find(l => l.value === level)?.label} 1次試験
+              </span>
+              <span className="text-amber-700">（{EXAM_DATES[level]}）まで</span>
+              <span className="font-bold text-amber-900 text-base ml-1">
+                あと{getDaysUntil(EXAM_DATES[level])}日！
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Tab */}
         <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white">
           <button
