@@ -14,6 +14,7 @@ const QUESTION_TYPE_LABELS = {
   listening: 'リスニング',
   interview: '面接Tips',
   american_culture: 'アメリカ文化・独特表現',
+  ai_tips: 'AI活用Tips',
 };
 
 // Extra instructions per question type
@@ -21,6 +22,9 @@ const QUESTION_TYPE_EXTRA = {
   american_culture: `アメリカの文化・習慣・スラング・慣用句に由来する英語表現を1つ取り上げてください。
 例：「It's not rocket science」「ballpark figure」「rain check」など日本人が知らない表現。
 その表現の意味・由来・使い方を簡潔に紹介し、英検${'{level}'}レベルのリーダーが実際に使えるようにしてください。`,
+  ai_tips: `英検${'{level}'}の学習にAI（ChatGPT・Claude・Geminiなど）を活用する具体的なTipsを1つ紹介してください。
+例：「AIに英作文を添削してもらう方法」「音読練習でAIをリスニング相手にする」「語彙暗記にAIフラッシュカードを作らせる」など。
+実際にすぐ使えるプロンプト例や活用手順を含め、英検${'{level}'}を目指す学習者が今日から実践できる内容にしてください。`,
 };
 
 const LEVEL_CONFIG = {
