@@ -13,6 +13,7 @@ const QUESTION_TYPES = [
   { value: 'interview', label: '面接Tips' },
   { value: 'american_culture', label: '🇺🇸 文化表現' },
   { value: 'ai_tips', label: '🤖 AI活用Tips' },
+  { value: 'study_tips', label: '📚 学習のコツ' },
 ];
 
 const EIKEN_LEVELS = [

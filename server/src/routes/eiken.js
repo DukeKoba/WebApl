@@ -15,6 +15,7 @@ const QUESTION_TYPE_LABELS = {
   interview: '面接Tips',
   american_culture: 'アメリカ文化・独特表現',
   ai_tips: 'AI活用Tips',
+  study_tips: '学習のコツ',
 };
 
 // Extra instructions per question type
@@ -25,6 +26,9 @@ const QUESTION_TYPE_EXTRA = {
   ai_tips: `英検${'{level}'}の学習にAI（ChatGPT・Claude・Geminiなど）を活用する具体的なTipsを1つ紹介してください。
 例：「AIに英作文を添削してもらう方法」「音読練習でAIをリスニング相手にする」「語彙暗記にAIフラッシュカードを作らせる」など。
 実際にすぐ使えるプロンプト例や活用手順を含め、英検${'{level}'}を目指す学習者が今日から実践できる内容にしてください。`,
+  study_tips: `英検${'{level}'}合格に役立つ英語学習のコツを1つ紹介してください。
+特に「効率的な単語暗記法」（スペースドリピティション・語源暗記・例文暗記・フラッシュカードなど）や「リスニング強化法」「英作文上達法」「過去問活用術」などから選んで具体的に紹介してください。
+今日から実践できる具体的なステップや、実際の英検${'{level}'}レベルの例（単語・フレーズ・表現）を必ず含めてください。`,
 };
 
 const LEVEL_CONFIG = {
