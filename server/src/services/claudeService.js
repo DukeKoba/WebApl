@@ -17,6 +17,7 @@ export async function generateTextFull(systemPrompt, userMessage, options = {}) 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: options.maxTokens || 1024,
+    temperature: options.temperature ?? 1.0,
     system: systemPrompt,
     messages: [{ role: 'user', content: userMessage }],
   });
