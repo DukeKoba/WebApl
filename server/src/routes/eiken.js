@@ -22,14 +22,95 @@ const QUESTION_TYPE_LABELS = {
 const QUESTION_TYPE_EXTRA = {
   american_culture: `アメリカの文化・習慣・スラング・慣用句に由来する英語表現を1つ取り上げてください。
 例：「It's not rocket science」「ballpark figure」「rain check」など日本人が知らない表現。
-その表現の意味・由来・使い方を簡潔に紹介し、英検${'{level}'}レベルのリーダーが実際に使えるようにしてください。`,
-  ai_tips: `英検${'{level}'}の学習にAI（ChatGPT・Claude・Geminiなど）を活用する具体的なTipsを1つ紹介してください。
+その表現の意味・由来・使い方を簡潔に紹介し、英検{level}レベルのリーダーが実際に使えるようにしてください。`,
+  ai_tips: `英検{level}の学習にAI（ChatGPT・Claude・Geminiなど）を活用する具体的なTipsを1つ紹介してください。
 例：「AIに英作文を添削してもらう方法」「音読練習でAIをリスニング相手にする」「語彙暗記にAIフラッシュカードを作らせる」など。
-実際にすぐ使えるプロンプト例や活用手順を含め、英検${'{level}'}を目指す学習者が今日から実践できる内容にしてください。`,
-  study_tips: `英検${'{level}'}合格に役立つ英語学習のコツを1つ紹介してください。
-特に「効率的な単語暗記法」（スペースドリピティション・語源暗記・例文暗記・フラッシュカードなど）や「リスニング強化法」「英作文上達法」「過去問活用術」などから選んで具体的に紹介してください。
-今日から実践できる具体的なステップや、実際の英検${'{level}'}レベルの例（単語・フレーズ・表現）を必ず含めてください。`,
+実際にすぐ使えるプロンプト例や活用手順を含め、英検{level}を目指す学習者が今日から実践できる内容にしてください。`,
+  study_tips: `英検{level}合格に役立つ英語の「学習法・勉強のコツ」を1つ紹介してください。
+これは語彙問題ではありません。単語リストや単語の意味紹介ではなく、「どう勉強すれば力がつくか」という学習メソッド・習慣・ルーティン・モチベーション維持法を扱ってください。
+テーマ例：スキマ時間の活用法／音読・シャドーイング手順／過去問の復習サイクル／ノートの取り方／スランプ脱出法／モチベ維持法／スケジュール管理／学習環境づくり／記憶の定着メカニズム。
+「〇〇を毎日△分やる」「□□の順で解く」など、今日から真似できる手順やコツを中心に書いてください。例文や単語を紹介する投稿にはしないでください。`,
 };
+
+// Randomized angle / theme hints to force output variation on repeated calls
+const VARIETY_HINTS = {
+  vocabulary: [
+    '大学入試・定期テスト頻出の動詞を1語',
+    '英検頻出の形容詞・副詞を1語',
+    '意味を取り違えやすい多義語を1語',
+    'カタカナ語と意味がズレる英単語を1語',
+    '似た意味で使い分けが必要な単語ペアから1語',
+    'コロケーションで覚えると強い名詞を1語',
+  ],
+  grammar: [
+    '時制・完了形に関するポイント',
+    '関係詞・関係代名詞のポイント',
+    '仮定法のポイント',
+    '分詞・分詞構文のポイント',
+    '助動詞の使い分けのポイント',
+    '前置詞の使い分けのポイント',
+    '受動態・無生物主語のポイント',
+  ],
+  reading: [
+    '長文のパラグラフリーディングのコツ',
+    '指示語・代名詞を素早く特定するコツ',
+    '選択肢の言い換え（パラフレーズ）を見抜くコツ',
+    '筆者の主張と具体例を見分けるコツ',
+    '時間配分・設問先読みのコツ',
+  ],
+  writing: [
+    '意見文のテンプレート型構成',
+    '理由2つ型の展開パターン',
+    'つなぎ言葉・ディスコースマーカーの使い方',
+    '語数を稼ぎつつ減点されないコツ',
+    '主張→理由→具体例→結論の流れ',
+  ],
+  listening: [
+    'ディクテーションの進め方',
+    'シャドーイングのやり方',
+    '会話問題の先読みのコツ',
+    '数字・時刻・固定表現の聞き取りのコツ',
+    '連結・脱落・同化など音の変化',
+  ],
+  interview: [
+    '入室・挨拶でのマナーとコツ',
+    'パッセージ音読のコツ',
+    'イラスト描写問題のコツ',
+    '意見を述べる問題の答え方',
+    '聞き返し・言い換えのテクニック',
+  ],
+  american_culture: [
+    '天気・季節に関する慣用句',
+    'ビジネスで使われるスラング',
+    'スポーツ由来のイディオム',
+    '食べ物にまつわる表現',
+    '日常会話でよく出る縮約・スラング',
+  ],
+  ai_tips: [
+    '英作文添削プロンプト',
+    '音読・スピーキング練習相手としての使い方',
+    '単語暗記のフラッシュカード生成',
+    'リスニング用スクリプト生成',
+    '過去問の解説を深掘りさせる使い方',
+    '弱点分析とカリキュラム作成',
+  ],
+  study_tips: [
+    'スキマ時間の活用法（通学・休み時間）',
+    '過去問の復習サイクル（間違いノート運用）',
+    'モチベーション維持・習慣化のコツ',
+    '音読・シャドーイングのルーティン化',
+    '睡眠と記憶定着を意識した学習スケジュール',
+    'スランプから抜け出すメンタル管理法',
+    '学習環境・集中力を高める工夫',
+    '1日のタイムブロッキング勉強法',
+  ],
+};
+
+function pickVariety(questionType) {
+  const list = VARIETY_HINTS[questionType];
+  if (!list || list.length === 0) return '';
+  return list[Math.floor(Math.random() * list.length)];
+}
 
 const LEVEL_CONFIG = {
   pre1: {
@@ -106,10 +187,11 @@ function buildPrefix(level) {
   return { prefix, cost: prefix.length };
 }
 
-function buildEikenPrompt(questionType, level, bodyLimit) {
+function buildEikenPrompt(questionType, level, bodyLimit, variety = '') {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
   const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-  const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replace('{level}', lv.label);
+  const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replaceAll('{level}', lv.label);
+  const varietyLine = variety ? `- 今回のテーマ・切り口：「${variety}」で書いてください（毎回違う内容にするため）` : '';
 
   return `英検${lv.label}の学習コンテンツの本文部分のみを書いてください。ターゲット: **${lv.target}**
 問題タイプ: ${typeLabel}
@@ -121,6 +203,7 @@ function buildEikenPrompt(questionType, level, bodyLimit) {
 【本文の要件】
 - ${lv.hook}
 ${extra ? `- ${extra}` : `- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ`}
+${varietyLine}
 - クイズ形式なら選択肢は①②の2択のみ
 - 絵文字は1〜2個まで
 - **本文は${bodyLimit}文字以内**（厳守）
@@ -162,11 +245,13 @@ router.post('/generate', async (req, res) => {
 
     const systemPrompt = 'あなたはSNSマーケティングと英語教育の専門家です。';
 
+    const variety = pickVariety(questionType);
+
     let body = '';
     for (let attempt = 0; attempt < 3; attempt++) {
       const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
-      const prompt = buildEikenPrompt(questionType, level, limitForAttempt);
-      body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 400 })).trim();
+      const prompt = buildEikenPrompt(questionType, level, limitForAttempt, variety);
+      body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 400, temperature: 1.0 })).trim();
       if (body.length <= bodyLimit) break;
     }
     if (body.length > bodyLimit) body = body.slice(0, bodyLimit).trimEnd();
