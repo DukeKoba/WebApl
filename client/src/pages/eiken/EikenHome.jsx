@@ -196,7 +196,7 @@ export default function EikenHome() {
             <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
               <BookOpen className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">英検{levelLabel} コンテンツ生成</h1>
+            <h1 className="font-bold text-lg text-gray-900">英検コンテンツ生成</h1>
           </div>
           <Link
             to="/eiken/history"
@@ -224,6 +224,22 @@ export default function EikenHome() {
             </div>
           </div>
         )}
+
+        {/* Link to actual Eiken practice app */}
+        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+          <BookOpen className="w-5 h-5 text-blue-500 shrink-0" />
+          <div className="text-sm text-blue-800">
+            実際の英検問題を解きたい方は
+            <a
+              href="https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1 font-semibold text-blue-600 underline hover:text-blue-800"
+            >
+              AI英検Pass
+            </a>
+          </div>
+        </div>
 
         {/* Tab */}
         <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white">
