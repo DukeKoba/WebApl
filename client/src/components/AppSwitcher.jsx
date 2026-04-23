@@ -18,7 +18,7 @@ const apps = [
   {
     path: '/eiken',
     icon: BookOpen,
-    title: '英検2級 X投稿',
+    title: '英検コンテンツ生成',
     description: 'サンプル問題・学習TipsをAIエージェントチームが日本語でX投稿',
     color: 'from-green-500 to-emerald-700',
     bg: 'bg-green-50',
