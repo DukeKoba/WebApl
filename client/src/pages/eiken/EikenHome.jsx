@@ -14,6 +14,7 @@ const QUESTION_TYPES = [
   { value: 'american_culture', label: '🇺🇸 文化表現' },
   { value: 'ai_tips', label: '🤖 AI活用Tips' },
   { value: 'study_tips', label: '📚 学習のコツ' },
+  { value: 'listening_tips', label: '🎧 英語耳の作り方' },
 ];
 
 const EIKEN_LEVELS = [
