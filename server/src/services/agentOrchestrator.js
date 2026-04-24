@@ -34,35 +34,36 @@ export const AGENTS = {
 
 export async function orchestrateAgents(task, onMessage) {
   const conversation = [];
+  const lang = task.type === 'ramen' ? 'en' : 'ja';
 
-  // Round 1: マーケターが戦略分析
+  // Round 1: Marketer strategy
   const marketerR1Prompt = buildMarketerR1Prompt(task);
-  const marketerR1 = await callAgent('marketer', marketerR1Prompt, [], onMessage, 1);
+  const marketerR1 = await callAgent('marketer', marketerR1Prompt, [], onMessage, 1, lang);
   conversation.push({ agent: 'marketer', round: 1, content: marketerR1 });
 
-  // Round 1: コピーライターが初稿作成
+  // Round 1: Copywriter first draft
   const copywriterR1Prompt = buildCopywriterR1Prompt(task, marketerR1);
-  const copywriterR1 = await callAgent('copywriter', copywriterR1Prompt, [], onMessage, 1);
+  const copywriterR1 = await callAgent('copywriter', copywriterR1Prompt, [], onMessage, 1, lang);
   conversation.push({ agent: 'copywriter', round: 1, content: copywriterR1 });
 
-  // Round 1: コンサルタントがフィードバック
+  // Round 1: Consultant feedback
   const consultantR1Prompt = buildConsultantR1Prompt(task, marketerR1, copywriterR1);
-  const consultantR1 = await callAgent('consultant', consultantR1Prompt, [], onMessage, 1);
+  const consultantR1 = await callAgent('consultant', consultantR1Prompt, [], onMessage, 1, lang);
   conversation.push({ agent: 'consultant', round: 1, content: consultantR1 });
 
-  // Round 2: コピーライターが修正版を作成
+  // Round 2: Copywriter revised
   const copywriterR2Prompt = buildCopywriterR2Prompt(task, copywriterR1, consultantR1);
-  const copywriterR2 = await callAgent('copywriter', copywriterR2Prompt, [], onMessage, 2);
+  const copywriterR2 = await callAgent('copywriter', copywriterR2Prompt, [], onMessage, 2, lang);
   conversation.push({ agent: 'copywriter', round: 2, content: copywriterR2 });
 
-  // Round 2: コンサルタントが最終レビュー
-  const consultantR2Prompt = buildConsultantR2Prompt(copywriterR2);
-  const consultantR2 = await callAgent('consultant', consultantR2Prompt, [], onMessage, 2);
+  // Round 2: Consultant final review
+  const consultantR2Prompt = buildConsultantR2Prompt(task, copywriterR2);
+  const consultantR2 = await callAgent('consultant', consultantR2Prompt, [], onMessage, 2, lang);
   conversation.push({ agent: 'consultant', round: 2, content: consultantR2 });
 
-  // Round 3: コピーライターが最終投稿文を確定
+  // Round 3: Copywriter final post
   const finalPrompt = buildFinalPrompt(task, copywriterR2, consultantR2);
-  const finalPost = await callAgent('copywriter', finalPrompt, [], onMessage, 3);
+  const finalPost = await callAgent('copywriter', finalPrompt, [], onMessage, 3, lang);
   conversation.push({ agent: 'copywriter', round: 3, content: finalPost });
 
   // 最終投稿文を抽出
@@ -71,14 +72,22 @@ export async function orchestrateAgents(task, onMessage) {
   return { conversation, finalPost: extractedPost };
 }
 
-async function callAgent(agentRole, prompt, _history, onMessage, round) {
+async function callAgent(agentRole, prompt, _history, onMessage, round, lang = 'ja') {
   const agent = AGENTS[agentRole];
-  const content = await generateTextFull(agent.systemPrompt, prompt, { maxTokens: 1024 });
+  const baseSystem = agent.systemPrompt;
+  // ラーメンモードでは議論も最終投稿もすべて英語に統一（読者=海外フォロワー想定）
+  const systemPrompt = lang === 'en'
+    ? `${baseSystem}\n\nIMPORTANT: This task is in ENGLISH mode. Respond ONLY in fluent English for every message, including analysis, feedback, drafts, and the final post. Do not use Japanese at all.`
+    : baseSystem;
+  const content = await generateTextFull(systemPrompt, prompt, { maxTokens: 1024 });
+
+  // ラーメンモードではエージェント名も英語表示にする
+  const displayName = lang === 'en' ? (AGENT_NAMES_EN[agentRole] || agent.name) : agent.name;
 
   if (onMessage) {
     onMessage({
       agent: agentRole,
-      name: agent.name,
+      name: displayName,
       round,
       content,
     });
@@ -86,6 +95,12 @@ async function callAgent(agentRole, prompt, _history, onMessage, round) {
 
   return content;
 }
+
+const AGENT_NAMES_EN = {
+  marketer: 'Marketing Strategist',
+  copywriter: 'Copywriter',
+  consultant: 'Digital Marketing Consultant',
+};
 
 function buildMarketerR1Prompt(task) {
   if (task.type === 'eiken') {
@@ -109,25 +124,26 @@ function buildMarketerR1Prompt(task) {
    ※Xはハッシュタグが多すぎるとリーチが下がるため2〜3個が最適
 4. エンゲージメントを高めるポイント`;
   } else {
-    return `ラーメン体験をInstagramに英語で投稿します。
-ラーメン分析: ${JSON.stringify(task.imageAnalysis)}
-店名: ${task.restaurantName || '不明'}
-場所: ${task.location || '不明'}
-訪問日: ${task.visitDate || '不明'}
-感想: ${task.impressions || 'なし'}
+    return `We are posting a ramen experience to Instagram in ENGLISH.
+Ramen analysis: ${JSON.stringify(task.imageAnalysis)}
+Restaurant: ${task.restaurantName || 'unknown'}
+Location: ${task.location || 'unknown'}
+Visit date: ${task.visitDate || 'unknown'}
+User notes: ${task.impressions || 'none'}
 
-以下を分析・提案してください：
-1. このラーメン投稿に最適なターゲット層（フードラバー、外国人観光客など）
-2. 推奨する投稿時間帯
-3. Instagramハッシュタグを**必ず20〜30個**提案してください（英語・日本語混合）
-   カテゴリ別に：
-   - 食事全般（#foodie #food #instafood #foodphotography #yummy など）
-   - ラーメン特化（#ramen #ramennoodles #ramenlovers #japaneseramen #noodles など）
-   - 日本グルメ（#japanesefood #japanfood #tokyofood など）
-   - ラーメンの種類（#tonkotsu #miso #shoyu など該当するもの）
-   - 場所タグ（${task.location ? `#${task.location.replace(/\s/g, '')}` : '#tokyo'} など）
-   ※Instagramは20〜30個のハッシュタグが最もリーチが高い
-4. エンゲージメントを高めるポイント`;
+Please provide:
+1. The ideal target audience (foodies, travelers, ramen-lovers, etc.)
+2. Recommended posting time window (in the audience's local timezone)
+3. Propose EXACTLY 20–30 Instagram hashtags (mostly English, with a handful of Japanese romaji) grouped by:
+   - General food (#foodie #food #instafood #foodphotography #yummy ...)
+   - Ramen-specific (#ramen #ramennoodles #ramenlovers #japaneseramen #noodles ...)
+   - Japanese food (#japanesefood #japanfood #tokyofood ...)
+   - Style (#tonkotsu #miso #shoyu #shio #tsukemen — pick only those that apply)
+   - Location (${task.location ? `#${task.location.replace(/[\s,]/g, '')}` : '#tokyo'} and neighborhood tags)
+   Instagram reaches farthest with 20–30 hashtags.
+4. Three concrete engagement levers (hook, saves, shares).
+
+Respond in English.`;
   }
 }
 
@@ -159,27 +175,44 @@ function buildCopywriterR1Prompt(task, marketerAnalysis) {
 
 投稿文の初稿を作成してください。`;
   } else {
-    return `ラーメン体験のInstagram投稿文の初稿を英語で作成してください。
-ラーメン情報:
-- 種類: ${task.imageAnalysis?.ramen_type || 'unknown'}
-- 特徴: ${task.imageAnalysis?.english_description || ''}
-- 店名: ${task.restaurantName || 'unknown'}
-- 場所: ${task.location || 'unknown'}
-- 訪問日: ${task.visitDate || 'unknown'}
-- 感想: ${task.impressions || ''}
-マーケターの分析: ${marketerAnalysis}
+    return `Write the first draft of an Instagram caption in ENGLISH for a ramen experience.
+Ramen details:
+- Style: ${task.imageAnalysis?.ramen_type || 'unknown'}
+- Visual notes: ${task.imageAnalysis?.english_description || ''}
+- Toppings: ${(task.imageAnalysis?.toppings || []).join(', ') || 'unknown'}
+- Restaurant: ${task.restaurantName || 'unknown'}
+- Location: ${task.location || 'unknown'}
+- Visit date: ${task.visitDate || 'unknown'}
+- User notes: ${task.impressions || ''}
+Marketer's analysis: ${marketerAnalysis}
 
-要件：
-- 魅力的な英語のキャプション（300文字程度）
-- 感情的で読者が食べたくなるような表現
-- ハッシュタグ（マーケターが提案したもの）を含める
-- 絵文字を効果的に使用
+Requirements:
+- A mouth-watering English caption (~300 characters for the body, not counting hashtags)
+- Sensory, emotional language that makes readers want to eat it NOW
+- Include the hashtags the marketer proposed
+- Use emojis thoughtfully
 
-投稿文の初稿を作成してください。`;
+Output the first draft.`;
   }
 }
 
 function buildConsultantR1Prompt(task, marketerAnalysis, copywriterDraft) {
+  if (task.type === 'ramen') {
+    return `The copywriter produced a draft caption. Platform: Instagram.
+
+Draft:
+${copywriterDraft}
+
+Marketer's analysis:
+${marketerAnalysis}
+
+Give feedback in ENGLISH on:
+1. Strength of the hook (first line)
+2. Character count (keep under 2200)
+3. Hashtag quality (should be 20–30 for Instagram)
+4. Three concrete improvements to boost engagement
+5. CTA presence and suggestion`;
+  }
   return `コピーライターが以下の投稿文の初稿を作成しました。
 プラットフォーム: ${task.platform === 'x' ? 'X（Twitter）' : 'Instagram'}
 
@@ -198,6 +231,17 @@ ${marketerAnalysis}
 }
 
 function buildCopywriterR2Prompt(task, copywriterR1, consultantFeedback) {
+  if (task.type === 'ramen') {
+    return `Revise the caption based on the consultant's feedback.
+
+Previous draft:
+${copywriterR1}
+
+Consultant feedback:
+${consultantFeedback}
+
+Produce the improved draft. Keep it engaging, keep 20–30 hashtags, stay under 2200 characters. Output in English.`;
+  }
   const charLimit = task.platform === 'x' ? 'X（Twitter）の280文字以内を厳守してください。' : 'Instagramキャプションとして魅力的にしてください。';
   return `コンサルタントのフィードバックを受けて投稿文を改善してください。
 
@@ -211,7 +255,17 @@ ${consultantFeedback}
 ${charLimit}`;
 }
 
-function buildConsultantR2Prompt(copywriterR2) {
+function buildConsultantR2Prompt(task, copywriterR2) {
+  if (task.type === 'ramen') {
+    return `The copywriter produced an improved draft:
+
+${copywriterR2}
+
+Provide a final check in ENGLISH:
+1. Two strengths of this post
+2. At most one small tweak (skip if nothing to improve)
+3. Predicted engagement rating (★1–5) with reasoning`;
+  }
   return `コピーライターが改善版を作成しました：
 
 ${copywriterR2}
@@ -238,26 +292,25 @@ ${consultantFinalReview}
 - ハッシュタグを必ず2〜3個含める（投稿文末尾に配置）
 - 前後に説明文を入れず、投稿文そのものだけを出力`;
   } else {
-    return `最終確認を経て、投稿文を確定してください。
+    return `Finalize the Instagram caption.
 
-現在の投稿文:
+Current draft:
 ${copywriterR2}
 
-コンサルタントの最終レビュー:
+Consultant's final review:
 ${consultantFinalReview}
 
-【最終投稿文】として、投稿するテキストのみを出力してください。
-絶対条件：
-- 英語のキャプション（2〜3文）を冒頭に書く
-- キャプションの末尾に「📲 Find more ramen on Slurp!」という一文を自然に含める
-- 空行を1行入れる
-- ハッシュタグを20〜30個、末尾にまとめて配置（#ramen #foodie #japanesefood などを含む）
-- 前後に説明文を入れず、投稿文そのものだけを出力
+Output ONLY the final post text. Absolute rules:
+- A punchy English caption (2–4 sentences)
+- Naturally include the line "📲 Find more ramen on Slurp!" near the end of the caption
+- One blank line
+- 20–30 hashtags grouped at the end (must include #ramen #foodie #japanesefood)
+- No prefaces or explanations around the post
 
-出力形式：
-[英語キャプション（Slurp紹介文含む）]
+Format:
+[English caption including the Slurp line]
 
-[ハッシュタグ20〜30個]`;
+[20–30 hashtags]`;
   }
 }
 

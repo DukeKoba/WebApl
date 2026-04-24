@@ -8,6 +8,7 @@ import db from '../database.js';
 import { analyzeRamenImage } from '../services/claudeService.js';
 import { orchestrateAgents } from '../services/agentOrchestrator.js';
 import { postPhoto } from '../services/instagramService.js';
+import { extractExifData, reverseGeocode, findNearbyRestaurant } from '../services/photoLocationService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
@@ -29,22 +30,55 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);
-    else cb(new Error('画像ファイルのみアップロード可能です'));
+    else cb(new Error('Only image files are allowed'));
   },
 });
 
 const router = express.Router();
 
-// POST /api/ramen/upload - Upload photo + Claude Vision analysis
+// POST /api/ramen/upload - Upload photo + Claude Vision analysis + EXIF GPS → location & restaurant name
 router.post('/upload', upload.single('image'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: '画像が見つかりません' });
+  if (!req.file) return res.status(400).json({ error: 'No image found' });
 
   try {
-    const analysis = await analyzeRamenImage(req.file.path);
+    // EXIF GPS 抽出と Claude Vision を並列実行（Vision は時間がかかるので他の処理を待たせない）
+    const [analysis, exif] = await Promise.all([
+      analyzeRamenImage(req.file.path),
+      extractExifData(req.file.path),
+    ]);
+
+    let location = null;
+    let restaurantFromGps = null;
+    const hasGps = exif && exif.latitude != null && exif.longitude != null;
+
+    if (hasGps) {
+      // 近隣店舗と逆ジオコーディングを並列実行
+      const [restaurantName, geo] = await Promise.all([
+        findNearbyRestaurant(exif.latitude, exif.longitude),
+        reverseGeocode(exif.latitude, exif.longitude),
+      ]);
+      restaurantFromGps = restaurantName;
+      if (geo) location = geo.locationLabel;
+    }
+
+    // 店名は「画像内で検出できた看板」を優先し、なければ GPS 周辺から推定
+    const detectedRestaurant = (analysis?.detected_restaurant_name || '').trim();
+    const restaurantName = detectedRestaurant || restaurantFromGps || null;
+
     res.json({
       image_id: req.file.filename,
       image_url: `/uploads/${req.file.filename}`,
       analysis,
+      detected: {
+        restaurant_name: restaurantName,
+        location,
+        taken_at: exif?.takenAt ? new Date(exif.takenAt).toISOString().slice(0, 10) : null,
+        gps: hasGps ? { latitude: exif.latitude, longitude: exif.longitude } : null,
+        sources: {
+          restaurant: detectedRestaurant ? 'image' : (restaurantFromGps ? 'gps' : null),
+          location: location ? 'gps' : null,
+        },
+      },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -158,7 +192,7 @@ router.post('/posts/:id/publish', async (req, res) => {
     const imageUrl = post.image_path ? `${baseUrl}/uploads/${post.image_path}` : null;
 
     if (!imageUrl) {
-      return res.status(400).json({ error: '画像が必要です' });
+      return res.status(400).json({ error: 'An image is required' });
     }
 
     const result = await postPhoto(imageUrl, post.post_text);
