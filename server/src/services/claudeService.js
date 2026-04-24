@@ -43,14 +43,15 @@ export async function analyzeRamenImage(imagePath) {
         },
         {
           type: 'text',
-          text: `この写真に写っているラーメンを詳しく分析してください。以下の情報をJSON形式のみで返してください（説明文なし）:
+          text: `Analyze the ramen in this photo in detail. Return ONLY JSON (no prose) in the following exact shape:
 {
-  "ramen_type": "ラーメンの種類（味噌/醤油/豚骨/塩/つけ麺/その他）",
-  "toppings": ["トッピング1", "トッピング2"],
-  "appearance": "見た目の特徴（スープの色、麺の太さ、盛り付けなど）",
-  "atmosphere": "写真から感じる雰囲気（カジュアル/高級/庶民的など）",
-  "notable_features": "特筆すべきポイント",
-  "english_description": "A brief English description of this ramen for Instagram (1-2 sentences)"
+  "ramen_type": "ramen style in English (Miso / Shoyu / Tonkotsu / Shio / Tsukemen / Other)",
+  "toppings": ["topping 1 in English", "topping 2 in English"],
+  "appearance": "visual characteristics in English (broth color, noodle thickness, plating)",
+  "atmosphere": "overall vibe in English (casual / upscale / local / trendy)",
+  "notable_features": "any standout points in English",
+  "english_description": "A vivid 1-2 sentence English description suitable for an Instagram caption",
+  "detected_restaurant_name": "If a restaurant name is clearly visible on signage, menu, chopstick sleeve, bowl, or receipt in the photo, return the exact name in Latin characters (transliterate from Japanese if needed). If no restaurant name is visible, return an empty string."
 }`,
         },
       ],
