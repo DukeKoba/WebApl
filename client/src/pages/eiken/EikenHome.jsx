@@ -232,7 +232,7 @@ export default function EikenHome() {
           <div className="text-sm text-blue-800">
             実際の英検問題を解きたい方は
             <a
-              href="https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561"
+              href="https://apps.apple.com/jp/app/id6761838561"
               target="_blank"
               rel="noopener noreferrer"
               className="ml-1 font-semibold text-blue-600 underline hover:text-blue-800"
