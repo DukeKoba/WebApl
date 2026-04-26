@@ -1,7 +1,7 @@
 services:
   - type: web
-    name: insurance-news-support
-    runtime: static
+    name: InsuranceNews-cocreo
+    env: static
     staticPublishPath: insurance-news
     routes:
       - type: rewrite
