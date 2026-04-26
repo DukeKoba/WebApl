@@ -26,7 +26,7 @@
     }
 
     header {
-      background: var(--black);
+      background: var(--orange);
       color: var(--white);
       padding: 40px 24px 36px;
       text-align: center;
@@ -38,13 +38,15 @@
 
     .logo-wrap img {
       height: 40px;
-      filter: brightness(0) invert(1);
+      background: var(--white);
+      border-radius: 8px;
+      padding: 6px 12px;
     }
 
     .header-divider {
       width: 40px;
       height: 3px;
-      background: var(--orange);
+      background: rgba(255,255,255,0.5);
       margin: 0 auto 20px;
       border-radius: 2px;
     }
@@ -58,7 +60,7 @@
 
     header p {
       font-size: 0.9rem;
-      color: rgba(255,255,255,0.65);
+      color: rgba(255,255,255,0.8);
     }
 
     nav {
@@ -147,19 +149,20 @@
     }
 
     footer {
-      background: var(--black);
+      background: var(--orange);
       text-align: center;
       padding: 28px 24px;
       font-size: 0.8rem;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.85);
     }
 
-    footer a { color: var(--orange); text-decoration: none; }
+    footer a { color: var(--white); text-decoration: underline; }
 
     footer img {
-      height: 24px;
-      filter: brightness(0) invert(1);
-      opacity: 0.7;
+      height: 28px;
+      background: var(--white);
+      border-radius: 6px;
+      padding: 4px 10px;
       display: block;
       margin: 0 auto 12px;
     }
@@ -187,7 +190,7 @@
 
   <div class="card">
     <h2>基本方針</h2>
-    <p>Cocreo株式会社（以下「当社」）は、「代理店のための保険ニュース」（以下「本アプリ」）の運営において、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。</p>
+    <p>Cocreo（以下「当社」）は、「代理店のための保険ニュース」（以下「本アプリ」）の運営において、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。</p>
     <p>本アプリは完全無料で提供されており、広告配信・個人情報の第三者販売は行っておりません。</p>
   </div>
 
@@ -251,7 +254,7 @@
   <div class="card">
     <h2>お問い合わせ</h2>
     <p>本プライバシーポリシーに関するご質問は、下記よりお問い合わせください。</p>
-    <p><strong>Cocreo株式会社</strong><br>
+    <p><strong>Cocreo</strong><br>
     公式サイト：<a href="https://cocreo.jp" target="_blank" rel="noopener">https://cocreo.jp</a></p>
   </div>
 
@@ -259,7 +262,7 @@
 
 <footer>
   <img src="cocreo-logo.png" alt="Cocreo">
-  <p>&copy; 2026 Cocreo株式会社 &nbsp;|&nbsp; <a href="support.html">サポート</a></p>
+  <p>&copy; 2026 Cocreo &nbsp;|&nbsp; <a href="support.html">サポート</a></p>
 </footer>
 
 </body>

@@ -26,7 +26,7 @@
     }
 
     header {
-      background: var(--black);
+      background: var(--orange);
       color: var(--white);
       padding: 40px 24px 36px;
       text-align: center;
@@ -38,13 +38,15 @@
 
     .logo-wrap img {
       height: 40px;
-      filter: brightness(0) invert(1);
+      background: var(--white);
+      border-radius: 8px;
+      padding: 6px 12px;
     }
 
     .header-divider {
       width: 40px;
       height: 3px;
-      background: var(--orange);
+      background: rgba(255,255,255,0.5);
       margin: 0 auto 20px;
       border-radius: 2px;
     }
@@ -58,7 +60,7 @@
 
     header p {
       font-size: 0.9rem;
-      color: rgba(255,255,255,0.65);
+      color: rgba(255,255,255,0.8);
     }
 
     nav {
@@ -177,19 +179,20 @@
     .contact-box a:hover { background: var(--orange-dark); }
 
     footer {
-      background: var(--black);
+      background: var(--orange);
       text-align: center;
       padding: 28px 24px;
       font-size: 0.8rem;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.85);
     }
 
-    footer a { color: var(--orange); text-decoration: none; }
+    footer a { color: var(--white); text-decoration: underline; }
 
     footer img {
-      height: 24px;
-      filter: brightness(0) invert(1);
-      opacity: 0.7;
+      height: 28px;
+      background: var(--white);
+      border-radius: 6px;
+      padding: 4px 10px;
       display: block;
       margin: 0 auto 12px;
     }
@@ -256,7 +259,7 @@
   <div class="card">
     <h2>お問い合わせ</h2>
     <div class="contact-box">
-      <p>ご不明な点やご要望は、開発元のCocreo株式会社までお気軽にお問い合わせください。</p>
+      <p>ご不明な点やご要望は、開発元のCocreoまでお気軽にお問い合わせください。</p>
       <a href="https://cocreo.jp">Cocreo公式サイトへ</a>
     </div>
   </div>
@@ -265,7 +268,7 @@
 
 <footer>
   <img src="cocreo-logo.png" alt="Cocreo">
-  <p>&copy; 2026 Cocreo株式会社 &nbsp;|&nbsp; <a href="privacy.html">プライバシーポリシー</a></p>
+  <p>&copy; 2026 Cocreo &nbsp;|&nbsp; <a href="privacy.html">プライバシーポリシー</a></p>
 </footer>
 
 </body>
