@@ -1,5 +1,14 @@
 services:
   - type: web
+    name: insurance-news-support
+    runtime: static
+    staticPublishPath: insurance-news
+    routes:
+      - type: rewrite
+        source: /
+        destination: /support.html
+
+  - type: web
     name: webapl
     runtime: node
     buildCommand: npm install && cd client && npm install && npx vite build && cd ../server && npm install
