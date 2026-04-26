@@ -7,66 +7,86 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --orange: #F26522;
+      --orange-dark: #D4541A;
+      --orange-light: #FFF3EE;
+      --black: #1A1A1A;
+      --gray: #444444;
+      --gray-light: #F5F5F5;
+      --white: #FFFFFF;
+      --border: #E8E8E8;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
-      background: #f5f7fa;
-      color: #1a1a2e;
+      background: var(--gray-light);
+      color: var(--black);
       line-height: 1.7;
     }
 
     header {
-      background: linear-gradient(135deg, #1a3a5c 0%, #0d6efd 100%);
-      color: #fff;
-      padding: 48px 24px 40px;
+      background: var(--black);
+      color: var(--white);
+      padding: 40px 24px 36px;
       text-align: center;
     }
 
-    header .app-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.2);
-      margin: 0 auto 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
+    .logo-wrap {
+      margin: 0 auto 20px;
+    }
+
+    .logo-wrap img {
+      height: 40px;
+      filter: brightness(0) invert(1);
+    }
+
+    .header-divider {
+      width: 40px;
+      height: 3px;
+      background: var(--orange);
+      margin: 0 auto 20px;
+      border-radius: 2px;
     }
 
     header h1 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       font-weight: 700;
       margin-bottom: 6px;
+      letter-spacing: -0.02em;
     }
 
     header p {
-      font-size: 0.95rem;
-      opacity: 0.85;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.65);
     }
 
     nav {
+      background: var(--white);
+      border-bottom: 2px solid var(--orange);
       display: flex;
       justify-content: center;
-      gap: 8px;
-      padding: 16px 24px;
-      background: #fff;
-      border-bottom: 1px solid #e5e9f0;
     }
 
     nav a {
       text-decoration: none;
       font-size: 0.9rem;
       font-weight: 600;
-      color: #0d6efd;
-      padding: 6px 16px;
-      border-radius: 20px;
-      border: 1.5px solid #0d6efd;
+      color: var(--gray);
+      padding: 14px 32px;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
       transition: all 0.2s;
     }
 
-    nav a.active, nav a:hover {
-      background: #0d6efd;
-      color: #fff;
+    nav a.active {
+      color: var(--orange);
+      border-bottom-color: var(--orange);
+    }
+
+    nav a:hover:not(.active) {
+      color: var(--black);
+      background: var(--gray-light);
     }
 
     main {
@@ -76,42 +96,31 @@
     }
 
     .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      background: var(--white);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      border-left: 4px solid var(--orange);
     }
 
     .card h2 {
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 700;
       margin-bottom: 16px;
-      color: #1a3a5c;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .card h2::before {
-      content: "";
-      display: inline-block;
-      width: 4px;
-      height: 20px;
-      background: #0d6efd;
-      border-radius: 2px;
+      color: var(--black);
     }
 
     .card p {
-      color: #444;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
+      color: var(--gray);
+      font-size: 0.93rem;
+      margin-bottom: 10px;
     }
 
     .card p:last-child { margin-bottom: 0; }
 
     .faq-item {
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--border);
       padding: 16px 0;
     }
 
@@ -119,18 +128,18 @@
 
     .faq-item .q {
       font-weight: 700;
-      color: #1a3a5c;
+      color: var(--black);
       margin-bottom: 8px;
-      font-size: 0.95rem;
+      font-size: 0.93rem;
     }
 
     .faq-item .q::before {
       content: "Q. ";
-      color: #0d6efd;
+      color: var(--orange);
     }
 
     .faq-item .a {
-      color: #555;
+      color: var(--gray);
       font-size: 0.9rem;
     }
 
@@ -141,46 +150,58 @@
     }
 
     .contact-box {
-      background: linear-gradient(135deg, #eef4ff 0%, #f0f8ff 100%);
-      border-radius: 12px;
+      background: var(--orange-light);
+      border-radius: 10px;
       padding: 24px;
       text-align: center;
     }
 
     .contact-box p {
       margin-bottom: 16px;
-      color: #444;
-      font-size: 0.95rem;
+      color: var(--gray);
+      font-size: 0.93rem;
     }
 
     .contact-box a {
       display: inline-block;
-      background: #0d6efd;
-      color: #fff;
+      background: var(--orange);
+      color: var(--white);
       text-decoration: none;
       padding: 12px 32px;
       border-radius: 8px;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 0.95rem;
       transition: background 0.2s;
     }
 
-    .contact-box a:hover { background: #0b5ed7; }
+    .contact-box a:hover { background: var(--orange-dark); }
 
     footer {
+      background: var(--black);
       text-align: center;
-      padding: 24px;
+      padding: 28px 24px;
       font-size: 0.8rem;
-      color: #888;
+      color: rgba(255,255,255,0.5);
     }
 
-    footer a { color: #0d6efd; text-decoration: none; }
+    footer a { color: var(--orange); text-decoration: none; }
+
+    footer img {
+      height: 24px;
+      filter: brightness(0) invert(1);
+      opacity: 0.7;
+      display: block;
+      margin: 0 auto 12px;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="app-icon">📰</div>
+  <div class="logo-wrap">
+    <img src="cocreo-logo.png" alt="Cocreo">
+  </div>
+  <div class="header-divider"></div>
   <h1>代理店のための保険ニュース</h1>
   <p>保険業界の最新情報をスマートに収集</p>
 </header>
@@ -243,6 +264,7 @@
 </main>
 
 <footer>
+  <img src="cocreo-logo.png" alt="Cocreo">
   <p>&copy; 2026 Cocreo株式会社 &nbsp;|&nbsp; <a href="privacy.html">プライバシーポリシー</a></p>
 </footer>
 
