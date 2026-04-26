@@ -1,0 +1,6 @@
+{
+  "name": "insurance-news-support",
+  "scripts": {
+    "build": "echo 'Static site - no build required'"
+  }
+}
