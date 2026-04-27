@@ -26,6 +26,17 @@ const EIKEN_LEVELS = [
   { value: '5', label: '5級' },
 ];
 
+const APP_LINKS = {
+  pre1: {
+    href: 'https://apps.apple.com/us/app/ai%E8%8B%B1%E6%A4%9C%E6%BA%961%E7%B4%9A-pass/id6762535365',
+    label: 'AI英検Pass準1',
+  },
+  '2': {
+    href: 'https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561',
+    label: 'AI英検Pass2級',
+  },
+};
+
 function ScriptPreview({ script, onScriptChange }) {
   const [copied, setCopied] = useState(false);
 
@@ -240,7 +251,7 @@ export default function EikenHome() {
               AI英検Pass
             </a>
           </div>
-        </div>
+        )}
 
         {/* Tab */}
         <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white">
