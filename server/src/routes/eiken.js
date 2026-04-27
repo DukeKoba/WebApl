@@ -36,25 +36,94 @@ const QUESTION_TYPE_EXTRA = {
 今日から実践できる具体的なステップや、英検{level}のリスニングセクションに直結する練習素材・フレーズ例を必ず含めてください。`,
 };
 
-// Randomized angle / theme hints to force output variation on repeated calls
+// Randomized angle / theme hints — vocabulary & grammar are level-keyed, others are shared
 const VARIETY_HINTS = {
-  vocabulary: [
-    '大学入試・定期テスト頻出の動詞を1語',
-    '英検頻出の形容詞・副詞を1語',
-    '意味を取り違えやすい多義語を1語',
-    'カタカナ語と意味がズレる英単語を1語',
-    '似た意味で使い分けが必要な単語ペアから1語',
-    'コロケーションで覚えると強い名詞を1語',
-  ],
-  grammar: [
-    '時制・完了形に関するポイント',
-    '関係詞・関係代名詞のポイント',
-    '仮定法のポイント',
-    '分詞・分詞構文のポイント',
-    '助動詞の使い分けのポイント',
-    '前置詞の使い分けのポイント',
-    '受動態・無生物主語のポイント',
-  ],
+  vocabulary: {
+    pre1: [
+      'TOEIC・学術論文頻出の動詞を1語（allocate/discrepancy相当レベル）',
+      'ビジネス英語で使われる名詞を1語（準1級レベル）',
+      '日本人が混同しやすい高度な多義語を1語',
+      '準1級頻出の形容詞・副詞を1語',
+      '語根から派生語を推測できる単語を1語（準1級レベル）',
+    ],
+    '2': [
+      '大学入試・定期テスト頻出の動詞を1語',
+      '英検頻出の形容詞・副詞を1語',
+      '意味を取り違えやすい多義語を1語',
+      'カタカナ語と意味がズレる英単語を1語',
+      '似た意味で使い分けが必要な単語ペアから1語',
+      'コロケーションで覚えると強い名詞を1語',
+    ],
+    pre2: [
+      '高校入試で出る基本動詞を1語（environment/experience相当レベル）',
+      '日常会話でよく使う名詞を1語（準2級レベル）',
+      '準2級頻出の形容詞を1語',
+      '日本語訳と意味がズレる基本単語を1語',
+    ],
+    '3': [
+      '中学英語の基本動詞を1語（enjoy/practiceレベル）',
+      '感情・状態を表す形容詞を1語（excited/boredなど）',
+      '3級頻出の名詞を1語',
+      '日常生活でよく使う動詞を1語（中学レベル）',
+    ],
+    '4': [
+      '食べ物・動物・色など身近な名詞を1語（4級レベル）',
+      '基本的な動作動詞を1語（run/jump/eatなど）',
+      '反対語ペアの基本単語を1語',
+      '学校生活で使う英単語を1語（4級レベル）',
+    ],
+    '5': [
+      '挨拶・あいさつで使う超基本英語を1語',
+      '数字・色・形の英単語を1語',
+      '家族の呼び方・身の回りの物を1語（5級レベル）',
+      '動物の英語名を1語（超基礎・5級レベル）',
+    ],
+  },
+  grammar: {
+    pre1: [
+      '倒置・強調構文のポイント',
+      '仮定法過去完了のポイント',
+      '複合関係詞・関係副詞のポイント',
+      '名詞構文・無生物主語の上級パターン',
+      '分詞構文の慣用表現',
+    ],
+    '2': [
+      '時制・完了形に関するポイント',
+      '関係詞・関係代名詞のポイント',
+      '仮定法のポイント',
+      '分詞・分詞構文のポイント',
+      '助動詞の使い分けのポイント',
+      '前置詞の使い分けのポイント',
+      '受動態・無生物主語のポイント',
+    ],
+    pre2: [
+      '不定詞と動名詞の使い分けのポイント',
+      '受動態の基本パターン',
+      '比較表現のポイント',
+      '接続詞の使い方（because/when/ifなど）',
+      '関係代名詞の基本（who/whichなど）',
+    ],
+    '3': [
+      '現在完了形の使い方（have＋過去分詞）',
+      '疑問文・否定文の作り方',
+      '過去形の規則・不規則変化',
+      '不定詞の基本用法（to＋動詞）',
+      'There is/are 構文のポイント',
+    ],
+    '4': [
+      'be動詞（am/is/are）の使い方',
+      '一般動詞の現在形と過去形',
+      'can/cannotの使い方',
+      'What/Who/Whereで始まる疑問文',
+      'have/hasの使い方',
+    ],
+    '5': [
+      'am/is/areの使い方',
+      '「I like〜 / I have〜」など基本文型',
+      'Yes/No疑問文の答え方',
+      '「This is〜 / That is〜」の使い方',
+    ],
+  },
   reading: [
     '長文のパラグラフリーディングのコツ',
     '指示語・代名詞を素早く特定するコツ',
@@ -110,9 +179,11 @@ const VARIETY_HINTS = {
   ],
 };
 
-function pickVariety(questionType) {
-  const list = VARIETY_HINTS[questionType];
-  if (!list || list.length === 0) return '';
+function pickVariety(questionType, level) {
+  const hints = VARIETY_HINTS[questionType];
+  if (!hints) return '';
+  const list = Array.isArray(hints) ? hints : (hints[level] || hints['2'] || []);
+  if (list.length === 0) return '';
   return list[Math.floor(Math.random() * list.length)];
 }
 
@@ -122,36 +193,42 @@ const LEVEL_CONFIG = {
     target: '大学生・社会人（TOEIC600点相当、上級英語力を目指す学習者）',
     hook: '準1級合格で英語力を証明したいという向上心に響く冒頭フック',
     hashtags: '#英検準1級 #英語学習 #TOEIC',
+    difficulty: 'TOEIC700点・大学上位レベル。allocate/discrepancy/paradigm相当のアカデミック語彙、倒置・強調構文・仮定法過去完了、抽象度の高い論説文を扱う。',
   },
   '2': {
     label: '2級',
     target: '高校生（推薦・一般入試で英検2級を目指している学生）',
     hook: '高校生が「推薦のために英検2級を取りたい」という動機に響く冒頭フック',
     hashtags: '#英検2級 #英語学習 #大学受験',
+    difficulty: '高校英語・大学受験レベル。acquire/inevitable/propose相当の語彙、関係詞・仮定法・分詞構文、社会的テーマの長文を扱う。',
   },
   pre2: {
     label: '準2級',
     target: '中高生（高校入試や英語の基礎固めを目指す学習者）',
     hook: '準2級で英語に自信をつけたい中高生に響く冒頭フック',
     hashtags: '#英検準2級 #英語学習 #高校受験',
+    difficulty: '中学〜高校初級レベル。environment/experience/promise相当の語彙、不定詞・受動態・比較、日常的な話題を扱う。難しすぎる表現は使わない。',
   },
   '3': {
     label: '3級',
     target: '中学生（英検3級取得を目指す学習者）',
     hook: '中学生が英検3級に挑戦する動機に響く冒頭フック',
     hashtags: '#英検3級 #英語学習 #中学英語',
+    difficulty: '中学英語レベル。enjoy/practice/excited相当の基本語彙、現在完了・不定詞・接続詞、短くわかりやすい文を使う。仮定法や分詞構文は使わない。',
   },
   '4': {
     label: '4級',
     target: '小中学生（英検4級を目指す学習者）',
     hook: '英語の基礎を楽しく学びたい小中学生に響く冒頭フック',
     hashtags: '#英検4級 #英語学習 #小学英語',
+    difficulty: '小〜中学初級レベル。food/sport/family相当の日常語彙、be動詞・一般動詞・過去形・can、例文は10語以内のシンプルな文のみ。現在完了・仮定法は使わない。',
   },
   '5': {
     label: '5級',
     target: '小学生・英語初心者（英検5級にチャレンジする学習者）',
     hook: '英語を初めて学ぶ子どもや保護者に響く冒頭フック',
     hashtags: '#英検5級 #英語学習 #英語初心者',
+    difficulty: '超基礎レベル。hello/cat/red/Monday/school相当の最も基本的な語彙のみ。be動詞と簡単な一般動詞のみ使用、例文は5〜7語以内、難しい文法は一切使わない。',
   },
 };
 
@@ -204,6 +281,10 @@ function buildEikenPrompt(questionType, level, bodyLimit, variety = '') {
 あなたはSNSマーケティングと英語教育の専門家です。
 以下の本文のみを出力してください。受験日・URL・ハッシュタグはシステムが自動付与するので含めないでください。
 
+【難易度・使用語彙の厳守事項】
+${lv.difficulty}
+上記レベルを必ず守り、それより難しい語彙・文法を使わないこと。
+
 【本文の要件】
 - ${lv.hook}
 ${extra ? `- ${extra}` : `- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ`}
@@ -249,7 +330,7 @@ router.post('/generate', async (req, res) => {
 
     const systemPrompt = 'あなたはSNSマーケティングと英語教育の専門家です。';
 
-    const variety = pickVariety(questionType);
+    const variety = pickVariety(questionType, level);
 
     let body = '';
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -313,8 +394,8 @@ router.post('/generate-script', async (req, res) => {
 ナレーション: （アプリへ誘導する言葉）
 
 【要件】
-- 高校生が最初の3秒で止まりたくなるフック${examHook}
-- 実際の英検${lv.label}レベルのサンプル問題を使う
+- ${lv.target}が最初の3秒で止まりたくなるフック${examHook}
+- 実際の英検${lv.label}レベルのサンプル問題を使う（難易度: ${lv.difficulty}）
 - ナレーションは話し言葉で自然に
 - 画面テキストは短く大きく
 
