@@ -3,6 +3,45 @@ import fs from 'fs';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
+export async function searchRestaurantReviews(restaurantName, location) {
+  if (!restaurantName) return null;
+  try {
+    const query = location ? `${restaurantName} ${location} ラーメン` : `${restaurantName} ラーメン`;
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2048,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{
+        role: 'user',
+        content: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索してください。以下を日本語でまとめてください：
+・スープの特徴・味わい（具体的に）
+・麺の種類・食感
+・人気メニュー・おすすめ
+・トッピングの特徴
+・雰囲気・価格帯
+・実際の口コミコメント（具体的な表現を引用）
+実際に見つかった情報のみ使用してください。情報が見つからない場合は「口コミ情報なし」と返してください。`,
+      }],
+    });
+    const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    return text && !text.includes('口コミ情報なし') ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function translateToJapanese(englishText) {
+  try {
+    return await generateTextFull(
+      'あなたは翻訳の専門家です。英語のInstagram投稿文を自然な日本語に翻訳してください。ハッシュタグはそのまま維持してください。',
+      `以下の英語投稿文を日本語に翻訳してください（参考用）:\n\n${englishText}`,
+      { maxTokens: 1024 }
+    );
+  } catch {
+    return null;
+  }
+}
+
 export async function generateText(systemPrompt, userMessage, options = {}) {
   const stream = await client.messages.stream({
     model: 'claude-sonnet-4-20250514',

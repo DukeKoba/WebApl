@@ -1,4 +1,4 @@
-import { generateTextFull } from './claudeService.js';
+import { generateTextFull, translateToJapanese } from './claudeService.js';
 
 export const AGENTS = {
   marketer: {
@@ -69,7 +69,13 @@ export async function orchestrateAgents(task, onMessage) {
   // 最終投稿文を抽出
   const extractedPost = extractFinalPostText(finalPost, task.platform);
 
-  return { conversation, finalPost: extractedPost };
+  // ラーメン投稿の場合は日本語訳も生成
+  let japaneseTranslation = null;
+  if (task.type === 'ramen' && extractedPost) {
+    japaneseTranslation = await translateToJapanese(extractedPost);
+  }
+
+  return { conversation, finalPost: extractedPost, japaneseTranslation };
 }
 
 async function callAgent(agentRole, prompt, _history, onMessage, round, lang = 'ja') {
@@ -175,6 +181,9 @@ function buildCopywriterR1Prompt(task, marketerAnalysis) {
 
 投稿文の初稿を作成してください。`;
   } else {
+    const reviewSection = task.webReviews
+      ? `\nWeb review data — base your copy strictly on this, do not invent details:\n${task.webReviews}\n`
+      : '\n⚠ No web reviews found. Use only the image analysis and user notes. Avoid fabricated or exaggerated claims.\n';
     return `Write the first draft of an Instagram caption in ENGLISH for a ramen experience.
 Ramen details:
 - Style: ${task.imageAnalysis?.ramen_type || 'unknown'}
@@ -184,10 +193,12 @@ Ramen details:
 - Location: ${task.location || 'unknown'}
 - Visit date: ${task.visitDate || 'unknown'}
 - User notes: ${task.impressions || ''}
+${reviewSection}
 Marketer's analysis: ${marketerAnalysis}
 
 Requirements:
 - A mouth-watering English caption (~300 characters for the body, not counting hashtags)
+- Ground every claim in the web reviews or user notes — no invented details
 - Sensory, emotional language that makes readers want to eat it NOW
 - Include the hashtags the marketer proposed
 - Use emojis thoughtfully

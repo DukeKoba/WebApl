@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Sparkles, History, ArrowLeft, MapPin, Calendar, MessageSquare, Store, BarChart2, Wand2 } from 'lucide-react';
+import { Camera, Sparkles, History, ArrowLeft, MapPin, Calendar, MessageSquare, Store, BarChart2, Wand2, Copy, Check, Globe } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 
 import ImageUploader from '../../components/shared/ImageUploader';
@@ -19,13 +19,17 @@ export default function RamenHome() {
   const [impressions, setImpressions] = useState('');
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [currentAgent, setCurrentAgent] = useState('');
   const [postText, setPostText] = useState('');
+  const [japaneseTranslation, setJapaneseTranslation] = useState('');
+  const [hasWebReviews, setHasWebReviews] = useState(false);
   const [postId, setPostId] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
+  const [copiedField, setCopiedField] = useState('');
 
   const handleUpload = async (file) => {
     setIsUploading(true);
@@ -74,15 +78,37 @@ export default function RamenHome() {
     setImageAnalysis(null);
     setMessages([]);
     setPostText('');
+    setJapaneseTranslation('');
+    setHasWebReviews(false);
     setPostId(null);
     setStatus('draft');
     setAutoFilled({ restaurant: null, location: null, date: null });
   };
 
+  const copyField = (value, fieldName) => {
+    navigator.clipboard.writeText(value);
+    setCopiedField(fieldName);
+    setTimeout(() => setCopiedField(''), 2000);
+  };
+
+  const copyAllShopInfo = () => {
+    const parts = [];
+    if (restaurantName) parts.push(`店名: ${restaurantName}`);
+    if (location) parts.push(`場所: ${location}`);
+    if (visitDate) parts.push(`訪問日: ${visitDate}`);
+    if (impressions) parts.push(`感想: ${impressions}`);
+    navigator.clipboard.writeText(parts.join('\n'));
+    setCopiedField('all');
+    setTimeout(() => setCopiedField(''), 2000);
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setStatusMessage('');
     setMessages([]);
     setPostText('');
+    setJapaneseTranslation('');
+    setHasWebReviews(false);
     setPostId(null);
     setStatus('draft');
     setError('');
@@ -126,11 +152,16 @@ export default function RamenHome() {
           } else if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              if (event === 'agent_message') {
+              if (event === 'status') {
+                setStatusMessage(data.message);
+              } else if (event === 'agent_message') {
+                setStatusMessage('');
                 setCurrentAgent(agentNames[data.agent] || data.name);
                 setMessages(prev => [...prev, data]);
               } else if (event === 'final_post') {
                 setPostText(data.post_text);
+                setJapaneseTranslation(data.japanese_translation || '');
+                setHasWebReviews(!!data.has_web_reviews);
                 setPostId(data.post_id);
                 setCurrentAgent('');
               } else if (event === 'error') {
@@ -236,7 +267,19 @@ export default function RamenHome() {
 
             {/* Details Form */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h2 className="font-semibold text-gray-900 mb-1">Restaurant details <span className="text-xs font-normal text-gray-400">(optional)</span></h2>
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="font-semibold text-gray-900">Restaurant details <span className="text-xs font-normal text-gray-400">(optional)</span></h2>
+                {(restaurantName || location || visitDate || impressions) && (
+                  <button
+                    onClick={copyAllShopInfo}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Copy all"
+                  >
+                    {copiedField === 'all' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedField === 'all' ? 'Copied!' : 'Copy all'}</span>
+                  </button>
+                )}
+              </div>
               <p className="text-xs text-gray-500 mb-4 flex items-center gap-1">
                 <Wand2 className="w-3 h-3" />
                 Auto-filled from your photo's GPS and visible signage when available.
@@ -246,13 +289,18 @@ export default function RamenHome() {
                   <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Restaurant name"
+                    placeholder="Restaurant name (web reviews auto-searched)"
                     value={restaurantName}
                     onChange={e => setRestaurantName(e.target.value)}
                     className="w-full pl-9 pr-28 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
+                  {restaurantName && (
+                    <button onClick={() => copyField(restaurantName, 'name')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                      {copiedField === 'name' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
                   {autoFilled.restaurant && (
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
+                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
                       {sourceLabel(autoFilled.restaurant)}
                     </span>
                   )}
@@ -266,8 +314,13 @@ export default function RamenHome() {
                     onChange={e => setLocation(e.target.value)}
                     className="w-full pl-9 pr-28 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
+                  {location && (
+                    <button onClick={() => copyField(location, 'location')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                      {copiedField === 'location' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
                   {autoFilled.location && (
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
+                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
                       {sourceLabel(autoFilled.location)}
                     </span>
                   )}
@@ -280,8 +333,13 @@ export default function RamenHome() {
                     onChange={e => setVisitDate(e.target.value)}
                     className="w-full pl-9 pr-28 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
+                  {visitDate && (
+                    <button onClick={() => copyField(visitDate, 'date')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500">
+                      {copiedField === 'date' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
                   {autoFilled.date && (
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
+                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
                       {sourceLabel(autoFilled.date)}
                     </span>
                   )}
@@ -293,8 +351,13 @@ export default function RamenHome() {
                     value={impressions}
                     onChange={e => setImpressions(e.target.value)}
                     rows={3}
-                    className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    className="w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
+                  {impressions && (
+                    <button onClick={() => copyField(impressions, 'impressions')} className="absolute right-3 top-3 text-gray-300 hover:text-gray-500">
+                      {copiedField === 'impressions' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -312,7 +375,7 @@ export default function RamenHome() {
                 {isGenerating ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    AI agents drafting...
+                    {statusMessage || (currentAgent ? `${currentAgent} working...` : 'AI agents drafting...')}
                   </>
                 ) : (
                   <>
@@ -333,6 +396,37 @@ export default function RamenHome() {
               isPublishing={isPublishing}
               status={status}
             />
+
+            {/* Web reviews badge + Japanese translation */}
+            {postText && (
+              <div className="space-y-3">
+                {hasWebReviews && (
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    <Globe className="w-3.5 h-3.5 flex-shrink-0" />
+                    Web口コミ情報を参考に生成しました
+                  </div>
+                )}
+                {japaneseTranslation && (
+                  <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-gray-400">参考日本語訳</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(japaneseTranslation);
+                          setCopiedField('translation');
+                          setTimeout(() => setCopiedField(''), 2000);
+                        }}
+                        className="text-gray-300 hover:text-gray-500 transition-colors"
+                        title="日本語訳をコピー"
+                      >
+                        {copiedField === 'translation' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 whitespace-pre-wrap leading-relaxed">{japaneseTranslation}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
       </div>
     </div>

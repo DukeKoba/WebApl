@@ -5,7 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
-import { analyzeRamenImage } from '../services/claudeService.js';
+import { analyzeRamenImage, searchRestaurantReviews } from '../services/claudeService.js';
 import { orchestrateAgents } from '../services/agentOrchestrator.js';
 import { postPhoto } from '../services/instagramService.js';
 import { extractExifData, reverseGeocode, findNearbyRestaurant } from '../services/photoLocationService.js';
@@ -103,6 +103,13 @@ router.post('/generate', async (req, res) => {
     const convId = uuidv4();
     const imagePath = image_id ? path.join(uploadDir, image_id) : null;
 
+    // 店名がある場合はWebで口コミを検索
+    sendEvent('status', { message: restaurant_name ? `「${restaurant_name}」の口コミを検索中...` : '生成準備中...' });
+    const webReviews = await searchRestaurantReviews(restaurant_name, location);
+    if (webReviews) {
+      sendEvent('status', { message: '口コミ情報を取得しました。コンテンツを生成中...' });
+    }
+
     const task = {
       type: 'ramen',
       platform: 'instagram',
@@ -111,10 +118,11 @@ router.post('/generate', async (req, res) => {
       location,
       visitDate: visit_date,
       impressions,
+      webReviews,
     };
 
     const messages = [];
-    const { conversation, finalPost } = await orchestrateAgents(task, (msg) => {
+    const { conversation, finalPost, japaneseTranslation } = await orchestrateAgents(task, (msg) => {
       sendEvent('agent_message', msg);
       messages.push(msg);
     });
@@ -134,7 +142,7 @@ router.post('/generate', async (req, res) => {
       insertMsg.run(uuidv4(), convId, msg.agent, msg.name, msg.round, msg.content);
     }
 
-    sendEvent('final_post', { post_id: postId, post_text: finalPost });
+    sendEvent('final_post', { post_id: postId, post_text: finalPost, japanese_translation: japaneseTranslation, has_web_reviews: !!webReviews });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });
