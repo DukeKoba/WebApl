@@ -5,6 +5,10 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
   const [copied, setCopied] = React.useState(false);
   const isX = platform === 'x';
   const charLimit = isX ? 280 : 2200;
+  // Instagram モードはラーメン専用で英語UI、X モードは日本語UI（英検/AI教育/ITパスポート）
+  const t = isX
+    ? { header: 'X (Twitter) プレビュー', posted: '投稿済み', postText: '投稿文', copyTitle: 'コピー', copied: 'コピーしました！', copyBtn: 'テキストをコピー', placeholder: '投稿文が生成されるとここに表示されます...', overLimit: 'Xの文字数制限を超えています', posting: '投稿中...', publish: 'Xに自動投稿', hint: '' }
+    : { header: 'Instagram preview', posted: 'Posted', postText: 'Caption', copyTitle: 'Copy', copied: 'Copied!', copyBtn: 'Copy caption', placeholder: 'Your caption will appear here once generated...', overLimit: 'Caption exceeds Instagram limit', posting: '', publish: '', hint: 'Copy the caption, then paste it into a new Instagram post in the app.' };
   const calcXLength = (t) => {
     if (!t) return 0;
     const urlRegex = /https?:\/\/\S+/g;
@@ -29,24 +33,24 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
           <Instagram className="w-5 h-5 text-white" />
         )}
         <span className="text-white font-semibold text-sm">
-          {isX ? 'X (Twitter) プレビュー' : 'Instagram プレビュー'}
+          {t.header}
         </span>
         {status === 'posted' && (
-          <span className="ml-auto text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">投稿済み</span>
+          <span className="ml-auto text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">{t.posted}</span>
         )}
       </div>
 
       {/* Image preview (Instagram only) */}
       {!isX && imageUrl && (
         <div className="aspect-square bg-gray-100 overflow-hidden">
-          <img src={imageUrl} alt="ラーメン" className="w-full h-full object-cover" />
+          <img src={imageUrl} alt="ramen" className="w-full h-full object-cover" />
         </div>
       )}
 
       {/* Post text */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-500">投稿文</span>
+          <span className="text-xs font-medium text-gray-500">{t.postText}</span>
           <div className="flex items-center gap-2">
             <span className={`text-xs ${overLimit ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
               {charCount} / {charLimit}
@@ -54,7 +58,7 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
             <button
               onClick={handleCopy}
               className="text-gray-400 hover:text-gray-600 transition-colors"
-              title="コピー"
+              title={t.copyTitle}
             >
               {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
             </button>
@@ -71,16 +75,14 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
                 ? 'border-red-300 focus:ring-red-300'
                 : 'border-gray-200 focus:ring-blue-300'
             }`}
-            placeholder="投稿文が生成されるとここに表示されます..."
+            placeholder={t.placeholder}
           />
         ) : (
           <p className="text-sm text-gray-800 whitespace-pre-wrap">{text}</p>
         )}
 
         {overLimit && (
-          <p className="text-xs text-red-500 mt-1">
-            {isX ? 'Xの' : 'Instagramの'}文字数制限を超えています
-          </p>
+          <p className="text-xs text-red-500 mt-1">{t.overLimit}</p>
         )}
       </div>
 
@@ -99,9 +101,9 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
             }`}
           >
             {copied ? (
-              <><Check className="w-4 h-4" />コピーしました！</>
+              <><Check className="w-4 h-4" />{t.copied}</>
             ) : (
-              <><Copy className="w-4 h-4" />{isX ? 'テキストをコピー' : 'キャプションをコピー'}</>
+              <><Copy className="w-4 h-4" />{t.copyBtn}</>
             )}
           </button>
 
@@ -113,9 +115,9 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
               className="w-full py-2.5 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white disabled:bg-gray-300"
             >
               {isPublishing ? (
-                <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />投稿中...</>
+                <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{t.posting}</>
               ) : (
-                <><Twitter className="w-4 h-4" />Xに自動投稿</>
+                <><Twitter className="w-4 h-4" />{t.publish}</>
               )}
             </button>
           )}
@@ -124,7 +126,7 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
           {!isX && (
             <p className="text-xs text-center text-gray-400 flex items-center justify-center gap-1">
               <ExternalLink className="w-3 h-3" />
-              コピー後、Instagramアプリで新規投稿に貼り付けてください
+              {t.hint}
             </p>
           )}
         </div>

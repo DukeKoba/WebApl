@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, BookOpen, Camera, Brain } from 'lucide-react';
+import { Calendar, BookOpen, Camera, Brain, ShieldCheck } from 'lucide-react';
 
 const apps = [
   {
@@ -30,8 +30,8 @@ const apps = [
   {
     path: '/ramen',
     icon: Camera,
-    title: 'ラーメン Instagram投稿',
-    description: '写真をAIが分析、エージェントチームが英語でInstagram投稿を生成',
+    title: 'Ramen Instagram Post',
+    description: 'Upload a photo — AI agents auto-detect the restaurant & location and craft the English caption',
     color: 'from-orange-400 to-pink-600',
     bg: 'bg-orange-50',
     border: 'border-orange-200',
@@ -50,6 +50,18 @@ const apps = [
     iconBg: 'bg-violet-600',
     badge: 'X (Twitter)',
     badgeColor: 'bg-violet-100 text-violet-700',
+  },
+  {
+    path: '/itpass',
+    icon: ShieldCheck,
+    title: 'ITパスポート X投稿',
+    description: 'マーケ×IT講師チーム監修。過去問チラ見せ・ゴロ・勉強法でアプリDLを誘発',
+    color: 'from-cyan-500 to-sky-700',
+    bg: 'bg-cyan-50',
+    border: 'border-cyan-200',
+    iconBg: 'bg-cyan-600',
+    badge: 'X (Twitter)',
+    badgeColor: 'bg-cyan-100 text-cyan-700',
   },
 ];
 

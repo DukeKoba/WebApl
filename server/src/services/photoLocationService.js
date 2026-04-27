@@ -1,0 +1,112 @@
+import exifr from 'exifr';
+
+// ユーザーエージェント：Nominatim 利用規約により必須
+const USER_AGENT = 'WebApl-Ramen-Poster/1.0 (instagram caption generator)';
+
+/**
+ * 画像ファイルから GPS 座標と撮影日時を抽出する。
+ * GPS 非搭載や EXIF 欠落の場合は null を返す。
+ */
+export async function extractExifData(imagePath) {
+  try {
+    const data = await exifr.parse(imagePath, { gps: true, tiff: true });
+    if (!data) return null;
+
+    const lat = data.latitude ?? null;
+    const lon = data.longitude ?? null;
+    const takenAt = data.DateTimeOriginal || data.CreateDate || null;
+
+    if (lat == null || lon == null) {
+      return { latitude: null, longitude: null, takenAt };
+    }
+    return { latitude: lat, longitude: lon, takenAt };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Nominatim (OpenStreetMap) で逆ジオコーディング。
+ * 返り値は英語ロケール優先（accept-language=en）で city/suburb/country などを含む。
+ */
+export async function reverseGeocode(lat, lon) {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&accept-language=en`;
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT, 'Accept-Language': 'en' } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const addr = data.address || {};
+
+    // 都市レベルの英語地名を優先して組み立てる
+    const locality = addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || addr.town || addr.village || addr.city;
+    const region = addr.city || addr.state;
+    const country = addr.country;
+    const parts = [locality, region, country].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
+
+    return {
+      displayName: data.display_name || null,
+      locationLabel: parts.slice(0, 2).join(', ') || data.display_name || null,
+      amenityName: addr.amenity || addr.restaurant || null,
+      raw: addr,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Overpass API で GPS 半径 100m 以内のレストラン/食堂を検索。
+ * 最も近い施設の name (可能なら name:en) を返す。
+ */
+export async function findNearbyRestaurant(lat, lon) {
+  const radius = 100; // meters
+  const query = `
+    [out:json][timeout:10];
+    (
+      node["amenity"~"^(restaurant|fast_food|cafe|food_court)$"](around:${radius},${lat},${lon});
+      way["amenity"~"^(restaurant|fast_food|cafe|food_court)$"](around:${radius},${lat},${lon});
+    );
+    out center tags 20;
+  `.trim();
+
+  const url = 'https://overpass-api.de/api/interpreter';
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'User-Agent': USER_AGENT, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${encodeURIComponent(query)}`,
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const elements = data.elements || [];
+    if (elements.length === 0) return null;
+
+    // ラーメン/ヌードル系を優先
+    const scored = elements.map(el => {
+      const tags = el.tags || {};
+      const cuisine = (tags.cuisine || '').toLowerCase();
+      const name = tags['name:en'] || tags.name || null;
+      const elLat = el.lat ?? el.center?.lat;
+      const elLon = el.lon ?? el.center?.lon;
+      const dist = elLat != null ? haversine(lat, lon, elLat, elLon) : Infinity;
+      const cuisineBoost = /(ramen|noodle|japanese)/.test(cuisine) ? -30 : 0; // 距離から 30m 引いて優先
+      return { name, dist: dist + cuisineBoost, cuisine };
+    }).filter(x => x.name);
+
+    if (scored.length === 0) return null;
+    scored.sort((a, b) => a.dist - b.dist);
+    return scored[0].name;
+  } catch {
+    return null;
+  }
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const R = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}

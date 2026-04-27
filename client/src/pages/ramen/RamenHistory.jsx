@@ -4,9 +4,9 @@ import { ArrowLeft, Camera, Instagram, Clock, CheckCircle, XCircle, FileText, Tr
 import { authFetch } from '../../utils/api';
 
 const STATUS_CONFIG = {
-  draft: { label: '下書き', icon: FileText, color: 'text-gray-500', bg: 'bg-gray-100' },
-  posted: { label: '投稿済み', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' },
-  failed: { label: '失敗', icon: XCircle, color: 'text-red-500', bg: 'bg-red-100' },
+  draft: { label: 'Draft', icon: FileText, color: 'text-gray-500', bg: 'bg-gray-100' },
+  posted: { label: 'Posted', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-100' },
+  failed: { label: 'Failed', icon: XCircle, color: 'text-red-500', bg: 'bg-red-100' },
 };
 
 export default function RamenHistory() {
@@ -21,7 +21,7 @@ export default function RamenHistory() {
   }, []);
 
   const handleDelete = async (id) => {
-    if (!confirm('この投稿を削除しますか？')) return;
+    if (!confirm('Delete this post?')) return;
     await authFetch(`/ramen/posts/${id}`, { method: 'DELETE' });
     setPosts(prev => prev.filter(p => p.id !== id));
   };
@@ -37,7 +37,7 @@ export default function RamenHistory() {
             <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-600 rounded-lg flex items-center justify-center">
               <Camera className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">ラーメン 投稿履歴</h1>
+            <h1 className="font-bold text-lg text-gray-900">Ramen post history</h1>
           </div>
         </div>
       </div>
@@ -50,9 +50,9 @@ export default function RamenHistory() {
         ) : posts.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <Camera className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="font-medium">投稿履歴がありません</p>
+            <p className="font-medium">No posts yet</p>
             <Link to="/ramen" className="text-orange-500 text-sm hover:underline mt-2 inline-block">
-              最初の投稿を生成する →
+              Generate your first post →
             </Link>
           </div>
         ) : (
@@ -64,7 +64,7 @@ export default function RamenHistory() {
                 <div key={post.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                   {post.image_url && (
                     <div className="aspect-video bg-gray-100 overflow-hidden">
-                      <img src={post.image_url} alt="ラーメン" className="w-full h-full object-cover" />
+                      <img src={post.image_url} alt="ramen" className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div className="p-4">
@@ -82,7 +82,7 @@ export default function RamenHistory() {
                       )}
                       <span className="text-xs text-gray-400 flex items-center gap-1 ml-auto">
                         <Clock className="w-3 h-3" />
-                        {new Date(post.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(post.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                     {post.metadata?.restaurant_name && (

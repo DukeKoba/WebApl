@@ -17,6 +17,8 @@ import RamenHistory from './pages/ramen/RamenHistory';
 import InstagramAnalytics from './pages/ramen/InstagramAnalytics';
 import AiEduHome from './pages/aiedu/AiEduHome';
 import AiEduHistory from './pages/aiedu/AiEduHistory';
+import ItPassHome from './pages/itpass/ItPassHome';
+import ItPassHistory from './pages/itpass/ItPassHistory';
 import { useApp } from './contexts/AppContext';
 
 function ShiftSyncApp() {
@@ -70,6 +72,8 @@ export default function App() {
       <Route path="/ramen/analytics" element={<InstagramAnalytics />} />
       <Route path="/aiedu" element={<AiEduHome />} />
       <Route path="/aiedu/history" element={<AiEduHistory />} />
+      <Route path="/itpass" element={<ItPassHome />} />
+      <Route path="/itpass/history" element={<ItPassHistory />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
