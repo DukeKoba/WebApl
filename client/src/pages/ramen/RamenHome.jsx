@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Camera, Sparkles, History, ArrowLeft, MapPin, Calendar, MessageSquare, Store, BarChart2, Wand2, Copy, Check, Globe } from 'lucide-react';
+import { Camera, Sparkles, History, ArrowLeft, MapPin, Calendar, MessageSquare, Store, BarChart2, Wand2, Copy, Check, Globe, Search, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 
 import ImageUploader from '../../components/shared/ImageUploader';
@@ -17,6 +17,11 @@ export default function RamenHome() {
   const [location, setLocation] = useState('');
   const [visitDate, setVisitDate] = useState('');
   const [impressions, setImpressions] = useState('');
+
+  // review search state: 'idle' | 'searching' | 'confirm' | 'approved' | 'rejected'
+  const [reviewState, setReviewState] = useState('idle');
+  const [reviewPreview, setReviewPreview] = useState('');
+  const [approvedReviews, setApprovedReviews] = useState(null);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -83,6 +88,42 @@ export default function RamenHome() {
     setPostId(null);
     setStatus('draft');
     setAutoFilled({ restaurant: null, location: null, date: null });
+    setReviewState('idle');
+    setReviewPreview('');
+    setApprovedReviews(null);
+  };
+
+  const handleSearchReviews = async () => {
+    if (!restaurantName) return;
+    setReviewState('searching');
+    setReviewPreview('');
+    setApprovedReviews(null);
+    try {
+      const res = await authFetch('/ramen/search-reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restaurant_name: restaurantName, location }),
+      });
+      const data = await res.json();
+      if (data.reviews) {
+        setReviewPreview(data.reviews);
+        setReviewState('confirm');
+      } else {
+        setReviewState('not-found');
+      }
+    } catch {
+      setReviewState('not-found');
+    }
+  };
+
+  const handleApproveReviews = () => {
+    setApprovedReviews(reviewPreview);
+    setReviewState('approved');
+  };
+
+  const handleRejectReviews = () => {
+    setApprovedReviews(null);
+    setReviewState('rejected');
   };
 
   const copyField = (value, fieldName) => {
@@ -130,6 +171,7 @@ export default function RamenHome() {
           location,
           visit_date: visitDate,
           impressions,
+          web_reviews: approvedReviews || null,
         }),
       });
 
@@ -289,9 +331,9 @@ export default function RamenHome() {
                   <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Restaurant name (web reviews auto-searched)"
+                    placeholder="Restaurant name"
                     value={restaurantName}
-                    onChange={e => setRestaurantName(e.target.value)}
+                    onChange={e => { setRestaurantName(e.target.value); setReviewState('idle'); setApprovedReviews(null); }}
                     className="w-full pl-9 pr-28 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
                   {restaurantName && (
@@ -305,6 +347,80 @@ export default function RamenHome() {
                     </span>
                   )}
                 </div>
+
+                {/* Review search button + confirmation card */}
+                {restaurantName && reviewState === 'idle' && (
+                  <button
+                    onClick={handleSearchReviews}
+                    className="w-full flex items-center justify-center gap-2 py-2 border border-dashed border-orange-300 rounded-lg text-sm text-orange-500 hover:bg-orange-50 transition-colors"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    Search web reviews for &ldquo;{restaurantName}&rdquo;
+                  </button>
+                )}
+                {reviewState === 'searching' && (
+                  <div className="flex items-center gap-2 py-2 px-3 bg-orange-50 rounded-lg text-sm text-orange-600">
+                    <span className="w-3.5 h-3.5 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin flex-shrink-0" />
+                    Searching reviews...
+                  </div>
+                )}
+                {reviewState === 'not-found' && (
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+                    <span>No reviews found. Post will be based on photo analysis.</span>
+                    <button onClick={handleSearchReviews} className="ml-2 text-orange-400 hover:text-orange-600 flex-shrink-0">
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+                {reviewState === 'confirm' && reviewPreview && (
+                  <div className="border border-orange-200 rounded-lg overflow-hidden">
+                    <div className="bg-orange-50 px-3 py-2 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-orange-700">Reviews found — is this the right restaurant?</span>
+                      <button onClick={handleSearchReviews} className="text-orange-400 hover:text-orange-600">
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="p-3 max-h-40 overflow-y-auto">
+                      <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{reviewPreview}</p>
+                    </div>
+                    <div className="flex border-t border-orange-100">
+                      <button
+                        onClick={handleApproveReviews}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
+                      >
+                        <ThumbsUp className="w-3.5 h-3.5" />
+                        Yes, use these reviews
+                      </button>
+                      <div className="w-px bg-orange-100" />
+                      <button
+                        onClick={handleRejectReviews}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        <ThumbsDown className="w-3.5 h-3.5" />
+                        Wrong restaurant
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {reviewState === 'approved' && (
+                  <div className="flex items-center justify-between py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
+                    <div className="flex items-center gap-1.5 text-emerald-700">
+                      <Check className="w-3.5 h-3.5" />
+                      Reviews confirmed — will be used for generation
+                    </div>
+                    <button onClick={() => { setReviewState('idle'); setApprovedReviews(null); }} className="text-gray-400 hover:text-gray-600 ml-2">
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+                {reviewState === 'rejected' && (
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
+                    <span>Generating without web reviews.</span>
+                    <button onClick={handleSearchReviews} className="text-orange-400 hover:text-orange-600 ml-2">
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input

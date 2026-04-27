@@ -85,9 +85,21 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   }
 });
 
+// POST /api/ramen/search-reviews - Search web reviews for a restaurant
+router.post('/search-reviews', async (req, res) => {
+  const { restaurant_name, location } = req.body;
+  if (!restaurant_name) return res.json({ reviews: null });
+  try {
+    const reviews = await searchRestaurantReviews(restaurant_name, location);
+    res.json({ reviews: reviews || null });
+  } catch {
+    res.json({ reviews: null });
+  }
+});
+
 // POST /api/ramen/generate - Generate post via agent discussion (SSE)
 router.post('/generate', async (req, res) => {
-  const { image_id, image_analysis, restaurant_name, location, visit_date, impressions } = req.body;
+  const { image_id, image_analysis, restaurant_name, location, visit_date, impressions, web_reviews } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -103,13 +115,6 @@ router.post('/generate', async (req, res) => {
     const convId = uuidv4();
     const imagePath = image_id ? path.join(uploadDir, image_id) : null;
 
-    // 店名がある場合はWebで口コミを検索
-    sendEvent('status', { message: restaurant_name ? `「${restaurant_name}」の口コミを検索中...` : '生成準備中...' });
-    const webReviews = await searchRestaurantReviews(restaurant_name, location);
-    if (webReviews) {
-      sendEvent('status', { message: '口コミ情報を取得しました。コンテンツを生成中...' });
-    }
-
     const task = {
       type: 'ramen',
       platform: 'instagram',
@@ -118,7 +123,7 @@ router.post('/generate', async (req, res) => {
       location,
       visitDate: visit_date,
       impressions,
-      webReviews,
+      webReviews: web_reviews || null,
     };
 
     const messages = [];
