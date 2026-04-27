@@ -165,7 +165,7 @@ function getDaysUntilExam(level) {
 }
 
 const CTA_URL = 'https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561';
-const CTA_TEXT = `📲 AI英検Passで詳しく解説 → ${CTA_URL}`;
+const CTA_TEXT = `📲 AI英検Passでもっと練習 → ${CTA_URL}`;
 
 // X counts every URL as exactly 23 chars regardless of length
 function calcXCharCount(text) {
@@ -305,7 +305,7 @@ router.post('/generate-script', async (req, res) => {
 ナレーション: （話す言葉）
 
 ■ CTA（27〜30秒）
-画面テキスト: 「AI英検Passで詳しく解説！」
+画面テキスト: 「AI英検Passでもっと練習！」
 ナレーション: （アプリへ誘導する言葉）
 
 【要件】

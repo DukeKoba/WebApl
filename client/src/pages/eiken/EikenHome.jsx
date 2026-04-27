@@ -25,6 +25,17 @@ const EIKEN_LEVELS = [
   { value: '5', label: '5級' },
 ];
 
+const APP_LINKS = {
+  pre1: {
+    href: 'https://apps.apple.com/us/app/ai%E8%8B%B1%E6%A4%9C%E6%BA%961%E7%B4%9A-pass/id6762535365',
+    label: 'AI英検Pass準1',
+  },
+  '2': {
+    href: 'https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561',
+    label: 'AI英検Pass2級',
+  },
+};
+
 function ScriptPreview({ script, onScriptChange }) {
   const [copied, setCopied] = useState(false);
 
@@ -226,20 +237,22 @@ export default function EikenHome() {
         )}
 
         {/* Link to actual Eiken practice app */}
-        <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-          <BookOpen className="w-5 h-5 text-blue-500 shrink-0" />
-          <div className="text-sm text-blue-800">
-            実際の英検問題を解きたい方は
-            <a
-              href="https://apps.apple.com/jp/app/ai%E8%8B%B1%E6%A4%9Cpass-%EF%BC%92%E7%B4%9A/id6761838561"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="ml-1 font-semibold text-blue-600 underline hover:text-blue-800"
-            >
-              AI英検Pass
-            </a>
+        {APP_LINKS[level] && (
+          <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+            <BookOpen className="w-5 h-5 text-blue-500 shrink-0" />
+            <div className="text-sm text-blue-800">
+              実際の英検問題を解きたい方は
+              <a
+                href={APP_LINKS[level].href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-1 font-semibold text-blue-600 underline hover:text-blue-800"
+              >
+                {APP_LINKS[level].label}
+              </a>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Tab */}
         <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-white">
