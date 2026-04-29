@@ -42,8 +42,8 @@ const apps = [
   {
     path: '/aiedu',
     icon: Brain,
-    title: 'AI教育 X投稿',
-    description: 'AI基礎・ChatGPT・プロンプト技法などをAIエージェントが日本語でX投稿',
+    title: 'AI関連 X投稿',
+    description: 'AI活用Tips・Vibecoding・最新動向など、AI関連コンテンツをX投稿',
     color: 'from-violet-500 to-purple-700',
     bg: 'bg-violet-50',
     border: 'border-violet-200',

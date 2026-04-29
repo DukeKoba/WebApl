@@ -14,6 +14,8 @@ const CONTENT_TYPES = [
   { value: 'news', label: 'AI最新動向' },
   { value: 'coding', label: 'AIコーディング' },
   { value: 'business', label: 'AIビジネス活用' },
+  { value: 'aitips', label: '生成AI活用トピック' },
+  { value: 'vibecoding', label: 'バイブコーディングTips' },
 ];
 
 export default function AiEduHome() {
@@ -118,7 +120,7 @@ export default function AiEduHome() {
             <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
               <Brain className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">AI教育 X投稿</h1>
+            <h1 className="font-bold text-lg text-gray-900">AI関連 X投稿</h1>
           </div>
           <Link
             to="/aiedu/history"

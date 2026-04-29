@@ -21,6 +21,8 @@ import ItPassHome from './pages/itpass/ItPassHome';
 import ItPassHistory from './pages/itpass/ItPassHistory';
 import OptimaLrnLanding from './pages/optimalrn/OptimaLrnLanding';
 import CocreoLanding from './pages/cocreo/CocreoLanding';
+import SubsidyGenerator from './pages/cocreo/SubsidyGenerator';
+import CocreoConsulting from './pages/cocreo/CocreoConsulting';
 import { useApp } from './contexts/AppContext';
 
 function ShiftSyncApp() {
@@ -78,6 +80,8 @@ export default function App() {
       <Route path="/itpass/history" element={<ItPassHistory />} />
       <Route path="/optimalrn" element={<OptimaLrnLanding />} />
       <Route path="/cocreo" element={<CocreoLanding />} />
+      <Route path="/cocreo/subsidy-generator" element={<SubsidyGenerator />} />
+      <Route path="/cocreo/consulting" element={<CocreoConsulting />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

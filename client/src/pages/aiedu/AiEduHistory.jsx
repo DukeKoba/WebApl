@@ -19,6 +19,8 @@ const CONTENT_TYPE_LABELS = {
   news: 'AI最新動向',
   coding: 'AIコーディング',
   business: 'AIビジネス活用',
+  aitips: 'AI活用Tips',
+  vibecoding: 'Vibecodingの基礎',
 };
 
 export default function AiEduHistory() {

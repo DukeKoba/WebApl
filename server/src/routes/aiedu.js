@@ -16,22 +16,32 @@ const CONTENT_TYPE_LABELS = {
   news: 'AI最新動向',
   coding: 'AIコーディング',
   business: 'AIビジネス活用',
+  aitips: '生成AI活用トピック',
+  vibecoding: 'バイブコーディングTips',
+};
+
+const CONTENT_TYPE_CONTEXT = {
+  aitips: `Claude・ChatGPT・Geminiなど最新の生成AIツールを日常業務・学習・創作に活かす実践的な活用事例やコツ。プロンプトエンジニアリング、マルチモーダル活用、AIエージェント連携など2025〜2026年の最新トレンドを含む生成AI活用のリアルな知見を発信する。`,
+  vibecoding: `バイブコーディング（Vibe Coding）とは、AIと対話しながら感覚的にコードを生成・改善する新しい開発スタイル。Claude Code・Cursor・GitHub Copilot Workspaceなど2025〜2026年の最新ツールを使った実践的なTips、具体的なプロンプト例、ハマりやすい罠と対策など初心者にも役立つ内容を発信する。`,
+  news: `2025〜2026年の最新AI動向を発信する。Claude 4・GPT-5・Gemini 2.0などの最新モデル、エージェントAI・マルチモーダルの普及、AIコーディングツールの進化など直近のトピックを扱うこと。2024年以前の古い話題（DevDay 2024等）は使わない。`,
 };
 
 function buildAiEduPrompt(contentType) {
   const label = CONTENT_TYPE_LABELS[contentType] || contentType;
-  return `AI教育コンテンツをXに日本語で投稿します。ターゲットはAIに興味があるエンジニア・学生・ビジネスパーソンです。
+  const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
+  return `AI教育コンテンツをXに日本語で投稿します。ターゲットはAIに興味があるエンジニア・学生・ビジネスパーソンです。現在は2026年4月です。
 
 コンテンツタイプ: ${label}
-
+${extraContext ? `\n背景情報: ${extraContext}\n` : ''}
 以下の要件で投稿文を1つ作成してください：
 
 【要件】
 - X（Twitter）の280文字以内を厳守（ハッシュタグ含む）
 - 読者がすぐに試せる・役立つ実用的な内容（${label}に関するTipsや知識）
 - 読者が「保存・シェアしたい」と思える価値ある情報
+- 2025〜2026年現在の最新情報を使用し、古い情報（2024年以前の具体的なイベント名等）は避ける
 - 絵文字を効果的に使用
-- ハッシュタグは末尾に2〜3個（例: #生成AI #ChatGPT #AI活用）
+- ハッシュタグは末尾に2〜3個（例: #生成AI #Claude #AI活用）
 
 【出力形式】
 投稿文のみを出力してください。前後に説明文を入れないでください。`;
@@ -55,7 +65,7 @@ router.post('/generate', async (req, res) => {
     const prompt = buildAiEduPrompt(contentType);
 
     const postText = await generateTextFull(
-      'あなたはAI教育とSNSマーケティングの専門家です。AIに関する実用的な知識をXで発信します。',
+      'あなたはAI・生成AI・バイブコーディングの専門家です。AIに関する実践的な知識や活用事例をXで日本語で発信します。',
       prompt,
       { maxTokens: 600 }
     );
