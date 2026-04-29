@@ -245,7 +245,7 @@ function getDaysUntilExam(level) {
   return diff > 0 ? diff : 0;
 }
 
-const CTA_URL = 'https://apps.apple.com/us/app/ai%E8%8B%B1%E6%A4%9C%E6%BA%961%E7%B4%9A-pass/id6762535365';
+const CTA_URL = 'https://apps.apple.com/jp/app/id6762535365';
 const CTA_TEXT = `📲 英検準１級Pass → ${CTA_URL}`;
 
 // X counts every URL as exactly 23 chars regardless of length
