@@ -1,44 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Sparkles, History, ArrowLeft, CalendarClock } from 'lucide-react';
+import { Building2, Sparkles, History, ArrowLeft } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
 
-// マーケ + IT資格講師チームで合意した「DLにつながる投稿カテゴリ12種」
 const CONTENT_TYPES = [
-  { value: 'past_question', label: '過去問チラ見せ' },
-  { value: 'mnemonic', label: '覚え方・ゴロ' },
-  { value: 'study_tips', label: '勉強法' },
-  { value: 'ai_utilize', label: 'AI活用' },
-  { value: 'security', label: 'セキュリティ' },
-  { value: 'network', label: 'ネットワーク' },
-  { value: 'database', label: 'データベース' },
-  { value: 'tech_basics', label: '基礎理論' },
-  { value: 'tech_computer', label: 'コンピュータ構成' },
-  { value: 'strategy', label: 'ストラテジ系' },
-  { value: 'management', label: 'マネジメント系' },
-  { value: 'news_law', label: 'ニュース・法務' },
-  { value: 'terminology', label: 'IT用語解説' },
-  { value: 'calculation', label: '計算問題特訓' },
-  { value: 'real_world', label: '実務活用' },
+  { value: 'dx_trend', label: 'DXトレンド' },
+  { value: 'insurtech', label: 'InsurTech動向' },
+  { value: 'compliance', label: 'コンプライアンス' },
+  { value: 'customer_mgmt', label: '顧客管理DX' },
+  { value: 'digital_sales', label: 'デジタル営業' },
+  { value: 'ai_usecase', label: 'AI活用事例' },
+  { value: 'paperless', label: 'ペーパーレス化' },
+  { value: 'remote_meeting', label: 'リモート商談' },
+  { value: 'subsidy', label: '補助金・助成金' },
+  { value: 'case_study', label: '成功事例' },
 ];
 
-export default function ItPassHome() {
-  const [contentType, setContentType] = useState('past_question');
+export default function AgentDxHome() {
+  const [contentType, setContentType] = useState('dx_trend');
   const [isGenerating, setIsGenerating] = useState(false);
   const [postText, setPostText] = useState('');
   const [postId, setPostId] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
-  const [examInfo, setExamInfo] = useState(null);
-
-  useEffect(() => {
-    authFetch('/itpass/exam-info')
-      .then(r => r.json())
-      .then(setExamInfo)
-      .catch(() => {});
-  }, []);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -48,7 +34,7 @@ export default function ItPassHome() {
     setError('');
 
     try {
-      const res = await authFetch('/itpass/generate', {
+      const res = await authFetch('/agentdx/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contentType }),
@@ -93,7 +79,7 @@ export default function ItPassHome() {
   const handlePublish = async (id) => {
     setIsPublishing(true);
     try {
-      const res = await authFetch(`/itpass/posts/${id}/publish`, { method: 'POST' });
+      const res = await authFetch(`/agentdx/posts/${id}/publish`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error);
@@ -109,20 +95,19 @@ export default function ItPassHome() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center gap-4">
           <Link to="/" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-cyan-600 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">ITパスポート X投稿</h1>
+            <h1 className="font-bold text-lg text-gray-900">代理店DX X投稿</h1>
           </div>
           <Link
-            to="/itpass/history"
+            to="/agentdx/history"
             className="ml-auto flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
           >
             <History className="w-4 h-4" />
@@ -132,26 +117,17 @@ export default function ItPassHome() {
       </div>
 
       <div className="max-w-2xl mx-auto p-4 lg:p-6 space-y-4">
-        {examInfo?.daysUntil != null && (
-          <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-3 flex items-center gap-2 text-sm text-cyan-800">
-            <CalendarClock className="w-4 h-4" />
-            試験日（{examInfo.examDate}）まであと <strong className="mx-1">{examInfo.daysUntil}</strong> 日 — 全投稿に自動でカウントダウンが入ります
-          </div>
-        )}
-
-        {/* Strategy callout（マーケ + 講師チームの企画意図を可視化） */}
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 leading-relaxed">
             <strong className="text-gray-700">投稿戦略：</strong>
-            「過去問チラ見せ→続きはアプリで」型のフックと、講師監修のシラバス準拠コンテンツを組み合わせて、
-            保存・シェア・アプリDLを最大化します。CTAとハッシュタグは自動付与。
+            保険代理店のDX推進・InsurTech・AI活用に関するニュースや実践Tips を発信し、
+            代理店経営者・担当者のフォロー獲得とCocreoブランド認知向上を目指します。
           </p>
         </div>
 
-        {/* Controls */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-cyan-500" />
+            <Sparkles className="w-4 h-4 text-indigo-500" />
             投稿を生成する
           </h2>
 
@@ -164,7 +140,7 @@ export default function ItPassHome() {
                   onClick={() => setContentType(ct.value)}
                   className={`py-2 px-2 rounded-lg text-xs font-medium transition-colors text-center ${
                     contentType === ct.value
-                      ? 'bg-cyan-600 text-white'
+                      ? 'bg-indigo-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -183,7 +159,7 @@ export default function ItPassHome() {
           <button
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             {isGenerating ? (
               <>

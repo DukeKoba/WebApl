@@ -20,6 +20,9 @@ export const CONTENT_TYPE_LABELS = {
   study_tips: '勉強法・合格戦略',
   ai_utilize: 'AI×ITパスポート学習法',
   news_law: '最新ITニュース・法改正',
+  terminology: 'IT用語解説',
+  calculation: '計算問題特訓',
+  real_world: '実務活用',
 };
 
 // 講師監修：分野ごとの「シラバス頻出テーマ」を毎回ランダムに固定して内容のブレを抑える
@@ -103,6 +106,35 @@ const VARIETY_HINTS = {
     'クラウドセキュリティの最新トピック',
     'DX推進・経済産業省のレポート要点',
   ],
+  terminology: [
+    'API（Application Programming Interface）の意味と使い方',
+    'クラウドコンピューティングの3形態（IaaS/PaaS/SaaS）',
+    'プロトコルとは？HTTPとTCPの違い',
+    'ビッグデータ・IoT・AIの違いと関係',
+    '暗号化とハッシュ化の違い',
+    'アジャイル開発とウォーターフォール開発',
+    'オープンソースとプロプライエタリの違い',
+    'フィッシング・スミッシング・ビッシングの違い',
+  ],
+  calculation: [
+    '2進数 ⇄ 10進数変換の解き方ステップ',
+    '16進数 ⇄ 2進数の素早い変換テクニック',
+    'RAID5の使用可能容量の計算',
+    'IPアドレスのサブネットマスク計算',
+    'PERT図でクリティカルパスを求める方法',
+    '確率計算（AND条件・OR条件）',
+    'EVM（EV・PV・AC）の計算問題',
+    '稼働率・MTBF・MTTRの計算',
+  ],
+  real_world: [
+    '会社でのITパスポート知識の活用場面（セキュリティ研修）',
+    'Excelマクロとプログラミングの関係',
+    'プロジェクト管理でWBS・ガントチャートを使う場面',
+    'クラウド契約でSLAを確認すべき理由',
+    'テレワーク環境でのセキュリティ対策の実務',
+    '個人情報を扱う業務でのコンプライアンス実践',
+    'システム導入プロジェクトでの発注側の役割',
+  ],
 };
 
 function pickVariety(contentType) {
@@ -158,6 +190,9 @@ function buildItPassPrompt(contentType, bodyLimit, variety = '') {
     study_tips: `- 「今日からできる行動」を1つだけ具体的に`,
     ai_utilize: `- すぐコピペできるプロンプト例を1つ含める（鍵カッコで囲む）`,
     news_law: `- 用語解説 + 試験ではどう問われるかを必ず1行入れる`,
+    terminology: `- 用語を「一言で言うと○○」と定義してから、身近な例え話で補足する`,
+    calculation: `- 問題と答えの手順を箇条書きで示す。「この計算パターンを覚えるとXX点確定！」で締める`,
+    real_world: `- 「実務ではこう使う」と具体的な職場シーンを描写し、試験知識との繋がりを1行で示す`,
   };
   const formatHint = formatHints[contentType] || `- 「これ知ってる？」と問いかけて1テーマを30秒で読める分量にまとめる`;
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, BookOpen, Camera, Brain, ShieldCheck, Shield, Building2 } from 'lucide-react';
+import { Calendar, BookOpen, Camera, Brain, ShieldCheck, Shield, Building2, Landmark } from 'lucide-react';
 
 const apps = [
   {
@@ -74,6 +74,18 @@ const apps = [
     iconBg: 'bg-gradient-to-br from-amber-500 to-yellow-500',
     badge: 'iOS App',
     badgeColor: 'bg-amber-100 text-amber-700',
+  },
+  {
+    path: '/agentdx',
+    icon: Landmark,
+    title: '代理店DX X投稿',
+    description: '保険代理店のDX推進・InsurTech・AI活用など代理店経営者向けニュースをX投稿',
+    color: 'from-indigo-500 to-indigo-700',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-200',
+    iconBg: 'bg-indigo-600',
+    badge: 'X (Twitter)',
+    badgeColor: 'bg-indigo-100 text-indigo-700',
   },
   {
     path: '/cocreo',

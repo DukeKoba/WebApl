@@ -14,6 +14,7 @@ import eikenRoutes from './routes/eiken.js';
 import ramenRoutes from './routes/ramen.js';
 import aieduRoutes from './routes/aiedu.js';
 import itpassRoutes from './routes/itpass.js';
+import agentdxRoutes from './routes/agentdx.js';
 import igAnalyticsRoutes from './routes/instagramAnalytics.js';
 import authRoutes, { getToken } from './routes/auth.js';
 
@@ -51,6 +52,7 @@ app.use('/api/eiken', eikenRoutes);
 app.use('/api/ramen', ramenRoutes);
 app.use('/api/aiedu', aieduRoutes);
 app.use('/api/itpass', itpassRoutes);
+app.use('/api/agentdx', agentdxRoutes);
 app.use('/api/instagram', igAnalyticsRoutes);
 
 // Serve frontend in production

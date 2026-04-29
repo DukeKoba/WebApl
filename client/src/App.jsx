@@ -17,6 +17,8 @@ import RamenHistory from './pages/ramen/RamenHistory';
 import InstagramAnalytics from './pages/ramen/InstagramAnalytics';
 import AiEduHome from './pages/aiedu/AiEduHome';
 import AiEduHistory from './pages/aiedu/AiEduHistory';
+import AgentDxHome from './pages/agentdx/AgentDxHome';
+import AgentDxHistory from './pages/agentdx/AgentDxHistory';
 import ItPassHome from './pages/itpass/ItPassHome';
 import ItPassHistory from './pages/itpass/ItPassHistory';
 import OptimaLrnLanding from './pages/optimalrn/OptimaLrnLanding';
@@ -76,6 +78,8 @@ export default function App() {
       <Route path="/ramen/analytics" element={<InstagramAnalytics />} />
       <Route path="/aiedu" element={<AiEduHome />} />
       <Route path="/aiedu/history" element={<AiEduHistory />} />
+      <Route path="/agentdx" element={<AgentDxHome />} />
+      <Route path="/agentdx/history" element={<AgentDxHistory />} />
       <Route path="/itpass" element={<ItPassHome />} />
       <Route path="/itpass/history" element={<ItPassHistory />} />
       <Route path="/optimalrn" element={<OptimaLrnLanding />} />
