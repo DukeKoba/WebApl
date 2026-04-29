@@ -99,11 +99,19 @@ export default function Layout({ children }) {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:px-8 gap-4">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:px-8 gap-4 relative">
           <button className="lg:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-semibold text-gray-900">
+          {/* Mobile: centered logo */}
+          <div className="lg:hidden absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">S</span>
+            </div>
+            <span className="font-bold text-lg text-gray-900">ShiftSync</span>
+          </div>
+          {/* Desktop: page title */}
+          <h1 className="hidden lg:block text-lg font-semibold text-gray-900">
             {navItems.find(n => n.path === location.pathname || (n.path !== '/' && location.pathname.startsWith(n.path)))?.label || 'ShiftSync'}
           </h1>
         </header>

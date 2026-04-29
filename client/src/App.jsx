@@ -19,6 +19,8 @@ import AiEduHome from './pages/aiedu/AiEduHome';
 import AiEduHistory from './pages/aiedu/AiEduHistory';
 import ItPassHome from './pages/itpass/ItPassHome';
 import ItPassHistory from './pages/itpass/ItPassHistory';
+import OptimaLrnLanding from './pages/optimalrn/OptimaLrnLanding';
+import CocreoLanding from './pages/cocreo/CocreoLanding';
 import { useApp } from './contexts/AppContext';
 
 function ShiftSyncApp() {
@@ -74,6 +76,8 @@ export default function App() {
       <Route path="/aiedu/history" element={<AiEduHistory />} />
       <Route path="/itpass" element={<ItPassHome />} />
       <Route path="/itpass/history" element={<ItPassHistory />} />
+      <Route path="/optimalrn" element={<OptimaLrnLanding />} />
+      <Route path="/cocreo" element={<CocreoLanding />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

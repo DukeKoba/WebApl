@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, BookOpen, Camera, Brain, ShieldCheck } from 'lucide-react';
+import { Calendar, BookOpen, Camera, Brain, ShieldCheck, Shield, Building2 } from 'lucide-react';
 
 const apps = [
   {
@@ -62,6 +62,30 @@ const apps = [
     iconBg: 'bg-cyan-600',
     badge: 'X (Twitter)',
     badgeColor: 'bg-cyan-100 text-cyan-700',
+  },
+  {
+    path: '/optimalrn',
+    icon: Shield,
+    title: 'OptimaLrn',
+    description: 'AI英検・ITパスポート合格アプリシリーズのマーケティングページ',
+    color: 'from-amber-500 to-yellow-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    iconBg: 'bg-gradient-to-br from-amber-500 to-yellow-500',
+    badge: 'iOS App',
+    badgeColor: 'bg-amber-100 text-amber-700',
+  },
+  {
+    path: '/cocreo',
+    icon: Building2,
+    title: 'Cocreo',
+    description: 'AIで中小企業を元気に。保険代理店DX・業務ツール開発・補助金活用支援',
+    color: 'from-blue-700 to-orange-500',
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    iconBg: 'bg-gradient-to-br from-blue-700 to-orange-500',
+    badge: 'iOS App',
+    badgeColor: 'bg-orange-100 text-orange-700',
   },
 ];
 
