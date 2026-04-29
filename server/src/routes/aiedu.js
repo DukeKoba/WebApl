@@ -7,52 +7,85 @@ import { postTweet } from '../services/xService.js';
 const router = express.Router();
 
 const CONTENT_TYPE_LABELS = {
-  basics: 'AI基礎知識',
-  ml: '機械学習',
-  prompt: 'プロンプト技法',
-  chatgpt: 'ChatGPT活用',
-  tools: 'AIツール紹介',
-  ethics: 'AI倫理・社会',
-  news: 'AI最新動向',
-  coding: 'AIコーディング',
-  business: 'AIビジネス活用',
-  aitips: '生成AI活用トピック',
-  vibecoding: 'バイブコーディングTips',
+  subsidy_news:   '補助金最新情報',
+  subsidy_howto:  '補助金活用ノウハウ',
+  ai_dx:          'AI業務改善事例',
+  ai_smb:         '中小企業AI活用',
+  ai_efficiency:  '業務効率化Tips',
+  ai_tools:       'AIツール業務活用',
+  claude_biz:     'Claude業務活用',
+  chatgpt_biz:    'ChatGPT業務活用',
+  insurance_ai:   '保険×AI活用',
+  mvp:            'MVP開発事例',
+  vibecoding:     'バイブコーディング',
+  cocreo_voice:   'Cocreoの視点',
 };
+
+// Whether the content type relies on fresh news (and therefore must cite sources)
+const NEWS_DRIVEN = new Set([
+  'subsidy_news',
+  'ai_dx',
+  'ai_smb',
+  'ai_tools',
+  'claude_biz',
+  'chatgpt_biz',
+  'insurance_ai',
+]);
 
 const CONTENT_TYPE_CONTEXT = {
-  aitips: `Claude・ChatGPT・Geminiなど最新の生成AIツールを日常業務・学習・創作に活かす実践的な活用事例やコツ。プロンプトエンジニアリング、マルチモーダル活用、AIエージェント連携など2025〜2026年の最新トレンドを含む生成AI活用のリアルな知見を発信する。`,
-  vibecoding: `バイブコーディング（Vibe Coding）とは、AIと対話しながら感覚的にコードを生成・改善する新しい開発スタイル。Claude Code・Cursor・GitHub Copilot Workspaceなど2025〜2026年の最新ツールを使った実践的なTips、具体的なプロンプト例、ハマりやすい罠と対策など初心者にも役立つ内容を発信する。`,
-  news: `2025〜2026年の最新AI動向を発信する。Claude 4・GPT-5・Gemini 2.0などの最新モデル、エージェントAI・マルチモーダルの普及、AIコーディングツールの進化など直近のトピックを扱うこと。2024年以前の古い話題（DevDay 2024等）は使わない。`,
+  subsidy_news: `中小企業向け補助金（AI・IT導入補助金2026、ものづくり補助金、事業再構築補助金、持続化補助金、省力化投資補助金など）の最新締切・公募要領・採択事例・制度変更を扱う。Cocreo Grantが申請伴走で支援できることを踏まえ、経営者が「自社も使えるかも」と感じる具体的な情報を発信する。`,
+  subsidy_howto: `補助金申請の実務ノウハウ（事業計画書の書き方、加点項目、IT導入支援事業者の選び方、AI申請書ジェネレーター活用、採択率を上げるコツ等）を扱う。Cocreoは申請書AI（無料体験可）と伴走支援を提供しているため、その文脈で語ること。`,
+  ai_dx: `中小企業のAI業務改善・DX事例を扱う。経理請求書処理、議事録自動化、顧客対応、営業資料作成、マーケコンテンツ生成、在庫予測など、現場で「効果が出た」具体例を、削減時間・コスト・人時で示す。`,
+  ai_smb: `従業員数〜100名規模の中小企業がAIをどう導入したかのリアルな事例とロードマップ。「人手不足」「属人化」「ITリテラシー」など中小特有の課題に対する打ち手として語る。Cocreoの「AIで中小企業を元気に」という思想を反映。`,
+  ai_efficiency: `中小企業の現場ですぐ試せるAI業務効率化Tips。Excel自動化、メール下書き、議事録要約、PDF読み取り、商品説明文生成など、明日から使える具体的なプロンプト例や手順を含める。`,
+  ai_tools: `2026年時点で中小企業の業務に使えるAIツール（Claude / ChatGPT / Gemini / Notion AI / Dify / Zapier AI 等）の業務適用事例・比較・コスト感を扱う。導入ハードルの低さを意識した実用的な紹介をする。`,
+  claude_biz: `Claude（Anthropic）を業務活用する実践Tips。長文ドキュメント要約、契約書チェック、コード生成、Claude Code・Projects・MCP活用、Artifactsでの業務ツール内製化など2026年最新の使い方を発信する。`,
+  chatgpt_biz: `ChatGPTを中小企業の業務で活用する実践Tips。GPTs・カスタム指示・Advanced Voice・データ分析・Operator等、2026年最新機能を業務改善文脈で紹介する。`,
+  insurance_ai: `保険代理店・保険会社向けAI活用。意向把握自動化、重要事項説明書の自動生成、コンプライアンスチェック、乗合代理店の商品比較、保険業法対応など、Cocreo for Insuranceの文脈で発信する。`,
+  mvp: `2週間〜1ヶ月でMVPを開発した実例・手法。AI開発ツール（Claude Code / Cursor / v0 / Bolt 等）を駆使した爆速開発、従来SIer比1/5の価格感、内製化ノウハウなど、Cocreo Studioの強みを伝えるトピック。`,
+  vibecoding: `バイブコーディング（Vibe Coding）— AIと対話しながら感覚的にコードを生成・改善する開発スタイル。Claude Code・Cursor・GitHub Copilot Workspaceなど2026年最新ツールの実践Tips、具体的なプロンプト例、ハマりやすい罠と対策を発信する。`,
+  cocreo_voice: `Cocreoの世界観・哲学を発信する。「AIで中小企業を元気に」「戦略×実装のワンストップ」「共に創る」という思想、創業ストーリー、経営者との対話で見えた現場の声、コンサル×開発の融合などをエッセイ調で語る。`,
 };
 
-function buildAiEduPrompt(contentType, newsContext) {
+function buildAiEduPrompt(contentType, newsContext, sources) {
   const label = CONTENT_TYPE_LABELS[contentType] || contentType;
   const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
+  const isNewsDriven = NEWS_DRIVEN.has(contentType);
+
+  const sourceLines = (sources || []).map((s, i) => `[${i + 1}] ${s.title || ''} ${s.url}`.trim()).join('\n');
   const newsSection = newsContext
-    ? `\n【今日の最新ニュース・トレンド（Web検索結果）】\n${newsContext}\n\n上記の最新トピックの中から最もバズりそうな内容を1つ選んでX投稿にしてください。\n`
+    ? `\n【今日Web検索で取得した最新情報】\n${newsContext}\n${sourceLines ? `\n【参照可能なソースURL】\n${sourceLines}\n` : ''}\n上記の中から最も読者の役に立つ・バズりそうな1トピックを選び、X投稿にしてください。`
     : '';
-  return `AI関連コンテンツをXに日本語で投稿します。ターゲットはAIに興味があるエンジニア・学生・ビジネスパーソンです。現在は2026年4月です。
+
+  const sourceRule = isNewsDriven
+    ? `- ニュース・統計・事例を引用する場合は、必ず本文末尾に出典URLを1つだけ含めること（上記ソースURLのいずれか1つ）。URLもX文字数にカウントされるため文字数調整に注意。
+- 出典URLが取得できていない場合は、断定的なニュース表現は避け、一般論として語ること。`
+    : `- 具体的なニュースや数字を引用する場合は、必ず出典URLを本文末尾に1つ添えること（無い場合は引用しない）。`;
+
+  return `あなたはCocreo（コクリオ）のX公式アカウントの中の人です。
+Cocreoは「AIで中小企業を元気に」を掲げ、AI業務改善・補助金申請支援・受託開発・コンサルを提供しています。
+Xでの発信目的は、中小企業の経営者・現場リーダー・士業・個人事業主に、AI活用と補助金活用の具体的価値を伝え、無料相談や補助金申請AIへの導線を作ることです。
+現在は2026年4月。ターゲットは中小企業経営者・バックオフィス担当・士業・コンサル志望者です。
 
 コンテンツタイプ: ${label}
 ${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
-以下の要件で投稿文を1つ作成してください：
 
-【要件】
-- X（Twitter）の280文字以内を厳守（ハッシュタグ含む）
-- 読者がすぐに試せる・役立つ実用的な内容
-- 読者が「保存・シェアしたい」と思える価値ある情報
-- 最新情報・実際のニュースを元にした具体的な内容にすること
-- 絵文字を効果的に使用
-- ハッシュタグは末尾に2〜3個（例: #生成AI #Claude #AI活用）
+【投稿の要件】
+- X（Twitter）の本文は日本語、URL・ハッシュタグ込みで合計280文字以内を厳守
+- 1行目で「えっ」と止める引きを作る（数字・対比・具体名のいずれか）
+- 中小企業の現場で「明日試せる」「申請してみよう」と思える実用情報を入れる
+- 上から目線にならず、読者と並走する温度感（Cocreo＝共に創る）
+- 絵文字は1〜3個までさりげなく
+- 末尾にハッシュタグ2〜3個（例: #AI業務改善 #補助金 #中小企業DX #Cocreo）
+${sourceRule}
 
 【出力形式】
-投稿文のみを出力してください。前後に説明文を入れないでください。`;
+投稿文のみを出力してください。前後に説明文・見出し・コードブロックは入れないでください。`;
 }
 
 // POST /api/aiedu/generate - Direct single-call generation (SSE)
 router.post('/generate', async (req, res) => {
-  const { contentType = 'basics' } = req.body;
+  const { contentType = 'subsidy_news' } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -67,25 +100,36 @@ router.post('/generate', async (req, res) => {
     const postId = uuidv4();
     const label = CONTENT_TYPE_LABELS[contentType] || contentType;
 
-    // Step 1: Web search for recent news
-    sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
-    const newsContext = await searchAiNews(contentType, label);
+    // Step 1: Web search for recent news (returns { text, sources })
+    sendEvent('status', { message: `${label}の最新情報を検索中...` });
+    const newsResult = await searchAiNews(contentType, label);
+    const newsContext = newsResult?.text || null;
+    const sources = newsResult?.sources || [];
 
     // Step 2: Generate post with fresh news context
     sendEvent('status', { message: '投稿を生成中...' });
-    const prompt = buildAiEduPrompt(contentType, newsContext);
+    const prompt = buildAiEduPrompt(contentType, newsContext, sources);
 
     const postText = await generateTextFull(
-      'あなたはAI・生成AI・バイブコーディングの専門家です。AIに関する実践的な知識や最新ニュースをXで日本語で発信します。',
+      'あなたはCocreoのX公式アカウントの中の人で、AI業務改善と補助金活用の専門家です。中小企業に伝わる言葉で、実用的でバズる日本語投稿を作ります。',
       prompt,
       { maxTokens: 600 }
     );
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'aiedu', postText.trim(), JSON.stringify({ contentType, had_news_context: !!newsContext }), 'draft'
+      postId,
+      'aiedu',
+      postText.trim(),
+      JSON.stringify({ contentType, had_news_context: !!newsContext, sources }),
+      'draft',
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText.trim(), had_news_context: !!newsContext });
+    sendEvent('final_post', {
+      post_id: postId,
+      post_text: postText.trim(),
+      had_news_context: !!newsContext,
+      sources,
+    });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });

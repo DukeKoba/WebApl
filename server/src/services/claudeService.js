@@ -5,31 +5,61 @@ const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
 export async function searchAiNews(contentType, label) {
   const queries = {
-    aitips:      '生成AI 活用事例 最新 2025 2026',
-    vibecoding:  'バイブコーディング Vibe Coding AI開発 最新 2025 2026',
-    news:        'AI 最新ニュース 技術動向 2025 2026',
-    coding:      'AIコーディング ツール 新機能 2025 2026',
-    tools:       'AIツール 新リリース 機能追加 2025 2026',
-    chatgpt:     'ChatGPT OpenAI 新機能 アップデート 2025 2026',
-    ml:          '機械学習 深層学習 最新研究 論文 2025 2026',
-    prompt:      'プロンプトエンジニアリング 最新テクニック 2025 2026',
-    business:    'AI ビジネス活用 企業導入事例 2025 2026',
-    ethics:      'AI倫理 規制 ガイドライン 2025 2026',
-    basics:      'AI入門 基礎知識 最新トレンド 2025 2026',
+    subsidy_news:   'AI IT導入補助金 ものづくり補助金 事業再構築補助金 中小企業 2026 公募 締切',
+    subsidy_howto:  '補助金 申請 採択率 事業計画書 書き方 中小企業 2026',
+    ai_dx:          '中小企業 AI業務改善 DX 事例 効果 2026',
+    ai_smb:         '中小企業 生成AI 導入事例 ROI 効果 2026',
+    ai_efficiency:  '生成AI 業務効率化 バックオフィス 自動化 事例 2026',
+    ai_tools:       'AIツール 業務活用 中小企業 比較 新機能 2026',
+    claude_biz:     'Claude Anthropic 業務活用 新機能 2026',
+    chatgpt_biz:    'ChatGPT OpenAI 業務活用 新機能 GPTs 2026',
+    insurance_ai:   '保険代理店 AI 意向把握 コンプライアンス DX 事例 2026',
+    mvp:            'AI MVP 開発 内製化 Claude Code Cursor 2026',
+    vibecoding:     'バイブコーディング Vibe Coding AI開発 最新 2026',
+    cocreo_voice:   '中小企業 AI 業務改善 補助金 経営 トレンド 2026',
   };
-  const query = queries[contentType] || `${label} AI 最新 2025 2026`;
+  const query = queries[contentType] || `${label} 中小企業 AI 補助金 2026`;
   try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
+      max_tokens: 1500,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{
         role: 'user',
-        content: `「${query}」で最新のニュースやトレンドを検索してください。X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条書きで日本語にまとめてください。各項目は具体的な数字・ツール名・事例を含めてください。情報が見つからない場合は「情報なし」と返してください。`,
+        content: `「${query}」で最新のニュース・公募情報・事例を検索してください。X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条書きで日本語にまとめてください。
+各項目は以下を含めてください：
+- 具体的な数字・金額・締切・ツール名・企業名・補助金名
+- 出典のURL（必ず）
+情報が見つからない場合は「情報なし」と返してください。`,
       }],
     });
-    const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-    return text && !text.includes('情報なし') ? text : null;
+
+    // Aggregate text + collect citations (deduped)
+    let text = '';
+    const seen = new Set();
+    const sources = [];
+
+    for (const block of response.content || []) {
+      if (block.type === 'text') {
+        text += (text ? '\n' : '') + (block.text || '');
+        for (const c of block.citations || []) {
+          const url = c.url;
+          if (!url || seen.has(url)) continue;
+          seen.add(url);
+          sources.push({ url, title: c.title || '' });
+        }
+      } else if (block.type === 'web_search_tool_result' && Array.isArray(block.content)) {
+        for (const item of block.content) {
+          const url = item.url;
+          if (!url || seen.has(url)) continue;
+          seen.add(url);
+          sources.push({ url, title: item.title || '' });
+        }
+      }
+    }
+
+    if (!text || text.includes('情報なし')) return null;
+    return { text, sources: sources.slice(0, 5) };
   } catch {
     return null;
   }
