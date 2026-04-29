@@ -18,10 +18,18 @@ export default function RamenHome() {
   const [visitDate, setVisitDate] = useState('');
   const [impressions, setImpressions] = useState('');
 
-  // review search state: 'idle' | 'searching' | 'confirm' | 'approved' | 'rejected'
+  // restaurant name review search state
   const [reviewState, setReviewState] = useState('idle');
   const [reviewPreview, setReviewPreview] = useState('');
   const [approvedReviews, setApprovedReviews] = useState(null);
+
+  // ramen type review search state: 'idle' | 'searching' | 'confirm' | 'approved' | 'rejected' | 'not-found'
+  const [ramenTypeReviewState, setRamenTypeReviewState] = useState('idle');
+  const [ramenTypeReviewPreview, setRamenTypeReviewPreview] = useState('');
+  const [approvedRamenTypeReviews, setApprovedRamenTypeReviews] = useState(null);
+
+  // impression conversion state
+  const [isConvertingImpression, setIsConvertingImpression] = useState(false);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -91,6 +99,47 @@ export default function RamenHome() {
     setReviewState('idle');
     setReviewPreview('');
     setApprovedReviews(null);
+    setRamenTypeReviewState('idle');
+    setRamenTypeReviewPreview('');
+    setApprovedRamenTypeReviews(null);
+  };
+
+  const handleSearchRamenTypeReviews = async () => {
+    if (!imageAnalysis?.ramen_type) return;
+    setRamenTypeReviewState('searching');
+    setRamenTypeReviewPreview('');
+    setApprovedRamenTypeReviews(null);
+    try {
+      const res = await authFetch('/ramen/search-ramen-reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ramen_type: imageAnalysis.ramen_type, location }),
+      });
+      const data = await res.json();
+      if (data.reviews) {
+        setRamenTypeReviewPreview(data.reviews);
+        setRamenTypeReviewState('confirm');
+      } else {
+        setRamenTypeReviewState('not-found');
+      }
+    } catch {
+      setRamenTypeReviewState('not-found');
+    }
+  };
+
+  const handleConvertImpression = async () => {
+    if (!impressions.trim()) return;
+    setIsConvertingImpression(true);
+    try {
+      const res = await authFetch('/ramen/convert-impression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: impressions }),
+      });
+      const data = await res.json();
+      if (data.english) setImpressions(data.english);
+    } catch {}
+    finally { setIsConvertingImpression(false); }
   };
 
   const handleSearchReviews = async () => {
@@ -171,7 +220,7 @@ export default function RamenHome() {
           location,
           visit_date: visitDate,
           impressions,
-          web_reviews: approvedReviews || null,
+          web_reviews: [approvedReviews, approvedRamenTypeReviews].filter(Boolean).join('\n\n---\n\n') || null,
         }),
       });
 
@@ -295,14 +344,90 @@ export default function RamenHome() {
 
               {/* Vision Analysis Result */}
               {imageAnalysis && (
-                <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-100">
-                  <p className="text-xs font-semibold text-orange-700 mb-2">Claude AI analysis</p>
-                  <div className="space-y-1 text-xs text-orange-800">
-                    {imageAnalysis.ramen_type && <p>Style: <span className="font-medium">{imageAnalysis.ramen_type}</span></p>}
-                    {imageAnalysis.toppings?.length > 0 && <p>Toppings: {imageAnalysis.toppings.join(', ')}</p>}
-                    {imageAnalysis.appearance && <p>Appearance: {imageAnalysis.appearance}</p>}
-                    {imageAnalysis.atmosphere && <p>Vibe: {imageAnalysis.atmosphere}</p>}
+                <div className="mt-4 space-y-2">
+                  <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
+                    <p className="text-xs font-semibold text-orange-700 mb-2">Claude AI analysis</p>
+                    <div className="space-y-1 text-xs text-orange-800">
+                      {imageAnalysis.ramen_type && <p>Style: <span className="font-medium">{imageAnalysis.ramen_type}</span></p>}
+                      {imageAnalysis.toppings?.length > 0 && <p>Toppings: {imageAnalysis.toppings.join(', ')}</p>}
+                      {imageAnalysis.appearance && <p>Appearance: {imageAnalysis.appearance}</p>}
+                      {imageAnalysis.atmosphere && <p>Vibe: {imageAnalysis.atmosphere}</p>}
+                    </div>
                   </div>
+
+                  {/* Ramen type review search */}
+                  {imageAnalysis.ramen_type && ramenTypeReviewState === 'idle' && (
+                    <button
+                      onClick={handleSearchRamenTypeReviews}
+                      className="w-full flex items-center justify-center gap-2 py-2 border border-dashed border-orange-300 rounded-lg text-sm text-orange-500 hover:bg-orange-50 transition-colors"
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      Search web reviews for &ldquo;{imageAnalysis.ramen_type}&rdquo; ramen
+                    </button>
+                  )}
+                  {ramenTypeReviewState === 'searching' && (
+                    <div className="flex items-center gap-2 py-2 px-3 bg-orange-50 rounded-lg text-sm text-orange-600">
+                      <span className="w-3.5 h-3.5 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin flex-shrink-0" />
+                      Searching {imageAnalysis.ramen_type} reviews...
+                    </div>
+                  )}
+                  {ramenTypeReviewState === 'not-found' && (
+                    <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg text-sm text-gray-500">
+                      <span>No reviews found for this ramen type. Try typing your impression in Japanese below.</span>
+                      <button onClick={handleSearchRamenTypeReviews} className="ml-2 text-orange-400 hover:text-orange-600 flex-shrink-0">
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                  {ramenTypeReviewState === 'confirm' && ramenTypeReviewPreview && (
+                    <div className="border border-orange-200 rounded-lg overflow-hidden">
+                      <div className="bg-orange-50 px-3 py-2 flex items-center justify-between">
+                        <span className="text-xs font-semibold text-orange-700">{imageAnalysis.ramen_type} reviews found — use these?</span>
+                        <button onClick={handleSearchRamenTypeReviews} className="text-orange-400 hover:text-orange-600">
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="p-3 max-h-40 overflow-y-auto">
+                        <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{ramenTypeReviewPreview}</p>
+                      </div>
+                      <div className="flex border-t border-orange-100">
+                        <button
+                          onClick={() => { setApprovedRamenTypeReviews(ramenTypeReviewPreview); setRamenTypeReviewState('approved'); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        >
+                          <ThumbsUp className="w-3.5 h-3.5" />
+                          Yes, use these
+                        </button>
+                        <div className="w-px bg-orange-100" />
+                        <button
+                          onClick={() => { setApprovedRamenTypeReviews(null); setRamenTypeReviewState('rejected'); }}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <ThumbsDown className="w-3.5 h-3.5" />
+                          Skip
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {ramenTypeReviewState === 'approved' && (
+                    <div className="flex items-center justify-between py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
+                      <div className="flex items-center gap-1.5 text-emerald-700">
+                        <Check className="w-3.5 h-3.5" />
+                        Ramen type reviews confirmed
+                      </div>
+                      <button onClick={() => { setRamenTypeReviewState('idle'); setApprovedRamenTypeReviews(null); }} className="text-gray-400 hover:text-gray-600 ml-2">
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                  {ramenTypeReviewState === 'rejected' && (
+                    <div className="flex items-center justify-between py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
+                      <span>Skipped ramen type reviews.</span>
+                      <button onClick={handleSearchRamenTypeReviews} className="text-orange-400 hover:text-orange-600 ml-2">
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -463,18 +588,36 @@ export default function RamenHome() {
                 <div className="relative">
                   <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <textarea
-                    placeholder="Your impression (e.g. Rich broth with springy noodles)"
+                    placeholder="Your impression — 日本語でも入力可（AI変換あり）"
                     value={impressions}
                     onChange={e => setImpressions(e.target.value)}
                     rows={3}
-                    className="w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-300"
+                    className="w-full pl-9 pr-16 py-2.5 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-300"
                   />
                   {impressions && (
-                    <button onClick={() => copyField(impressions, 'impressions')} className="absolute right-3 top-3 text-gray-300 hover:text-gray-500">
-                      {copiedField === 'impressions' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
+                    <div className="absolute right-2 top-2 flex flex-col gap-1">
+                      <button
+                        onClick={handleConvertImpression}
+                        disabled={isConvertingImpression}
+                        title="日本語→英語 AI変換"
+                        className="p-1 rounded text-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-colors disabled:opacity-50"
+                      >
+                        {isConvertingImpression
+                          ? <span className="w-3.5 h-3.5 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin block" />
+                          : <Wand2 className="w-3.5 h-3.5" />}
+                      </button>
+                      <button onClick={() => copyField(impressions, 'impressions')} className="p-1 text-gray-300 hover:text-gray-500">
+                        {copiedField === 'impressions' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
                   )}
                 </div>
+                {(ramenTypeReviewState === 'not-found' || reviewState === 'not-found') && !impressions && (
+                  <p className="text-xs text-orange-500 flex items-center gap-1">
+                    <Wand2 className="w-3 h-3" />
+                    レビューが見つかりませんでした。日本語で感想を入力し、上のボタンで英語に変換できます。
+                  </p>
+                )}
               </div>
 
               {error && (

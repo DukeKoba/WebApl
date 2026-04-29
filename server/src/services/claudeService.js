@@ -3,6 +3,77 @@ import fs from 'fs';
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
+export async function searchAiNews(contentType, label) {
+  const queries = {
+    aitips:      '生成AI 活用事例 最新 2025 2026',
+    vibecoding:  'バイブコーディング Vibe Coding AI開発 最新 2025 2026',
+    news:        'AI 最新ニュース 技術動向 2025 2026',
+    coding:      'AIコーディング ツール 新機能 2025 2026',
+    tools:       'AIツール 新リリース 機能追加 2025 2026',
+    chatgpt:     'ChatGPT OpenAI 新機能 アップデート 2025 2026',
+    ml:          '機械学習 深層学習 最新研究 論文 2025 2026',
+    prompt:      'プロンプトエンジニアリング 最新テクニック 2025 2026',
+    business:    'AI ビジネス活用 企業導入事例 2025 2026',
+    ethics:      'AI倫理 規制 ガイドライン 2025 2026',
+    basics:      'AI入門 基礎知識 最新トレンド 2025 2026',
+  };
+  const query = queries[contentType] || `${label} AI 最新 2025 2026`;
+  try {
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{
+        role: 'user',
+        content: `「${query}」で最新のニュースやトレンドを検索してください。X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条書きで日本語にまとめてください。各項目は具体的な数字・ツール名・事例を含めてください。情報が見つからない場合は「情報なし」と返してください。`,
+      }],
+    });
+    const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    return text && !text.includes('情報なし') ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function searchRamenTypeReviews(ramenType, location) {
+  if (!ramenType) return null;
+  try {
+    const locationPart = location ? ` ${location}` : '';
+    const query = `${ramenType}ラーメン${locationPart} 口コミ 特徴 おすすめ`;
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2048,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{
+        role: 'user',
+        content: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索してください。以下を日本語でまとめてください：
+・このラーメンスタイル（${ramenType}）の特徴・味わい
+・スープの特徴（具体的に）
+・麺の種類・食感
+・人気のトッピング・食べ方
+・実際の口コミコメント（具体的な表現を引用）
+実際に見つかった情報のみ使用してください。情報が見つからない場合は「口コミ情報なし」と返してください。`,
+      }],
+    });
+    const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    return text && !text.includes('口コミ情報なし') ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function convertImpressionToEnglish(japaneseText) {
+  try {
+    return await generateTextFull(
+      'You are a food writer specializing in Japanese ramen. Convert the user\'s impression into vivid, engaging English suitable for an Instagram caption. Keep it natural and enthusiastic, 1-3 sentences. Output only the English text, no explanation.',
+      `以下の感想を、Instagramキャプション向けの自然な英語に変換してください：\n\n${japaneseText}`,
+      { maxTokens: 300 }
+    );
+  } catch {
+    return null;
+  }
+}
+
 export async function searchRestaurantReviews(restaurantName, location) {
   if (!restaurantName) return null;
   try {

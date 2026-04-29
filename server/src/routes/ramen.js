@@ -5,7 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
-import { analyzeRamenImage, searchRestaurantReviews } from '../services/claudeService.js';
+import { analyzeRamenImage, searchRestaurantReviews, searchRamenTypeReviews, convertImpressionToEnglish } from '../services/claudeService.js';
 import { orchestrateAgents } from '../services/agentOrchestrator.js';
 import { postPhoto } from '../services/instagramService.js';
 import { extractExifData, reverseGeocode, findNearbyRestaurant } from '../services/photoLocationService.js';
@@ -94,6 +94,30 @@ router.post('/search-reviews', async (req, res) => {
     res.json({ reviews: reviews || null });
   } catch {
     res.json({ reviews: null });
+  }
+});
+
+// POST /api/ramen/search-ramen-reviews - Search web reviews by ramen type
+router.post('/search-ramen-reviews', async (req, res) => {
+  const { ramen_type, location } = req.body;
+  if (!ramen_type) return res.json({ reviews: null });
+  try {
+    const reviews = await searchRamenTypeReviews(ramen_type, location);
+    res.json({ reviews: reviews || null });
+  } catch {
+    res.json({ reviews: null });
+  }
+});
+
+// POST /api/ramen/convert-impression - Convert Japanese impression to English
+router.post('/convert-impression', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.json({ english: null });
+  try {
+    const english = await convertImpressionToEnglish(text);
+    res.json({ english: english || null });
+  } catch {
+    res.json({ english: null });
   }
 });
 

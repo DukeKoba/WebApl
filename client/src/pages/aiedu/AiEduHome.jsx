@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Sparkles, History, ArrowLeft } from 'lucide-react';
+import { Brain, Sparkles, History, ArrowLeft, Search } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
 
@@ -21,9 +21,11 @@ const CONTENT_TYPES = [
 export default function AiEduHome() {
   const [contentType, setContentType] = useState('basics');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [currentAgent, setCurrentAgent] = useState('');
   const [postText, setPostText] = useState('');
+  const [hadNewsContext, setHadNewsContext] = useState(false);
   const [postId, setPostId] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
@@ -37,8 +39,10 @@ export default function AiEduHome() {
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setStatusMessage('');
     setMessages([]);
     setPostText('');
+    setHadNewsContext(false);
     setPostId(null);
     setStatus('draft');
     setError('');
@@ -69,12 +73,16 @@ export default function AiEduHome() {
           } else if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              if (event === 'agent_message') {
+              if (event === 'status') {
+                setStatusMessage(data.message);
+              } else if (event === 'agent_message') {
                 setCurrentAgent(agentNames[data.agent] || data.name);
                 setMessages(prev => [...prev, data]);
               } else if (event === 'final_post') {
                 setPostText(data.post_text);
                 setPostId(data.post_id);
+                setHadNewsContext(!!data.had_news_context);
+                setStatusMessage('');
                 setCurrentAgent('');
               } else if (event === 'error') {
                 setError(data.message);
@@ -173,7 +181,7 @@ export default function AiEduHome() {
             {isGenerating ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                AIが生成中...
+                {statusMessage || 'AIが生成中...'}
               </>
             ) : (
               <>
@@ -183,6 +191,14 @@ export default function AiEduHome() {
             )}
           </button>
         </div>
+
+        {/* News context badge */}
+        {postText && hadNewsContext && (
+          <div className="flex items-center gap-1.5 text-xs text-violet-600 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
+            <Search className="w-3.5 h-3.5 flex-shrink-0" />
+            最新ニュースをWeb検索して生成しました
+          </div>
+        )}
 
         {/* Post Preview */}
         <PostPreview

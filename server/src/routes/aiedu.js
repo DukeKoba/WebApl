@@ -1,7 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
-import { generateTextFull } from '../services/claudeService.js';
+import { generateTextFull, searchAiNews } from '../services/claudeService.js';
 import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
@@ -26,20 +26,23 @@ const CONTENT_TYPE_CONTEXT = {
   news: `2025〜2026年の最新AI動向を発信する。Claude 4・GPT-5・Gemini 2.0などの最新モデル、エージェントAI・マルチモーダルの普及、AIコーディングツールの進化など直近のトピックを扱うこと。2024年以前の古い話題（DevDay 2024等）は使わない。`,
 };
 
-function buildAiEduPrompt(contentType) {
+function buildAiEduPrompt(contentType, newsContext) {
   const label = CONTENT_TYPE_LABELS[contentType] || contentType;
   const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
-  return `AI教育コンテンツをXに日本語で投稿します。ターゲットはAIに興味があるエンジニア・学生・ビジネスパーソンです。現在は2026年4月です。
+  const newsSection = newsContext
+    ? `\n【今日の最新ニュース・トレンド（Web検索結果）】\n${newsContext}\n\n上記の最新トピックの中から最もバズりそうな内容を1つ選んでX投稿にしてください。\n`
+    : '';
+  return `AI関連コンテンツをXに日本語で投稿します。ターゲットはAIに興味があるエンジニア・学生・ビジネスパーソンです。現在は2026年4月です。
 
 コンテンツタイプ: ${label}
-${extraContext ? `\n背景情報: ${extraContext}\n` : ''}
+${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
 以下の要件で投稿文を1つ作成してください：
 
 【要件】
 - X（Twitter）の280文字以内を厳守（ハッシュタグ含む）
-- 読者がすぐに試せる・役立つ実用的な内容（${label}に関するTipsや知識）
+- 読者がすぐに試せる・役立つ実用的な内容
 - 読者が「保存・シェアしたい」と思える価値ある情報
-- 2025〜2026年現在の最新情報を使用し、古い情報（2024年以前の具体的なイベント名等）は避ける
+- 最新情報・実際のニュースを元にした具体的な内容にすること
 - 絵文字を効果的に使用
 - ハッシュタグは末尾に2〜3個（例: #生成AI #Claude #AI活用）
 
@@ -62,19 +65,27 @@ router.post('/generate', async (req, res) => {
 
   try {
     const postId = uuidv4();
-    const prompt = buildAiEduPrompt(contentType);
+    const label = CONTENT_TYPE_LABELS[contentType] || contentType;
+
+    // Step 1: Web search for recent news
+    sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
+    const newsContext = await searchAiNews(contentType, label);
+
+    // Step 2: Generate post with fresh news context
+    sendEvent('status', { message: '投稿を生成中...' });
+    const prompt = buildAiEduPrompt(contentType, newsContext);
 
     const postText = await generateTextFull(
-      'あなたはAI・生成AI・バイブコーディングの専門家です。AIに関する実践的な知識や活用事例をXで日本語で発信します。',
+      'あなたはAI・生成AI・バイブコーディングの専門家です。AIに関する実践的な知識や最新ニュースをXで日本語で発信します。',
       prompt,
       { maxTokens: 600 }
     );
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'aiedu', postText.trim(), JSON.stringify({ contentType }), 'draft'
+      postId, 'aiedu', postText.trim(), JSON.stringify({ contentType, had_news_context: !!newsContext }), 'draft'
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText.trim() });
+    sendEvent('final_post', { post_id: postId, post_text: postText.trim(), had_news_context: !!newsContext });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });
