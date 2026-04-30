@@ -54,7 +54,7 @@ function buildAiEduPrompt(contentType, newsContext, sources) {
 
   const sourceLines = (sources || []).map((s, i) => `[${i + 1}] ${s.title || ''} ${s.url}`.trim()).join('\n');
   const newsSection = newsContext
-    ? `\n【今日Web検索で取得した最新情報】\n${newsContext}\n${sourceLines ? `\n【参照可能なソースURL】\n${sourceLines}\n` : ''}\n上記の中から最も読者の役に立つ・バズりそうな1トピックを選び、X投稿にしてください。`
+    ? `\n【今日Web検索で取得した最新情報（直近90日以内に絞ってあります）】\n${newsContext}\n${sourceLines ? `\n【参照可能なソースURL】\n${sourceLines}\n` : ''}\n上記の中から、できるだけ公開日が新しい1トピックを選び、X投稿にしてください。古いトピック（90日以上前）は使わないでください。`
     : '';
 
   const sourceRule = isNewsDriven
