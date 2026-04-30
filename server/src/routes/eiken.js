@@ -60,6 +60,13 @@ const VARIETY_HINTS = {
       '準2級頻出の形容詞を1語',
       '日本語訳と意味がズレる基本単語を1語',
     ],
+    pre2plus: [
+      '高校英語〜大学受験入門レベルの動詞を1語（acquire/propose相当）',
+      '準2級より一歩進んだ形容詞・副詞を1語',
+      '日常会話・ニュースで使われる名詞を1語（準2級プラスレベル）',
+      'カタカナ語と意味がズレる中上級単語を1語',
+      '2級に向けて強化すべき多義語を1語',
+    ],
     '3': [
       '中学英語の基本動詞を1語（enjoy/practiceレベル）',
       '感情・状態を表す形容詞を1語（excited/boredなど）',
@@ -102,6 +109,13 @@ const VARIETY_HINTS = {
       '比較表現のポイント',
       '接続詞の使い方（because/when/ifなど）',
       '関係代名詞の基本（who/whichなど）',
+    ],
+    pre2plus: [
+      '仮定法の入門（If I were〜）',
+      '分詞の基本用法（現在分詞・過去分詞）',
+      '間接疑問文のポイント',
+      '関係代名詞の応用（that/which/whoの使い分け）',
+      '助動詞の使い分け（should/must/may）',
     ],
     '3': [
       '現在完了形の使い方（have＋過去分詞）',
@@ -209,6 +223,13 @@ const LEVEL_CONFIG = {
     hashtags: '#英検準2級 #英語学習 #高校受験',
     difficulty: '中学〜高校初級レベル。environment/experience/promise相当の語彙、不定詞・受動態・比較、日常的な話題を扱う。難しすぎる表現は使わない。',
   },
+  pre2plus: {
+    label: '準2級プラス',
+    target: '高校生（準2級合格後、2級を目指してステップアップしたい学習者）',
+    hook: '準2級合格後に2級へ向けてレベルアップしたい高校生に響く冒頭フック',
+    hashtags: '#英検準2級プラス #英語学習 #高校受験',
+    difficulty: '高校初〜中級レベル（準2級と2級の中間）。acquire/propose相当の語彙、仮定法入門・分詞・間接疑問、やや抽象的なテーマも扱う。2級ほど難しくしない。',
+  },
   '3': {
     label: '3級',
     target: '中学生（英検3級取得を目指す学習者）',
@@ -245,8 +266,18 @@ function getDaysUntilExam(level) {
   return diff > 0 ? diff : 0;
 }
 
-const CTA_URL = 'https://apps.apple.com/jp/app/id6762535365';
-const CTA_TEXT = `📲 英検準１級Pass → ${CTA_URL}`;
+const CTA_LINKS = {
+  pre1: { url: 'https://apps.apple.com/jp/app/id6762535365', label: '英検準１級Pass' },
+  '2':  { url: 'https://apps.apple.com/jp/app/id6761838561', label: '英検２級Pass' },
+  pre2: { url: 'https://apps.apple.com/jp/app/id6762229086', label: '英検準２級Pass' },
+  pre2plus: { url: 'https://apps.apple.com/jp/app/id6762537264', label: '英検準２級プラスPass' },
+};
+
+function buildCtaText(level) {
+  const cta = CTA_LINKS[level];
+  if (!cta) return null;
+  return `📲 ${cta.label} → ${cta.url}`;
+}
 
 // X counts every URL as exactly 23 chars regardless of length
 function calcXCharCount(text) {
@@ -255,8 +286,9 @@ function calcXCharCount(text) {
 }
 
 // Build the fixed suffix (CTA + hashtags) and return it with its X char cost
-function buildSuffix(lv) {
-  const suffix = `\n${CTA_TEXT}\n${lv.hashtags}`;
+function buildSuffix(lv, level) {
+  const ctaText = buildCtaText(level);
+  const suffix = ctaText ? `\n${ctaText}\n${lv.hashtags}` : `\n${lv.hashtags}`;
   return { suffix, cost: calcXCharCount(suffix) };
 }
 
@@ -324,7 +356,7 @@ router.post('/generate', async (req, res) => {
     const postId = uuidv4();
     const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
     const { prefix } = buildPrefix(level);
-    const { suffix, cost: suffixCost } = buildSuffix(lv);
+    const { suffix, cost: suffixCost } = buildSuffix(lv, level);
     const prefixCost = prefix.length;
     const bodyLimit = 280 - prefixCost - suffixCost - 2; // 2 for safety margin
 
@@ -365,6 +397,9 @@ router.post('/generate-script', async (req, res) => {
   const daysUntilScript = getDaysUntilExam(level);
   const examHook = daysUntilScript !== null
     ? `\n- フック冒頭で「1次試験まであと${daysUntilScript}日！」を必ず入れる` : '';
+  const cta = CTA_LINKS[level];
+  const ctaLabel = cta ? cta.label : 'AI英検Pass';
+  const ctaUrl = cta ? cta.url : '';
 
   const prompt = `英検${lv.label}の学習コンテンツのTikTok・Instagram Reels用動画台本を作成してください。
 ターゲット: ${lv.target}
@@ -390,7 +425,7 @@ router.post('/generate-script', async (req, res) => {
 ナレーション: （話す言葉）
 
 ■ CTA（27〜30秒）
-画面テキスト: 「AI英検Passでもっと練習！」
+画面テキスト: 「${ctaLabel}でもっと練習！」${ctaUrl ? `\nURL（キャプションに記載）: ${ctaUrl}` : ''}
 ナレーション: （アプリへ誘導する言葉）
 
 【要件】

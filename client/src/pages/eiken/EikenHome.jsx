@@ -21,6 +21,7 @@ const EIKEN_LEVELS = [
   { value: 'pre1', label: '準1級' },
   { value: '2', label: '2級' },
   { value: 'pre2', label: '準2級' },
+  { value: 'pre2plus', label: '準2級プラス' },
   { value: '3', label: '3級' },
   { value: '4', label: '4級' },
   { value: '5', label: '5級' },
@@ -34,6 +35,14 @@ const APP_LINKS = {
   '2': {
     href: 'https://apps.apple.com/jp/app/id6761838561',
     label: 'AI英検Pass2級',
+  },
+  pre2: {
+    href: 'https://apps.apple.com/jp/app/id6762229086',
+    label: 'AI英検Pass準2',
+  },
+  pre2plus: {
+    href: 'https://apps.apple.com/jp/app/id6762537264',
+    label: 'AI英検Pass準2プラス',
   },
 };
 

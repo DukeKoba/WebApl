@@ -20,6 +20,7 @@ const CONTENT_TYPES = [
 export default function AgentDxHome() {
   const [contentType, setContentType] = useState('dx_trend');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const [postText, setPostText] = useState('');
   const [postId, setPostId] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -32,6 +33,7 @@ export default function AgentDxHome() {
     setPostId(null);
     setStatus('draft');
     setError('');
+    setStatusMessage('');
 
     try {
       const res = await authFetch('/agentdx/generate', {
@@ -62,6 +64,9 @@ export default function AgentDxHome() {
               if (event === 'final_post') {
                 setPostText(data.post_text);
                 setPostId(data.post_id);
+                setStatusMessage('');
+              } else if (event === 'status') {
+                setStatusMessage(data.message);
               } else if (event === 'error') {
                 setError(data.message);
               }
@@ -164,7 +169,7 @@ export default function AgentDxHome() {
             {isGenerating ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                AIが生成中...
+                {statusMessage || 'AIが生成中...'}
               </>
             ) : (
               <>

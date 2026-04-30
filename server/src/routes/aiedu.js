@@ -26,12 +26,13 @@ const CONTENT_TYPE_CONTEXT = {
   news: `2025〜2026年の最新AI動向を発信する。Claude 4・GPT-5・Gemini 2.0などの最新モデル、エージェントAI・マルチモーダルの普及、AIコーディングツールの進化など直近のトピックを扱うこと。2024年以前の古い話題（DevDay 2024等）は使わない。`,
 };
 
-function buildAiEduPrompt(contentType, newsContext) {
+function buildAiEduPrompt(contentType, newsContext, hasSourceUrl) {
   const label = CONTENT_TYPE_LABELS[contentType] || contentType;
   const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
   const newsSection = newsContext
     ? `\n【今日の最新ニュース・トレンド（Web検索結果）】\n${newsContext}\n\n上記の最新トピックの中から最もバズりそうな内容を1つ選んでX投稿にしてください。\n`
     : '';
+  const charLimit = hasSourceUrl ? '240文字以内（URLは別途末尾に追加するため本文は240文字以内に収める）' : '280文字以内';
   return `AI関連コンテンツをXに日本語で投稿します。ターゲットはAIに興味があるエンジニア・学生・ビジネスパーソンです。現在は2026年4月です。
 
 コンテンツタイプ: ${label}
@@ -39,7 +40,7 @@ ${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
 以下の要件で投稿文を1つ作成してください：
 
 【要件】
-- X（Twitter）の280文字以内を厳守（ハッシュタグ含む）
+- X（Twitter）の${charLimit}（ハッシュタグ含む）
 - 読者がすぐに試せる・役立つ実用的な内容
 - 読者が「保存・シェアしたい」と思える価値ある情報
 - 最新情報・実際のニュースを元にした具体的な内容にすること
@@ -69,23 +70,25 @@ router.post('/generate', async (req, res) => {
 
     // Step 1: Web search for recent news
     sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
-    const newsContext = await searchAiNews(contentType, label);
+    const { summary: newsContext, sourceUrl } = await searchAiNews(contentType, label);
 
     // Step 2: Generate post with fresh news context
     sendEvent('status', { message: '投稿を生成中...' });
-    const prompt = buildAiEduPrompt(contentType, newsContext);
+    const prompt = buildAiEduPrompt(contentType, newsContext, !!sourceUrl);
 
-    const postText = await generateTextFull(
+    let postText = (await generateTextFull(
       'あなたはAI・生成AI・バイブコーディングの専門家です。AIに関する実践的な知識や最新ニュースをXで日本語で発信します。',
       prompt,
       { maxTokens: 600 }
-    );
+    )).trim();
+
+    if (sourceUrl) postText = `${postText}\n${sourceUrl}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'aiedu', postText.trim(), JSON.stringify({ contentType, had_news_context: !!newsContext }), 'draft'
+      postId, 'aiedu', postText, JSON.stringify({ contentType, had_news_context: !!newsContext, sourceUrl }), 'draft'
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText.trim(), had_news_context: !!newsContext });
+    sendEvent('final_post', { post_id: postId, post_text: postText, had_news_context: !!newsContext });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });

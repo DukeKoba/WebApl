@@ -1,7 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
-import { generateTextFull } from '../services/claudeService.js';
+import { generateTextFull, searchAgentDxNews } from '../services/claudeService.js';
 import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
@@ -32,17 +32,21 @@ const CONTENT_TYPE_CONTEXT = {
   case_study: `保険代理店のDX成功事例・ノウハウ。実際にDXで業績を伸ばした代理店の取り組み、失敗談と教訓、明日から使えるTipsを発信する。`,
 };
 
-function buildAgentDxPrompt(contentType) {
+function buildAgentDxPrompt(contentType, newsContext, hasSourceUrl) {
   const label = CONTENT_TYPE_LABELS[contentType] || contentType;
   const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
+  const newsSection = newsContext
+    ? `\n【今日の最新ニュース・トレンド（Web検索結果）】\n${newsContext}\n\n上記の最新トピックの中から最もバズりそうな内容を1つ選んでX投稿にしてください。\n`
+    : '';
+  const charLimit = hasSourceUrl ? '240文字以内（URLは別途末尾に追加するため本文は240文字以内に収める）' : '280文字以内';
   return `保険代理店のDX・デジタル化に関するニュース・情報をXに日本語で投稿します。ターゲットは保険代理店の経営者・担当者、FinTech・InsurTech関係者です。現在は2026年4月です。
 
 コンテンツタイプ: ${label}
-${extraContext ? `\n背景情報: ${extraContext}\n` : ''}
+${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
 以下の要件で投稿文を1つ作成してください：
 
 【要件】
-- X（Twitter）の280文字以内を厳守（ハッシュタグ含む）
+- X（Twitter）の${charLimit}（ハッシュタグ含む）
 - 保険代理店の実務担当者が「保存・シェアしたい」と思える具体的な情報
 - 読者がすぐに行動・活用できる実践的な内容（${label}に関するTipsや事例）
 - 2025〜2026年現在の最新情報を使用
@@ -67,19 +71,27 @@ router.post('/generate', async (req, res) => {
 
   try {
     const postId = uuidv4();
-    const prompt = buildAgentDxPrompt(contentType);
+    const label = CONTENT_TYPE_LABELS[contentType] || contentType;
 
-    const postText = await generateTextFull(
+    sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
+    const { summary: newsContext, sourceUrl } = await searchAgentDxNews(contentType, label);
+
+    sendEvent('status', { message: '投稿を生成中...' });
+    const prompt = buildAgentDxPrompt(contentType, newsContext, !!sourceUrl);
+
+    let postText = (await generateTextFull(
       'あなたは保険代理店のDX推進とInsurTechの専門家です。代理店経営者に役立つ実践的な情報をXで発信します。',
       prompt,
       { maxTokens: 600 }
-    );
+    )).trim();
+
+    if (sourceUrl) postText = `${postText}\n${sourceUrl}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'agentdx', postText.trim(), JSON.stringify({ contentType }), 'draft'
+      postId, 'agentdx', postText, JSON.stringify({ contentType, had_news_context: !!newsContext, sourceUrl }), 'draft'
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText.trim() });
+    sendEvent('final_post', { post_id: postId, post_text: postText });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });

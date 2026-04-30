@@ -25,13 +25,52 @@ export async function searchAiNews(contentType, label) {
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{
         role: 'user',
-        content: `「${query}」で最新のニュースやトレンドを検索してください。X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条書きで日本語にまとめてください。各項目は具体的な数字・ツール名・事例を含めてください。情報が見つからない場合は「情報なし」と返してください。`,
+        content: `「${query}」で最新のニュースやトレンドを検索してください。X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条書きで日本語にまとめてください。各項目は具体的な数字・ツール名・事例を含めてください。最後に、最もバズりそうなトピックの出典URLを1件「SOURCE_URL: https://...」の形式で必ず記載してください。情報が見つからない場合は「情報なし」と返してください。`,
       }],
     });
     const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-    return text && !text.includes('情報なし') ? text : null;
+    if (!text || text.includes('情報なし')) return { summary: null, sourceUrl: null };
+    const urlMatch = text.match(/SOURCE_URL:\s*(https?:\/\/\S+)/);
+    const sourceUrl = urlMatch ? urlMatch[1] : null;
+    const summary = text.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
+    return { summary, sourceUrl };
   } catch {
-    return null;
+    return { summary: null, sourceUrl: null };
+  }
+}
+
+export async function searchAgentDxNews(contentType, label) {
+  const queries = {
+    dx_trend:     '保険代理店 DX デジタル化 最新動向 2025 2026',
+    insurtech:    'InsurTech インシュアテック 最新 国内 2025 2026',
+    compliance:   '保険業法 金融庁 規制 ガイドライン 2025 2026',
+    customer_mgmt:'保険代理店 CRM 顧客管理 デジタル化 2025 2026',
+    digital_sales: '保険 デジタル営業 LINE SNS Web集客 2025 2026',
+    ai_usecase:   '保険代理店 AI 活用事例 導入 2025 2026',
+    paperless:    '保険 電子化 ペーパーレス 電子署名 2025 2026',
+    remote_meeting:'保険 オンライン商談 リモート 2025 2026',
+    subsidy:      'IT導入補助金 小規模事業者 保険代理店 2025 2026',
+    case_study:   '保険代理店 DX 成功事例 2025 2026',
+  };
+  const query = queries[contentType] || `保険代理店 ${label} 最新 2025 2026`;
+  try {
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{
+        role: 'user',
+        content: `「${query}」で最新のニュースや情報を検索してください。保険代理店向けX投稿のネタになりそうなトピックを3〜5件、箇条書きで日本語にまとめてください。各項目は具体的な数字・サービス名・事例を含めてください。最後に、最もバズりそうなトピックの出典URLを1件「SOURCE_URL: https://...」の形式で必ず記載してください。情報が見つからない場合は「情報なし」と返してください。`,
+      }],
+    });
+    const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+    if (!text || text.includes('情報なし')) return { summary: null, sourceUrl: null };
+    const urlMatch = text.match(/SOURCE_URL:\s*(https?:\/\/\S+)/);
+    const sourceUrl = urlMatch ? urlMatch[1] : null;
+    const summary = text.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
+    return { summary, sourceUrl };
+  } catch {
+    return { summary: null, sourceUrl: null };
   }
 }
 
