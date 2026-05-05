@@ -7,3 +7,6 @@ build/
 .DS_Store
 *.log
 server/uploads/
+
+# macOS metadata (ExFAT)
+._*
