@@ -151,10 +151,16 @@ router.post('/generate', async (req, res) => {
     };
 
     const messages = [];
-    const { conversation, finalPost, japaneseTranslation } = await orchestrateAgents(task, (msg) => {
-      sendEvent('agent_message', msg);
-      messages.push(msg);
-    });
+    const { conversation, finalPost, japaneseTranslation } = await orchestrateAgents(
+      task,
+      (msg) => {
+        sendEvent('agent_message', msg);
+        messages.push(msg);
+      },
+      (statusMsg) => {
+        sendEvent('status', { message: statusMsg });
+      }
+    );
 
     const metadata = { restaurant_name, location, visit_date, impressions };
 
@@ -171,7 +177,7 @@ router.post('/generate', async (req, res) => {
       insertMsg.run(uuidv4(), convId, msg.agent, msg.name, msg.round, msg.content);
     }
 
-    sendEvent('final_post', { post_id: postId, post_text: finalPost, japanese_translation: japaneseTranslation, has_web_reviews: !!webReviews });
+    sendEvent('final_post', { post_id: postId, post_text: finalPost, japanese_translation: japaneseTranslation, has_web_reviews: !!web_reviews });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });

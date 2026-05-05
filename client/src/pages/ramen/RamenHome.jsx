@@ -204,9 +204,9 @@ export default function RamenHome() {
     setError('');
 
     const agentNames = {
-      marketer: 'Marketing Strategist',
-      copywriter: 'Copywriter',
-      consultant: 'Digital Marketing Consultant',
+      marketer: 'マーケティングのプロ',
+      copywriter: '有名コピーライター',
+      consultant: 'デジタルマーケティングコンサルタント',
     };
 
     try {
@@ -346,12 +346,12 @@ export default function RamenHome() {
               {imageAnalysis && (
                 <div className="mt-4 space-y-2">
                   <div className="p-3 bg-orange-50 rounded-lg border border-orange-100">
-                    <p className="text-xs font-semibold text-orange-700 mb-2">Claude AI analysis</p>
+                    <p className="text-xs font-semibold text-orange-700 mb-2">Claude AI 画像分析</p>
                     <div className="space-y-1 text-xs text-orange-800">
-                      {imageAnalysis.ramen_type && <p>Style: <span className="font-medium">{imageAnalysis.ramen_type}</span></p>}
-                      {imageAnalysis.toppings?.length > 0 && <p>Toppings: {imageAnalysis.toppings.join(', ')}</p>}
-                      {imageAnalysis.appearance && <p>Appearance: {imageAnalysis.appearance}</p>}
-                      {imageAnalysis.atmosphere && <p>Vibe: {imageAnalysis.atmosphere}</p>}
+                      {imageAnalysis.ramen_type && <p>スタイル: <span className="font-medium">{imageAnalysis.ramen_type}</span></p>}
+                      {imageAnalysis.toppings?.length > 0 && <p>トッピング: {imageAnalysis.toppings.join('、')}</p>}
+                      {imageAnalysis.appearance && <p>見た目: {imageAnalysis.appearance}</p>}
+                      {imageAnalysis.atmosphere && <p>雰囲気: {imageAnalysis.atmosphere}</p>}
                     </div>
                   </div>
 
@@ -668,7 +668,7 @@ export default function RamenHome() {
                 {japaneseTranslation && (
                   <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-400">参考日本語訳</span>
+                      <span className="text-xs font-semibold text-gray-400">日本語オリジナル（英語翻訳前）</span>
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(japaneseTranslation);

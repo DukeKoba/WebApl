@@ -113,6 +113,18 @@ export async function convertImpressionToEnglish(japaneseText) {
   }
 }
 
+export async function translateInstagramPostToEnglish(japanesePost) {
+  try {
+    return await generateTextFull(
+      'You are a creative food writer specializing in Japanese cuisine. Translate this Japanese Instagram ramen post into natural, engaging English. Keep hashtags as-is. The English should be vivid, appetizing, and authentic — not a literal translation. Output only the translated post text, no explanation.',
+      `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）:\n\n${japanesePost}`,
+      { maxTokens: 1024 }
+    );
+  } catch {
+    return null;
+  }
+}
+
 export async function searchRestaurantReviews(restaurantName, location) {
   if (!restaurantName) return null;
   try {
@@ -140,17 +152,6 @@ export async function searchRestaurantReviews(restaurantName, location) {
   }
 }
 
-export async function translateToJapanese(englishText) {
-  try {
-    return await generateTextFull(
-      'あなたは翻訳の専門家です。英語のInstagram投稿文を自然な日本語に翻訳してください。ハッシュタグはそのまま維持してください。',
-      `以下の英語投稿文を日本語に翻訳してください（参考用）:\n\n${englishText}`,
-      { maxTokens: 1024 }
-    );
-  } catch {
-    return null;
-  }
-}
 
 export async function generateText(systemPrompt, userMessage, options = {}) {
   const stream = await client.messages.stream({
@@ -192,15 +193,15 @@ export async function analyzeRamenImage(imagePath) {
         },
         {
           type: 'text',
-          text: `Analyze the ramen in this photo in detail. Return ONLY JSON (no prose) in the following exact shape:
+          text: `この写真のラーメンを詳しく分析してください。以下の形式のJSONのみを返してください（説明文なし）：
 {
-  "ramen_type": "ramen style in English (Miso / Shoyu / Tonkotsu / Shio / Tsukemen / Other)",
-  "toppings": ["topping 1 in English", "topping 2 in English"],
-  "appearance": "visual characteristics in English (broth color, noodle thickness, plating)",
-  "atmosphere": "overall vibe in English (casual / upscale / local / trendy)",
-  "notable_features": "any standout points in English",
-  "english_description": "A vivid 1-2 sentence English description suitable for an Instagram caption",
-  "detected_restaurant_name": "If a restaurant name is clearly visible on signage, menu, chopstick sleeve, bowl, or receipt in the photo, return the exact name in Latin characters (transliterate from Japanese if needed). If no restaurant name is visible, return an empty string."
+  "ramen_type": "ラーメンのスタイル（醤油/味噌/豚骨/塩/つけ麺/その他）",
+  "toppings": ["トッピング1", "トッピング2"],
+  "appearance": "見た目の特徴（スープの色、麺の太さ、盛り付けなど）",
+  "atmosphere": "雰囲気（カジュアル/高級/地元の名店/トレンド系）",
+  "notable_features": "特筆すべき点",
+  "japanese_description": "Instagramキャプション向けの魅力的な日本語説明文（1〜2文）",
+  "detected_restaurant_name": "写真内の看板・メニュー・箸袋・丼・レシートなどに店名が明確に見える場合はラテン文字表記（日本語の場合はローマ字化）で返す。見えない場合は空文字列。"
 }`,
         },
       ],
