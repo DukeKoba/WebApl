@@ -1,4 +1,4 @@
-import { generateTextFull, translateInstagramPostToEnglish } from './claudeService.js';
+import { generateTextFull } from './claudeService.js';
 
 export const AGENTS = {
   marketer: {
@@ -60,21 +60,9 @@ export async function orchestrateAgents(task, onMessage, onStatus) {
   const finalPostRaw = await callAgent('copywriter', finalPrompt, [], onMessage, 3);
   conversation.push({ agent: 'copywriter', round: 3, content: finalPostRaw });
 
-  const japanesePost = extractFinalPostText(finalPostRaw, task.platform);
+  const finalPost = extractFinalPostText(finalPostRaw, task.platform);
 
-  // Stage 2: ラーメン投稿は日本語原文を英語に翻訳（Instagram英語投稿用）
-  let finalPost = japanesePost;
-  let japaneseTranslation = null;
-  if (task.type === 'ramen' && japanesePost) {
-    if (onStatus) onStatus('英語に翻訳中...');
-    const englishPost = await translateInstagramPostToEnglish(japanesePost);
-    if (englishPost) {
-      finalPost = englishPost;
-      japaneseTranslation = japanesePost;
-    }
-  }
-
-  return { conversation, finalPost, japaneseTranslation };
+  return { conversation, finalPost, japaneseTranslation: null };
 }
 
 async function callAgent(agentRole, prompt, _history, onMessage, round) {

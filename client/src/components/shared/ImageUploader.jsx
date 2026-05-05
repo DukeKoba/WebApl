@@ -52,7 +52,7 @@ export default function ImageUploader({ onUpload, isUploading, imageUrl, onClear
       {isUploading ? (
         <div className="flex flex-col items-center gap-3">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500" />
-          <p className="text-sm text-gray-500">Uploading & analyzing...</p>
+          <p className="text-sm text-gray-500">アップロード・分析中...</p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3">
@@ -60,13 +60,13 @@ export default function ImageUploader({ onUpload, isUploading, imageUrl, onClear
             <ImageIcon className="w-7 h-7 text-orange-400" />
           </div>
           <div>
-            <p className="font-medium text-gray-700">Upload your ramen photo</p>
-            <p className="text-sm text-gray-400 mt-1">Click or drag &amp; drop</p>
-            <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, WEBP (max 10MB)</p>
+            <p className="font-medium text-gray-700">ラーメン写真をアップロード</p>
+            <p className="text-sm text-gray-400 mt-1">クリックまたはドラッグ＆ドロップ</p>
+            <p className="text-xs text-gray-400 mt-0.5">JPG, PNG, WEBP（最大10MB）</p>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full">
             <Upload className="w-3 h-3" />
-            <span>Claude AI will auto-analyze the photo + GPS</span>
+            <span>Claude AIが写真＋GPSを自動分析</span>
           </div>
         </div>
       )}

@@ -36,7 +36,9 @@ export default function RamenHome() {
   const [messages, setMessages] = useState([]);
   const [currentAgent, setCurrentAgent] = useState('');
   const [postText, setPostText] = useState('');
-  const [japaneseTranslation, setJapaneseTranslation] = useState('');
+  const [japaneseOriginal, setJapaneseOriginal] = useState('');
+  const [isTranslatingToEnglish, setIsTranslatingToEnglish] = useState(false);
+  const [isTranslated, setIsTranslated] = useState(false);
   const [hasWebReviews, setHasWebReviews] = useState(false);
   const [postId, setPostId] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -91,7 +93,8 @@ export default function RamenHome() {
     setImageAnalysis(null);
     setMessages([]);
     setPostText('');
-    setJapaneseTranslation('');
+    setJapaneseOriginal('');
+    setIsTranslated(false);
     setHasWebReviews(false);
     setPostId(null);
     setStatus('draft');
@@ -197,7 +200,8 @@ export default function RamenHome() {
     setStatusMessage('');
     setMessages([]);
     setPostText('');
-    setJapaneseTranslation('');
+    setJapaneseOriginal('');
+    setIsTranslated(false);
     setHasWebReviews(false);
     setPostId(null);
     setStatus('draft');
@@ -251,7 +255,8 @@ export default function RamenHome() {
                 setMessages(prev => [...prev, data]);
               } else if (event === 'final_post') {
                 setPostText(data.post_text);
-                setJapaneseTranslation(data.japanese_translation || '');
+                setJapaneseOriginal('');
+                setIsTranslated(false);
                 setHasWebReviews(!!data.has_web_reviews);
                 setPostId(data.post_id);
                 setCurrentAgent('');
@@ -285,6 +290,25 @@ export default function RamenHome() {
     } finally {
       setIsPublishing(false);
     }
+  };
+
+  const handleTranslateToEnglish = async () => {
+    if (!postText || isTranslated) return;
+    setIsTranslatingToEnglish(true);
+    try {
+      const res = await authFetch('/ramen/translate-to-english', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: postText }),
+      });
+      const data = await res.json();
+      if (data.english) {
+        setJapaneseOriginal(postText);
+        setPostText(data.english);
+        setIsTranslated(true);
+      }
+    } catch {}
+    finally { setIsTranslatingToEnglish(false); }
   };
 
   const sourceLabel = (src) => {
@@ -333,7 +357,7 @@ export default function RamenHome() {
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <Camera className="w-4 h-4 text-orange-500" />
-                Upload your ramen photo
+                ラーメン写真をアップロード
               </h2>
               <ImageUploader
                 onUpload={handleUpload}
@@ -362,18 +386,18 @@ export default function RamenHome() {
                       className="w-full flex items-center justify-center gap-2 py-2 border border-dashed border-orange-300 rounded-lg text-sm text-orange-500 hover:bg-orange-50 transition-colors"
                     >
                       <Globe className="w-3.5 h-3.5" />
-                      Search web reviews for &ldquo;{imageAnalysis.ramen_type}&rdquo; ramen
+                      「{imageAnalysis.ramen_type}」のWeb口コミを検索
                     </button>
                   )}
                   {ramenTypeReviewState === 'searching' && (
                     <div className="flex items-center gap-2 py-2 px-3 bg-orange-50 rounded-lg text-sm text-orange-600">
                       <span className="w-3.5 h-3.5 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin flex-shrink-0" />
-                      Searching {imageAnalysis.ramen_type} reviews...
+                      {imageAnalysis.ramen_type}の口コミを検索中...
                     </div>
                   )}
                   {ramenTypeReviewState === 'not-found' && (
                     <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg text-sm text-gray-500">
-                      <span>No reviews found for this ramen type. Try typing your impression in Japanese below.</span>
+                      <span>このラーメン種別の口コミが見つかりませんでした。下の感想欄に入力してください。</span>
                       <button onClick={handleSearchRamenTypeReviews} className="ml-2 text-orange-400 hover:text-orange-600 flex-shrink-0">
                         <RotateCcw className="w-3.5 h-3.5" />
                       </button>
@@ -382,7 +406,7 @@ export default function RamenHome() {
                   {ramenTypeReviewState === 'confirm' && ramenTypeReviewPreview && (
                     <div className="border border-orange-200 rounded-lg overflow-hidden">
                       <div className="bg-orange-50 px-3 py-2 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-orange-700">{imageAnalysis.ramen_type} reviews found — use these?</span>
+                        <span className="text-xs font-semibold text-orange-700">{imageAnalysis.ramen_type}の口コミが見つかりました — 使用しますか？</span>
                         <button onClick={handleSearchRamenTypeReviews} className="text-orange-400 hover:text-orange-600">
                           <RotateCcw className="w-3.5 h-3.5" />
                         </button>
@@ -396,7 +420,7 @@ export default function RamenHome() {
                           className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
                         >
                           <ThumbsUp className="w-3.5 h-3.5" />
-                          Yes, use these
+                          使用する
                         </button>
                         <div className="w-px bg-orange-100" />
                         <button
@@ -404,7 +428,7 @@ export default function RamenHome() {
                           className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
                         >
                           <ThumbsDown className="w-3.5 h-3.5" />
-                          Skip
+                          スキップ
                         </button>
                       </div>
                     </div>
@@ -413,7 +437,7 @@ export default function RamenHome() {
                     <div className="flex items-center justify-between py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
                       <div className="flex items-center gap-1.5 text-emerald-700">
                         <Check className="w-3.5 h-3.5" />
-                        Ramen type reviews confirmed
+                        ラーメン種別口コミを使用します
                       </div>
                       <button onClick={() => { setRamenTypeReviewState('idle'); setApprovedRamenTypeReviews(null); }} className="text-gray-400 hover:text-gray-600 ml-2">
                         <RotateCcw className="w-3.5 h-3.5" />
@@ -422,7 +446,7 @@ export default function RamenHome() {
                   )}
                   {ramenTypeReviewState === 'rejected' && (
                     <div className="flex items-center justify-between py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
-                      <span>Skipped ramen type reviews.</span>
+                      <span>ラーメン種別口コミはスキップします。</span>
                       <button onClick={handleSearchRamenTypeReviews} className="text-orange-400 hover:text-orange-600 ml-2">
                         <RotateCcw className="w-3.5 h-3.5" />
                       </button>
@@ -435,28 +459,28 @@ export default function RamenHome() {
             {/* Details Form */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
               <div className="flex items-center justify-between mb-1">
-                <h2 className="font-semibold text-gray-900">Restaurant details <span className="text-xs font-normal text-gray-400">(optional)</span></h2>
+                <h2 className="font-semibold text-gray-900">店舗情報 <span className="text-xs font-normal text-gray-400">（任意）</span></h2>
                 {(restaurantName || location || visitDate || impressions) && (
                   <button
                     onClick={copyAllShopInfo}
                     className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                    title="Copy all"
+                    title="全てコピー"
                   >
                     {copiedField === 'all' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedField === 'all' ? 'Copied!' : 'Copy all'}</span>
+                    <span>{copiedField === 'all' ? 'コピーしました！' : '全てコピー'}</span>
                   </button>
                 )}
               </div>
               <p className="text-xs text-gray-500 mb-4 flex items-center gap-1">
                 <Wand2 className="w-3 h-3" />
-                Auto-filled from your photo's GPS and visible signage when available.
+                写真のGPSと看板から自動入力します。
               </p>
               <div className="space-y-3">
                 <div className="relative">
                   <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Restaurant name"
+                    placeholder="店名"
                     value={restaurantName}
                     onChange={e => { setRestaurantName(e.target.value); setReviewState('idle'); setApprovedReviews(null); }}
                     className="w-full pl-9 pr-28 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
@@ -480,18 +504,18 @@ export default function RamenHome() {
                     className="w-full flex items-center justify-center gap-2 py-2 border border-dashed border-orange-300 rounded-lg text-sm text-orange-500 hover:bg-orange-50 transition-colors"
                   >
                     <Search className="w-3.5 h-3.5" />
-                    Search web reviews for &ldquo;{restaurantName}&rdquo;
+                    「{restaurantName}」のWeb口コミを検索
                   </button>
                 )}
                 {reviewState === 'searching' && (
                   <div className="flex items-center gap-2 py-2 px-3 bg-orange-50 rounded-lg text-sm text-orange-600">
                     <span className="w-3.5 h-3.5 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin flex-shrink-0" />
-                    Searching reviews...
+                    口コミを検索中...
                   </div>
                 )}
                 {reviewState === 'not-found' && (
                   <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg text-sm text-gray-500">
-                    <span>No reviews found. Post will be based on photo analysis.</span>
+                    <span>口コミが見つかりませんでした。写真分析をもとに生成します。</span>
                     <button onClick={handleSearchReviews} className="ml-2 text-orange-400 hover:text-orange-600 flex-shrink-0">
                       <RotateCcw className="w-3.5 h-3.5" />
                     </button>
@@ -500,7 +524,7 @@ export default function RamenHome() {
                 {reviewState === 'confirm' && reviewPreview && (
                   <div className="border border-orange-200 rounded-lg overflow-hidden">
                     <div className="bg-orange-50 px-3 py-2 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-orange-700">Reviews found — is this the right restaurant?</span>
+                      <span className="text-xs font-semibold text-orange-700">口コミが見つかりました — この店舗で合っていますか？</span>
                       <button onClick={handleSearchReviews} className="text-orange-400 hover:text-orange-600">
                         <RotateCcw className="w-3.5 h-3.5" />
                       </button>
@@ -514,7 +538,7 @@ export default function RamenHome() {
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
                       >
                         <ThumbsUp className="w-3.5 h-3.5" />
-                        Yes, use these reviews
+                        使用する
                       </button>
                       <div className="w-px bg-orange-100" />
                       <button
@@ -522,7 +546,7 @@ export default function RamenHome() {
                         className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
                       >
                         <ThumbsDown className="w-3.5 h-3.5" />
-                        Wrong restaurant
+                        別の店舗
                       </button>
                     </div>
                   </div>
@@ -531,7 +555,7 @@ export default function RamenHome() {
                   <div className="flex items-center justify-between py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
                     <div className="flex items-center gap-1.5 text-emerald-700">
                       <Check className="w-3.5 h-3.5" />
-                      Reviews confirmed — will be used for generation
+                      口コミを使用します
                     </div>
                     <button onClick={() => { setReviewState('idle'); setApprovedReviews(null); }} className="text-gray-400 hover:text-gray-600 ml-2">
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -540,7 +564,7 @@ export default function RamenHome() {
                 )}
                 {reviewState === 'rejected' && (
                   <div className="flex items-center justify-between py-2 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500">
-                    <span>Generating without web reviews.</span>
+                    <span>口コミなしで生成します。</span>
                     <button onClick={handleSearchReviews} className="text-orange-400 hover:text-orange-600 ml-2">
                       <RotateCcw className="w-3.5 h-3.5" />
                     </button>
@@ -550,7 +574,7 @@ export default function RamenHome() {
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Location (e.g. Shibuya, Tokyo)"
+                    placeholder="場所（例: 渋谷, 東京）"
                     value={location}
                     onChange={e => setLocation(e.target.value)}
                     className="w-full pl-9 pr-28 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
@@ -588,7 +612,7 @@ export default function RamenHome() {
                 <div className="relative">
                   <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <textarea
-                    placeholder="Your impression — 日本語でも入力可（AI変換あり）"
+                    placeholder="感想・メモ（日本語OK）"
                     value={impressions}
                     onChange={e => setImpressions(e.target.value)}
                     rows={3}
@@ -615,7 +639,7 @@ export default function RamenHome() {
                 {(ramenTypeReviewState === 'not-found' || reviewState === 'not-found') && !impressions && (
                   <p className="text-xs text-orange-500 flex items-center gap-1">
                     <Wand2 className="w-3 h-3" />
-                    レビューが見つかりませんでした。日本語で感想を入力し、上のボタンで英語に変換できます。
+                    口コミが見つかりませんでした。感想欄に日本語でメモを入力してください。
                   </p>
                 )}
               </div>
@@ -634,12 +658,12 @@ export default function RamenHome() {
                 {isGenerating ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                    {statusMessage || (currentAgent ? `${currentAgent} working...` : 'AI agents drafting...')}
+                    {statusMessage || (currentAgent ? `${currentAgent} 作業中...` : 'AIエージェントが下書き中...')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Generate post
+                    日本語で投稿文を生成
                   </>
                 )}
               </button>
@@ -656,7 +680,7 @@ export default function RamenHome() {
               status={status}
             />
 
-            {/* Web reviews badge + Japanese translation */}
+            {/* 英語に変換ボタン + 日本語オリジナル表示 */}
             {postText && (
               <div className="space-y-3">
                 {hasWebReviews && (
@@ -665,24 +689,44 @@ export default function RamenHome() {
                     Web口コミ情報を参考に生成しました
                   </div>
                 )}
-                {japaneseTranslation && (
-                  <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-gray-400">日本語オリジナル（英語翻訳前）</span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(japaneseTranslation);
-                          setCopiedField('translation');
-                          setTimeout(() => setCopiedField(''), 2000);
-                        }}
-                        className="text-gray-300 hover:text-gray-500 transition-colors"
-                        title="日本語訳をコピー"
-                      >
-                        {copiedField === 'translation' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
-                      </button>
+                {!isTranslated ? (
+                  <button
+                    onClick={handleTranslateToEnglish}
+                    disabled={isTranslatingToEnglish}
+                    className="w-full py-2.5 border border-orange-300 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  >
+                    {isTranslatingToEnglish ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin" />
+                        英語に翻訳中...
+                      </>
+                    ) : (
+                      <>
+                        <Globe className="w-3.5 h-3.5" />
+                        英語に変換してInstagram用に仕上げる
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  japaneseOriginal && (
+                    <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-gray-400">日本語オリジナル</span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(japaneseOriginal);
+                            setCopiedField('jaoriginal');
+                            setTimeout(() => setCopiedField(''), 2000);
+                          }}
+                          className="text-gray-300 hover:text-gray-500 transition-colors"
+                          title="日本語版をコピー"
+                        >
+                          {copiedField === 'jaoriginal' ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 whitespace-pre-wrap leading-relaxed">{japaneseOriginal}</p>
                     </div>
-                    <p className="text-xs text-gray-500 whitespace-pre-wrap leading-relaxed">{japaneseTranslation}</p>
-                  </div>
+                  )
                 )}
               </div>
             )}

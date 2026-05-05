@@ -5,7 +5,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
-import { analyzeRamenImage, searchRestaurantReviews, searchRamenTypeReviews, convertImpressionToEnglish } from '../services/claudeService.js';
+import { analyzeRamenImage, searchRestaurantReviews, searchRamenTypeReviews, convertImpressionToEnglish, translateInstagramPostToEnglish } from '../services/claudeService.js';
 import { orchestrateAgents } from '../services/agentOrchestrator.js';
 import { postPhoto } from '../services/instagramService.js';
 import { extractExifData, reverseGeocode, findNearbyRestaurant } from '../services/photoLocationService.js';
@@ -109,6 +109,18 @@ router.post('/search-ramen-reviews', async (req, res) => {
   }
 });
 
+// POST /api/ramen/translate-to-english - Translate Japanese Instagram post to English
+router.post('/translate-to-english', async (req, res) => {
+  const { text } = req.body;
+  if (!text) return res.json({ english: null });
+  try {
+    const english = await translateInstagramPostToEnglish(text);
+    res.json({ english: english || null });
+  } catch {
+    res.json({ english: null });
+  }
+});
+
 // POST /api/ramen/convert-impression - Convert Japanese impression to English
 router.post('/convert-impression', async (req, res) => {
   const { text } = req.body;
@@ -151,16 +163,10 @@ router.post('/generate', async (req, res) => {
     };
 
     const messages = [];
-    const { conversation, finalPost, japaneseTranslation } = await orchestrateAgents(
-      task,
-      (msg) => {
-        sendEvent('agent_message', msg);
-        messages.push(msg);
-      },
-      (statusMsg) => {
-        sendEvent('status', { message: statusMsg });
-      }
-    );
+    const { conversation, finalPost, japaneseTranslation } = await orchestrateAgents(task, (msg) => {
+      sendEvent('agent_message', msg);
+      messages.push(msg);
+    });
 
     const metadata = { restaurant_name, location, visit_date, impressions };
 
