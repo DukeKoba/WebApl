@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check, CalendarClock } from 'lucide-react';
+import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check, CalendarClock, GraduationCap, BadgeCheck, MapPin, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
 
@@ -88,6 +88,158 @@ function ScriptPreview({ script, onScriptChange }) {
         >
           {copied ? <><Check className="w-4 h-4" />コピーしました！</> : <><Copy className="w-4 h-4" />台本をコピー</>}
         </button>
+      </div>
+    </div>
+  );
+}
+
+const UNIVERSITY_DATA = [
+  {
+    level: 'pre1',
+    levelLabel: '準1級',
+    levelColor: 'from-purple-600 to-indigo-600',
+    levelBadge: 'bg-purple-100 text-purple-800',
+    university: '青山学院大学',
+    faculty: '文学部 英米文学科',
+    examType: '自己推薦入学者選抜（英語資格取得者対象）',
+    location: '東京都渋谷区',
+    campus: '青山キャンパス（渋谷・表参道エリア）',
+    condition: '英検準1級以上（またはTOEFL iBT 72以上等）',
+    exemption: '英語の筆記試験なし。1次選考は書類審査、2次選考は小論文・面接のみ。共通テスト不要。',
+    highlights: [
+      '渋谷・表参道という最高立地のキャンパスで学べる',
+      '英語ネイティブ教員多数。授業の多くが英語で実施',
+      '英文学・英語学・コミュニケーションを深く探求',
+      '帰国生・英語得意者が集まる刺激的な環境',
+      '就職実績抜群。マスコミ・外資・国際機関への就職者多数',
+    ],
+    tips: '英検準1級を持っていれば、共通テストなしで青学に挑戦できる狙い目の入試。評定不問なのも嬉しいポイント！',
+    officialUrl: 'https://www.aoyama.ac.jp/admission/undergraduate/examination/recommendation_self.html',
+  },
+  {
+    level: '2',
+    levelLabel: '2級',
+    levelColor: 'from-green-600 to-teal-600',
+    levelBadge: 'bg-green-100 text-green-800',
+    university: '関西大学',
+    faculty: '商学部',
+    examType: '公募制推薦入試',
+    location: '大阪府吹田市',
+    campus: '千里山キャンパス（大阪・梅田から便利）',
+    condition: '英検2級以上（評定平均4.0以上、商業系資格等でも可）',
+    exemption: '英語の個別試験なし。試験は小論文と面接のみ。英語は資格で代替可。',
+    highlights: [
+      '関関同立の一角。知名度・就職力ともに関西トップクラス',
+      '公認会計士合格者数、関西私大最多レベル',
+      '会計・マーケティング・ファイナンスなど5専修から選択',
+      'ビジネスリーダー特別プログラム（BLSP）等の実践教育',
+      '梅田・難波へのアクセス良好。インターンシップ充実',
+    ],
+    tips: '英検2級があれば関関同立の関大商学部を公募推薦で狙える！英語試験なしで小論文と面接の対策に集中できる。',
+    officialUrl: 'https://www.nyusi.kansai-u.ac.jp/admission/recommendation_commerce/',
+  },
+];
+
+function UniversityCard({ data }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      {/* Header */}
+      <div className={`bg-gradient-to-r ${data.levelColor} p-4`}>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+            英検{data.levelLabel}で推薦出願可
+          </span>
+        </div>
+        <h3 className="text-white font-bold text-lg leading-tight">{data.university}</h3>
+        <p className="text-white/90 text-sm mt-0.5">{data.faculty}</p>
+        <p className="text-white/75 text-xs mt-1 flex items-center gap-1">
+          <MapPin className="w-3 h-3" />
+          {data.campus}
+        </p>
+      </div>
+
+      {/* Exemption highlight */}
+      <div className="bg-amber-50 border-b border-amber-100 px-4 py-3 flex gap-3">
+        <BadgeCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <p className="text-xs font-semibold text-amber-800 mb-0.5">英語試験の扱い</p>
+          <p className="text-sm text-amber-700">{data.exemption}</p>
+        </div>
+      </div>
+
+      {/* Condition */}
+      <div className="px-4 py-3 border-b border-gray-100">
+        <p className="text-xs font-semibold text-gray-500 mb-1">入試種別・出願条件</p>
+        <p className="text-sm font-medium text-gray-800">{data.examType}</p>
+        <p className="text-sm text-gray-600 mt-0.5">{data.condition}</p>
+      </div>
+
+      {/* Tips */}
+      <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
+        <p className="text-sm text-blue-800 font-medium">{data.tips}</p>
+      </div>
+
+      {/* Highlights accordion */}
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+      >
+        <span className="flex items-center gap-2">
+          <Trophy className="w-4 h-4 text-yellow-500" />
+          この大学の魅力を見る
+        </span>
+        {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 space-y-2">
+          {data.highlights.map((h, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                {i + 1}
+              </span>
+              <p className="text-sm text-gray-700">{h}</p>
+            </div>
+          ))}
+          <a
+            href={data.officialUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          >
+            <GraduationCap className="w-4 h-4" />
+            公式入試ページを見る
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UniversitySection() {
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center gap-2 mb-1">
+          <GraduationCap className="w-5 h-5 text-green-600" />
+          <h2 className="font-bold text-gray-900">英検で推薦入試を勝ち取ろう！</h2>
+        </div>
+        <p className="text-sm text-gray-600">
+          英検準1級・2級を持っていると、英語試験なしで推薦入試に出願できる大学があります。各1校ずつ厳選して紹介します。
+        </p>
+      </div>
+
+      {UNIVERSITY_DATA.map(data => (
+        <UniversityCard key={data.level} data={data} />
+      ))}
+
+      <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
+        <p className="text-xs text-gray-500 leading-relaxed">
+          ※ 入試情報は変更になる場合があります。出願前に必ず各大学の公式募集要項をご確認ください。
+          記載の内容は2025〜2026年度入試情報をもとに作成しています。
+        </p>
       </div>
     </div>
   );
@@ -231,7 +383,7 @@ export default function EikenHome() {
 
       <div className="max-w-2xl mx-auto p-4 lg:p-6 space-y-4">
         {/* Exam countdown banner */}
-        {EXAM_DATES[level] && (
+        {tab !== 'university' && EXAM_DATES[level] && (
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
             <CalendarClock className="w-5 h-5 text-amber-500 shrink-0" />
             <div className="text-sm">
@@ -247,7 +399,7 @@ export default function EikenHome() {
         )}
 
         {/* Link to actual Eiken practice app */}
-        {APP_LINKS[level] && (
+        {tab !== 'university' && APP_LINKS[level] && (
           <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
             <BookOpen className="w-5 h-5 text-blue-500 shrink-0" />
             <div className="text-sm text-blue-800">
@@ -286,10 +438,21 @@ export default function EikenHome() {
             <Video className="w-4 h-4" />
             TikTok / Reels 台本
           </button>
+          <button
+            onClick={() => setTab('university')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors ${
+              tab === 'university'
+                ? 'bg-gradient-to-r from-green-600 to-teal-500 text-white'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            大学受験
+          </button>
         </div>
 
-        {/* Controls */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        {/* Controls — hidden on university tab */}
+        {tab !== 'university' && <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-green-500" />
             {tab === 'x' ? 'X投稿を生成する' : '動画台本を生成する'}
@@ -360,7 +523,7 @@ export default function EikenHome() {
               </>
             )}
           </button>
-        </div>
+        </div>}
 
         {/* Output */}
         {tab === 'x' ? (
@@ -373,9 +536,11 @@ export default function EikenHome() {
             isPublishing={isPublishing}
             status={status}
           />
-        ) : (
+        ) : tab === 'script' ? (
           <ScriptPreview script={script} onScriptChange={setScript} />
-        )}
+        ) : null}
+
+        {tab === 'university' && <UniversitySection />}
       </div>
     </div>
   );
