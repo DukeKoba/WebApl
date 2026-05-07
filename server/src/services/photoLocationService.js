@@ -1,7 +1,38 @@
 import exifr from 'exifr';
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs/promises';
 
 // ユーザーエージェント：Nominatim 利用規約により必須
 const USER_AGENT = 'WebApl-Ramen-Poster/1.0 (instagram caption generator)';
+
+/**
+ * Claude Vision / Instagram で扱える形式・サイズに正規化する。
+ * - EXIF orientation を反映してリサイズ前に回転
+ * - 長辺 1568px に縮小（Claude推奨上限）
+ * - 出力は sRGB JPEG（HEIC・PNG・CMYK・wide gamut も全て JPEG 化）
+ * 戻り値は { path, filename }（拡張子は .jpg）
+ */
+export async function normalizeImage(srcPath) {
+  const dir = path.dirname(srcPath);
+  const baseName = path.basename(srcPath, path.extname(srcPath));
+  const outPath = path.join(dir, `${baseName}.jpg`);
+  const tmpPath = `${outPath}.tmp`;
+
+  await sharp(srcPath, { failOn: 'none' })
+    .rotate()
+    .resize(1568, 1568, { fit: 'inside', withoutEnlargement: true })
+    .toColorspace('srgb')
+    .jpeg({ quality: 85, mozjpeg: true })
+    .toFile(tmpPath);
+
+  if (path.resolve(srcPath) !== path.resolve(outPath)) {
+    await fs.unlink(srcPath).catch(() => {});
+  }
+  await fs.rename(tmpPath, outPath);
+
+  return { path: outPath, filename: path.basename(outPath) };
+}
 
 /**
  * 画像ファイルから GPS 座標と撮影日時を抽出する。
