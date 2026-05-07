@@ -42,8 +42,8 @@ const apps = [
   {
     path: '/aiedu',
     icon: Brain,
-    title: 'AI関連 X投稿',
-    description: 'AI活用Tips・Vibecoding・最新動向など、AI関連コンテンツをX投稿',
+    title: 'Cocreo X投稿',
+    description: 'AI業務改善・補助金活用・中小企業DX事例など、Cocreoの世界観でX投稿を生成',
     color: 'from-violet-500 to-purple-700',
     bg: 'bg-violet-50',
     border: 'border-violet-200',

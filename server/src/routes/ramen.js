@@ -8,7 +8,7 @@ import db from '../database.js';
 import { analyzeRamenImage, searchRestaurantReviews, searchRamenTypeReviews, convertImpressionToEnglish, translateInstagramPostToEnglish } from '../services/claudeService.js';
 import { orchestrateAgents } from '../services/agentOrchestrator.js';
 import { postPhoto } from '../services/instagramService.js';
-import { extractExifData, reverseGeocode, findNearbyRestaurant } from '../services/photoLocationService.js';
+import { extractExifData, reverseGeocode, findNearbyRestaurant, normalizeImage } from '../services/photoLocationService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) cb(null, true);
     else cb(new Error('Only image files are allowed'));
@@ -41,33 +41,43 @@ router.post('/upload', upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No image found' });
 
   try {
-    // EXIF GPS 抽出と Claude Vision を並列実行（Vision は時間がかかるので他の処理を待たせない）
-    const [analysis, exif] = await Promise.all([
-      analyzeRamenImage(req.file.path),
-      extractExifData(req.file.path),
-    ]);
+    // EXIF must be read from the original (sharp strips metadata on output)
+    const exif = await extractExifData(req.file.path);
 
-    let location = null;
-    let restaurantFromGps = null;
+    // HEIC・巨大JPEG・wide gamutなどClaude Visionが弾く形式を全てsRGB JPEGへ正規化
+    let normalized;
+    try {
+      normalized = await normalizeImage(req.file.path);
+    } catch (e) {
+      console.error('[ramen/upload] normalizeImage failed:', {
+        message: e.message,
+        stack: e.stack,
+        originalName: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+      });
+      return res.status(400).json({
+        error: `画像を読み込めませんでした (${req.file.mimetype || 'unknown'}): ${e.message}`,
+      });
+    }
+
     const hasGps = exif && exif.latitude != null && exif.longitude != null;
 
-    if (hasGps) {
-      // 近隣店舗と逆ジオコーディングを並列実行
-      const [restaurantName, geo] = await Promise.all([
-        findNearbyRestaurant(exif.latitude, exif.longitude),
-        reverseGeocode(exif.latitude, exif.longitude),
-      ]);
-      restaurantFromGps = restaurantName;
-      if (geo) location = geo.locationLabel;
-    }
+    const [analysis, restaurantFromGps, geo] = await Promise.all([
+      analyzeRamenImage(normalized.path),
+      hasGps ? findNearbyRestaurant(exif.latitude, exif.longitude) : Promise.resolve(null),
+      hasGps ? reverseGeocode(exif.latitude, exif.longitude) : Promise.resolve(null),
+    ]);
+
+    const location = geo?.locationLabel || null;
 
     // 店名は「画像内で検出できた看板」を優先し、なければ GPS 周辺から推定
     const detectedRestaurant = (analysis?.detected_restaurant_name || '').trim();
     const restaurantName = detectedRestaurant || restaurantFromGps || null;
 
     res.json({
-      image_id: req.file.filename,
-      image_url: `/uploads/${req.file.filename}`,
+      image_id: normalized.filename,
+      image_url: `/uploads/${normalized.filename}`,
       analysis,
       detected: {
         restaurant_name: restaurantName,

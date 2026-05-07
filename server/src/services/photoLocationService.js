@@ -1,7 +1,70 @@
 import exifr from 'exifr';
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs/promises';
+import heicConvert from 'heic-convert';
 
 // ユーザーエージェント：Nominatim 利用規約により必須
 const USER_AGENT = 'WebApl-Ramen-Poster/1.0 (instagram caption generator)';
+
+/** 先頭バイトを見て HEIC/HEIF を判定する（拡張子・mimeに頼らない） */
+async function isHeic(srcPath) {
+  try {
+    const fd = await fs.open(srcPath, 'r');
+    try {
+      const { buffer } = await fd.read(Buffer.alloc(32), 0, 32, 0);
+      // HEIC/HEIF: bytes 4-7 = "ftyp", bytes 8-11 in heic / heix / mif1 / msf1 / heim / heis ...
+      if (buffer.slice(4, 8).toString('ascii') !== 'ftyp') return false;
+      const brand = buffer.slice(8, 12).toString('ascii');
+      return /^(heic|heix|hevc|hevx|mif1|msf1|heim|heis|hevm|hevs)$/i.test(brand);
+    } finally {
+      await fd.close();
+    }
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Claude Vision / Instagram で扱える形式・サイズに正規化する。
+ * - HEIC/HEIF を JPEG に事前変換（Linux ビルドの sharp は HEIC 読み込み非対応のため）
+ * - EXIF orientation を反映してリサイズ前に回転
+ * - 長辺 1568px に縮小（Claude 推奨上限）
+ * - 出力は sRGB JPEG（HEIC・PNG・CMYK・wide gamut も全て JPEG 化）
+ * 戻り値は { path, filename }（拡張子は .jpg）
+ */
+export async function normalizeImage(srcPath) {
+  const dir = path.dirname(srcPath);
+  const baseName = path.basename(srcPath, path.extname(srcPath));
+  const outPath = path.join(dir, `${baseName}.jpg`);
+  const tmpPath = `${outPath}.tmp`;
+
+  // HEIC を先に JPEG バッファへ落としてから sharp に渡す
+  let input = srcPath;
+  if (await isHeic(srcPath)) {
+    const inputBuffer = await fs.readFile(srcPath);
+    input = await heicConvert({ buffer: inputBuffer, format: 'JPEG', quality: 0.9 });
+  }
+
+  try {
+    await sharp(input, { failOn: 'none' })
+      .rotate()
+      .resize(1568, 1568, { fit: 'inside', withoutEnlargement: true })
+      .toColorspace('srgb')
+      .jpeg({ quality: 85, mozjpeg: true })
+      .toFile(tmpPath);
+  } catch (e) {
+    console.error('[normalizeImage] sharp failed:', e.message);
+    throw e;
+  }
+
+  if (path.resolve(srcPath) !== path.resolve(outPath)) {
+    await fs.unlink(srcPath).catch(() => {});
+  }
+  await fs.rename(tmpPath, outPath);
+
+  return { path: outPath, filename: path.basename(outPath) };
+}
 
 /**
  * 画像ファイルから GPS 座標と撮影日時を抽出する。

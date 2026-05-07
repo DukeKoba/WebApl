@@ -1,31 +1,33 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Sparkles, History, ArrowLeft, Search } from 'lucide-react';
+import { Sparkles, History, ArrowLeft, Search } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
 
 const CONTENT_TYPES = [
-  { value: 'basics', label: 'AI基礎知識' },
-  { value: 'ml', label: '機械学習' },
-  { value: 'prompt', label: 'プロンプト技法' },
-  { value: 'chatgpt', label: 'ChatGPT活用' },
-  { value: 'tools', label: 'AIツール紹介' },
-  { value: 'ethics', label: 'AI倫理・社会' },
-  { value: 'news', label: 'AI最新動向' },
-  { value: 'coding', label: 'AIコーディング' },
-  { value: 'business', label: 'AIビジネス活用' },
-  { value: 'aitips', label: '生成AI活用トピック' },
-  { value: 'vibecoding', label: 'バイブコーディングTips' },
+  { value: 'subsidy_news', label: '補助金最新情報' },
+  { value: 'subsidy_howto', label: '補助金活用ノウハウ' },
+  { value: 'ai_dx', label: 'AI業務改善事例' },
+  { value: 'ai_smb', label: '中小企業AI活用' },
+  { value: 'ai_efficiency', label: '業務効率化Tips' },
+  { value: 'ai_tools', label: 'AIツール業務活用' },
+  { value: 'claude_biz', label: 'Claude業務活用' },
+  { value: 'chatgpt_biz', label: 'ChatGPT業務活用' },
+  { value: 'insurance_ai', label: '保険×AI活用' },
+  { value: 'mvp', label: 'MVP開発事例' },
+  { value: 'vibecoding', label: 'バイブコーディング' },
+  { value: 'cocreo_voice', label: 'Cocreoの視点' },
 ];
 
 export default function AiEduHome() {
-  const [contentType, setContentType] = useState('basics');
+  const [contentType, setContentType] = useState('subsidy_news');
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [currentAgent, setCurrentAgent] = useState('');
   const [postText, setPostText] = useState('');
   const [hadNewsContext, setHadNewsContext] = useState(false);
+  const [sources, setSources] = useState([]);
   const [postId, setPostId] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
@@ -43,6 +45,7 @@ export default function AiEduHome() {
     setMessages([]);
     setPostText('');
     setHadNewsContext(false);
+    setSources([]);
     setPostId(null);
     setStatus('draft');
     setError('');
@@ -82,6 +85,7 @@ export default function AiEduHome() {
                 setPostText(data.post_text);
                 setPostId(data.post_id);
                 setHadNewsContext(!!data.had_news_context);
+                setSources(Array.isArray(data.sources) ? data.sources : []);
                 setStatusMessage('');
                 setCurrentAgent('');
               } else if (event === 'error') {
@@ -126,9 +130,12 @@ export default function AiEduHome() {
           </Link>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-4 h-4 text-white" />
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">AI関連 X投稿</h1>
+            <div className="leading-tight">
+              <h1 className="font-bold text-lg text-gray-900">Cocreo X投稿ジェネレーター</h1>
+              <p className="text-[11px] text-gray-500 tracking-wide">AI業務改善・補助金活用を発信</p>
+            </div>
           </div>
           <Link
             to="/aiedu/history"
@@ -192,11 +199,29 @@ export default function AiEduHome() {
           </button>
         </div>
 
-        {/* News context badge */}
+        {/* News context badge & sources */}
         {postText && hadNewsContext && (
-          <div className="flex items-center gap-1.5 text-xs text-violet-600 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
-            <Search className="w-3.5 h-3.5 flex-shrink-0" />
-            最新ニュースをWeb検索して生成しました
+          <div className="text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2.5 space-y-2">
+            <div className="flex items-center gap-1.5 font-medium">
+              <Search className="w-3.5 h-3.5 flex-shrink-0" />
+              最新ニュースをWeb検索して生成しました
+            </div>
+            {sources.length > 0 && (
+              <ul className="space-y-1 pl-5 list-disc marker:text-violet-400">
+                {sources.map((s, i) => (
+                  <li key={i} className="break-all">
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-violet-600 hover:underline"
+                    >
+                      {s.title || s.url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

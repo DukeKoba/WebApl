@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Brain, Twitter, Clock, CheckCircle, XCircle, FileText, Trash2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Twitter, Clock, CheckCircle, XCircle, FileText, Trash2 } from 'lucide-react';
 import { authFetch } from '../../utils/api';
 
 const STATUS_CONFIG = {
@@ -10,6 +10,19 @@ const STATUS_CONFIG = {
 };
 
 const CONTENT_TYPE_LABELS = {
+  subsidy_news:   '補助金最新情報',
+  subsidy_howto:  '補助金活用ノウハウ',
+  ai_dx:          'AI業務改善事例',
+  ai_smb:         '中小企業AI活用',
+  ai_efficiency:  '業務効率化Tips',
+  ai_tools:       'AIツール業務活用',
+  claude_biz:     'Claude業務活用',
+  chatgpt_biz:    'ChatGPT業務活用',
+  insurance_ai:   '保険×AI活用',
+  mvp:            'MVP開発事例',
+  vibecoding:     'バイブコーディング',
+  cocreo_voice:   'Cocreoの視点',
+  // Legacy types kept for historical posts
   basics: 'AI基礎知識',
   ml: '機械学習',
   prompt: 'プロンプト技法',
@@ -20,7 +33,6 @@ const CONTENT_TYPE_LABELS = {
   coding: 'AIコーディング',
   business: 'AIビジネス活用',
   aitips: 'AI活用Tips',
-  vibecoding: 'Vibecodingの基礎',
 };
 
 export default function AiEduHistory() {
@@ -49,9 +61,9 @@ export default function AiEduHistory() {
           </Link>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-4 h-4 text-white" />
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">AI教育 投稿履歴</h1>
+            <h1 className="font-bold text-lg text-gray-900">Cocreo X投稿 履歴</h1>
           </div>
         </div>
       </div>
@@ -63,7 +75,7 @@ export default function AiEduHistory() {
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
-            <Brain className="w-12 h-12 mx-auto mb-3 opacity-40" />
+            <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-40" />
             <p className="font-medium">投稿履歴がありません</p>
             <Link to="/aiedu" className="text-violet-600 text-sm hover:underline mt-2 inline-block">
               最初の投稿を生成する →
