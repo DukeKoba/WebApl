@@ -49,7 +49,16 @@ router.post('/upload', upload.single('image'), async (req, res) => {
     try {
       normalized = await normalizeImage(req.file.path);
     } catch (e) {
-      return res.status(400).json({ error: `画像を読み込めませんでした: ${e.message}` });
+      console.error('[ramen/upload] normalizeImage failed:', {
+        message: e.message,
+        stack: e.stack,
+        originalName: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+      });
+      return res.status(400).json({
+        error: `画像を読み込めませんでした (${req.file.mimetype || 'unknown'}): ${e.message}`,
+      });
     }
 
     const hasGps = exif && exif.latitude != null && exif.longitude != null;
