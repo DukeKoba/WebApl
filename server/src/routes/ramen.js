@@ -97,10 +97,10 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 
 // POST /api/ramen/search-reviews - Search web reviews for a restaurant
 router.post('/search-reviews', async (req, res) => {
-  const { restaurant_name, location } = req.body;
+  const { restaurant_name, location, ramen_type } = req.body;
   if (!restaurant_name) return res.json({ reviews: null });
   try {
-    const reviews = await searchRestaurantReviews(restaurant_name, location);
+    const reviews = await searchRestaurantReviews(restaurant_name, location, ramen_type);
     res.json({ reviews: reviews || null });
   } catch {
     res.json({ reviews: null });
@@ -143,9 +143,18 @@ router.post('/convert-impression', async (req, res) => {
   }
 });
 
-// POST /api/ramen/generate - Generate post via agent discussion (SSE)
+// POST /api/ramen/generate - Generate Japanese caption via agent discussion (SSE)
 router.post('/generate', async (req, res) => {
-  const { image_id, image_analysis, restaurant_name, location, visit_date, impressions, web_reviews } = req.body;
+  const {
+    image_id,
+    image_analysis,
+    restaurant_name,
+    location,
+    ramen_type,
+    visit_date,
+    impressions,
+    web_reviews,
+  } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -159,30 +168,38 @@ router.post('/generate', async (req, res) => {
   try {
     const postId = uuidv4();
     const convId = uuidv4();
-    const imagePath = image_id ? path.join(uploadDir, image_id) : null;
 
     const task = {
       type: 'ramen',
       platform: 'instagram',
-      imageAnalysis: image_analysis,
+      imageAnalysis: image_analysis || null,
       restaurantName: restaurant_name,
       location,
+      ramenType: ramen_type,
       visitDate: visit_date,
       impressions,
       webReviews: web_reviews || null,
     };
 
     const messages = [];
-    const { conversation, finalPost, japaneseTranslation } = await orchestrateAgents(task, (msg) => {
+    const { finalPost } = await orchestrateAgents(task, (msg) => {
       sendEvent('agent_message', msg);
       messages.push(msg);
     });
 
-    const metadata = { restaurant_name, location, visit_date, impressions };
+    const metadata = { restaurant_name, location, ramen_type, visit_date, impressions };
 
     db.prepare(
       `INSERT INTO sns_posts (id, app_type, post_text, image_path, image_analysis, metadata, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
-    ).run(postId, 'ramen', finalPost, image_id || null, JSON.stringify(image_analysis), JSON.stringify(metadata), 'draft');
+    ).run(
+      postId,
+      'ramen',
+      finalPost,
+      image_id || null,
+      image_analysis ? JSON.stringify(image_analysis) : null,
+      JSON.stringify(metadata),
+      'draft',
+    );
 
     db.prepare(`INSERT INTO agent_conversations (id, post_id) VALUES (?, ?)`).run(convId, postId);
 
@@ -193,13 +210,21 @@ router.post('/generate', async (req, res) => {
       insertMsg.run(uuidv4(), convId, msg.agent, msg.name, msg.round, msg.content);
     }
 
-    sendEvent('final_post', { post_id: postId, post_text: finalPost, japanese_translation: japaneseTranslation, has_web_reviews: !!web_reviews });
+    sendEvent('final_post', { post_id: postId, post_text: finalPost, has_web_reviews: !!web_reviews });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });
   } finally {
     res.end();
   }
+});
+
+// POST /api/ramen/posts/:id/finalize-japanese - Lock in user-edited Japanese
+router.post('/posts/:id/finalize-japanese', (req, res) => {
+  const { post_text } = req.body;
+  if (!post_text) return res.status(400).json({ error: 'post_text is required' });
+  db.prepare(`UPDATE sns_posts SET post_text = ? WHERE id = ? AND app_type = 'ramen'`).run(post_text, req.params.id);
+  res.json({ success: true });
 });
 
 // GET /api/ramen/posts

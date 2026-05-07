@@ -98,13 +98,18 @@ function buildMarketerR1Prompt(task) {
    ※Xはハッシュタグが多すぎるとリーチが下がるため2〜3個が最適
 4. エンゲージメントを高めるポイント`;
   } else {
+    const reviewBlock = task.webReviews
+      ? `\n【取得済みWeb口コミ（このラーメンの実態を正確に表現する一次情報）】\n${task.webReviews}\n`
+      : '\n（Web口コミ未取得。下記のユーザー入力情報のみで判断してください。架空の表現は避けること）\n';
     return `Instagramにラーメン体験を投稿します（日本語で作成し、後で英語に翻訳します）。
-ラーメン分析: ${JSON.stringify(task.imageAnalysis)}
-店舗: ${task.restaurantName || '不明'}
-場所: ${task.location || '不明'}
-訪問日: ${task.visitDate || '不明'}
-ユーザーの感想: ${task.impressions || 'なし'}
 
+【ユーザー入力】
+- 店舗: ${task.restaurantName || '不明'}
+- 場所: ${task.location || '不明'}
+- ラーメンの種類: ${task.ramenType || '不明'}
+- 訪問日: ${task.visitDate || '不明'}
+- 感想: ${task.impressions || 'なし'}
+${reviewBlock}
 以下を日本語で分析・提案してください：
 1. 最適なターゲット層（ラーメン好き、食べ歩きファン、旅行者など）
 2. 推奨投稿時間帯
@@ -112,7 +117,7 @@ function buildMarketerR1Prompt(task) {
    - 一般フード系 (#foodie #food #instafood #グルメ #食べスタグラム ...)
    - ラーメン系 (#ラーメン #ramen #らーめん #拉麺 #ラーメン部 ...)
    - 日本食系 (#日本食 #japanesefood #japanfood ...)
-   - スタイル系 (#豚骨 #醤油 #味噌 #塩 #つけ麺 — 該当するもののみ)
+   - スタイル系 (#豚骨 #醤油 #味噌 #塩 #つけ麺 — ${task.ramenType ? `今回は「${task.ramenType}」` : '該当するもののみ'})
    - 場所系 (${task.location ? `#${task.location.replace(/[\s,]/g, '')}` : '#tokyo'} など)
    ※Instagramは20〜30個が最もリーチしやすい
 4. エンゲージメントを高める施策（フック・保存率・シェア促進）`;
@@ -148,15 +153,14 @@ function buildCopywriterR1Prompt(task, marketerAnalysis) {
 投稿文の初稿を作成してください。`;
   } else {
     const reviewSection = task.webReviews
-      ? `\nWeb口コミ情報（この情報をもとに書いてください。架空の情報は使わないこと）:\n${task.webReviews}\n`
-      : '\n⚠ Web口コミなし。画像分析とユーザーの感想のみを使用してください。架空・誇張した表現は避けること。\n';
-    return `Instagramのラーメン体験投稿文の初稿を日本語で作成してください。
-ラーメン情報:
-- スタイル: ${task.imageAnalysis?.ramen_type || '不明'}
-- 見た目: ${task.imageAnalysis?.japanese_description || task.imageAnalysis?.appearance || ''}
-- トッピング: ${(task.imageAnalysis?.toppings || []).join('、') || '不明'}
+      ? `\n【Web口コミ情報（この情報を主軸に書いてください。架空の情報は使わないこと）】\n${task.webReviews}\n`
+      : '\n⚠ Web口コミなし。下記の店舗情報・ラーメン種別・ユーザーの感想のみを使用してください。架空・誇張した表現は避けること。\n';
+    return `Instagramのラーメン体験投稿文の初稿を日本語で作成してください（後で英語に翻訳します）。
+
+【店舗・ラーメン情報】
 - 店舗: ${task.restaurantName || '不明'}
 - 場所: ${task.location || '不明'}
+- ラーメンの種類: ${task.ramenType || '不明'}
 - 訪問日: ${task.visitDate || '不明'}
 - ユーザーの感想: ${task.impressions || ''}
 ${reviewSection}
@@ -164,7 +168,8 @@ ${reviewSection}
 
 要件：
 - 食欲をそそる日本語キャプション（本文は約200〜300文字、ハッシュタグは除く）
-- Web口コミやユーザーの感想に基づいた内容（架空の情報は入れない）
+- Web口コミとユーザーの感想に基づいた内容（架空の情報は入れない）
+- 1行目で読者の手を止める引き（具体的な味の表現・店名・特徴）
 - 読者が今すぐ食べたくなるような感覚的・感情的な表現
 - マーケターが提案したハッシュタグを含める
 - 絵文字を効果的に使用
@@ -210,6 +215,9 @@ ${marketerAnalysis}
 
 function buildCopywriterR2Prompt(task, copywriterR1, consultantFeedback) {
   if (task.type === 'ramen') {
+    const reviewSection = task.webReviews
+      ? `\n【参照可能なWeb口コミ（事実に忠実に）】\n${task.webReviews}\n`
+      : '';
     return `コンサルタントのフィードバックを受けて投稿文を改善してください。
 
 前回の投稿文:
@@ -217,8 +225,12 @@ ${copywriterR1}
 
 コンサルタントのフィードバック:
 ${consultantFeedback}
-
-日本語で改善版を作成してください。ハッシュタグ20〜30個、2200文字以内を厳守。`;
+${reviewSection}
+日本語で改善版を作成してください。
+- 口コミ・感想に書かれていない事実は追加しないこと
+- ハッシュタグ20〜30個（日本語・英語混在）
+- 本文＋ハッシュタグ合計で2200文字以内厳守
+- 末尾に「📲 Slurpでもっとラーメン情報をチェック！」を維持`;
   }
   const charLimit = task.platform === 'x' ? 'X（Twitter）の280文字以内を厳守してください。' : 'Instagramキャプションとして魅力的にしてください。';
   return `コンサルタントのフィードバックを受けて投稿文を改善してください。
