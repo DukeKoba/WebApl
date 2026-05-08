@@ -7,8 +7,41 @@ import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { analyzeRamenImage, searchRestaurantReviews, searchRamenTypeReviews, convertImpressionToEnglish, translateInstagramPostToEnglish } from '../services/claudeService.js';
 import { orchestrateAgents } from '../services/agentOrchestrator.js';
+import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postPhoto } from '../services/instagramService.js';
 import { extractExifData, reverseGeocode, findNearbyRestaurant, normalizeImage } from '../services/photoLocationService.js';
+
+// Build a single consolidated prompt for ramen Japanese caption generation.
+// Used in prompt-only / fallback mode (skips the multi-agent discussion).
+function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate, impressions, webReviews }) {
+  const reviewBlock = webReviews
+    ? `\n【取得済みWeb口コミ（このラーメンの実態を表す一次情報。架空の表現は使わない）】\n${webReviews}\n`
+    : '\n（Web口コミ未取得。下記の店舗情報・感想のみで判断してください。架空・誇張は禁止）\n';
+  return `あなたはラーメン専門のInstagramコピーライターです。下記情報をもとに、Instagram用の日本語キャプションを作成してください。
+
+【店舗・ラーメン情報】
+- 店舗: ${restaurantName || '不明'}
+- 場所: ${location || '不明'}
+- ラーメンの種類: ${ramenType || '不明'}
+- 訪問日: ${visitDate || '不明'}
+- ユーザーの感想: ${impressions || ''}
+${reviewBlock}
+【要件】
+- 食欲をそそる日本語キャプション（本文200〜300文字、ハッシュタグ除く）
+- 1行目で読者の手を止める引き（具体的な味の表現・店名・特徴）
+- 口コミ・感想に基づき、架空の情報は入れない
+- 絵文字を効果的に使用
+- 末尾付近に「📲 Slurpでもっとラーメン情報をチェック！」を自然に挿入
+- 1行空けて、ハッシュタグ20〜30個（日本語・英語混在）：
+  - 一般フード系: #foodie #food #instafood #グルメ #食べスタグラム など
+  - ラーメン系: #ラーメン #ramen #らーめん #拉麺 #ラーメン部 など
+  - 日本食系: #日本食 #japanesefood #japanfood
+  - スタイル系: ${ramenType ? `#${ramenType}` : '（該当する種類）'}
+  - 場所系: ${location ? `#${location.replace(/[\s,]/g, '')}` : '#tokyo など'}
+
+【出力形式】
+キャプション本文（Slurpの一文を含む）＋空行＋ハッシュタグの順で出力してください。前後に説明文は不要です。`;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadDir = path.join(__dirname, '..', '..', 'uploads');
@@ -97,13 +130,41 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 
 // POST /api/ramen/search-reviews - Search web reviews for a restaurant
 router.post('/search-reviews', async (req, res) => {
-  const { restaurant_name, location, ramen_type } = req.body;
+  const { restaurant_name, location, ramen_type, prompt_only = false } = req.body;
   if (!restaurant_name) return res.json({ reviews: null });
+
+  if (prompt_only) {
+    // Return search query + fetch instructions for the user to run externally
+    const parts = [restaurant_name];
+    if (location) parts.push(location);
+    if (ramen_type) parts.push(ramen_type);
+    parts.push('ラーメン 口コミ');
+    const query = parts.join(' ');
+    return res.json({
+      reviews: null,
+      fallback_prompt: {
+        prompts: [{
+          label: '口コミ検索プロンプト（外部AIまたはGoogle検索で実行）',
+          system: 'あなたは日本のラーメン口コミに詳しいリサーチャーです。',
+          user: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索し、以下を日本語でまとめてください：
+・スープの特徴・味わい（具体的に）
+・麺の種類・食感
+・人気メニュー・おすすめ
+・トッピングの特徴
+・雰囲気・価格帯
+・実際の口コミコメント（具体的な表現を引用）
+
+検索クエリ例: ${query}`,
+        }],
+      },
+    });
+  }
+
   try {
     const reviews = await searchRestaurantReviews(restaurant_name, location, ramen_type);
     res.json({ reviews: reviews || null });
-  } catch {
-    res.json({ reviews: null });
+  } catch (err) {
+    res.json({ reviews: null, error: err.message });
   }
 });
 
@@ -121,13 +182,27 @@ router.post('/search-ramen-reviews', async (req, res) => {
 
 // POST /api/ramen/translate-to-english - Translate Japanese Instagram post to English
 router.post('/translate-to-english', async (req, res) => {
-  const { text } = req.body;
+  const { text, prompt_only = false } = req.body;
   if (!text) return res.json({ english: null });
+
+  if (prompt_only) {
+    return res.json({
+      english: null,
+      fallback_prompt: {
+        prompts: [{
+          label: '英語Instagramキャプション翻訳プロンプト',
+          system: 'You are a creative food writer specializing in Japanese cuisine. Translate Japanese Instagram ramen posts into natural, engaging English. Keep hashtags as-is. Output should be vivid, appetizing, and authentic — not a literal translation.',
+          user: `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）。ハッシュタグはそのまま維持。説明文は不要、翻訳結果のみを出力：\n\n${text}`,
+        }],
+      },
+    });
+  }
+
   try {
     const english = await translateInstagramPostToEnglish(text);
     res.json({ english: english || null });
-  } catch {
-    res.json({ english: null });
+  } catch (err) {
+    res.json({ english: null, error: err.message });
   }
 });
 
@@ -154,6 +229,7 @@ router.post('/generate', async (req, res) => {
     visit_date,
     impressions,
     web_reviews,
+    prompt_only = false,
   } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
@@ -181,12 +257,41 @@ router.post('/generate', async (req, res) => {
       webReviews: web_reviews || null,
     };
 
-    const messages = [];
-    const { finalPost } = await orchestrateAgents(task, (msg) => {
-      sendEvent('agent_message', msg);
-      messages.push(msg);
-    });
+    // Build a consolidated single prompt for prompt-only / fallback mode
+    // (skips multi-agent discussion, gets the same final result via one shot)
+    const singlePromptInfo = [{
+      label: '日本語Instagramキャプション生成プロンプト（一括実行用）',
+      system: 'あなたはラーメン専門のInstagramコピーライターです。日本語で食欲をそそる魅力的なキャプションを書きます。',
+      user: buildRamenSinglePrompt({
+        restaurantName: restaurant_name,
+        location,
+        ramenType: ramen_type,
+        visitDate: visit_date,
+        impressions,
+        webReviews: web_reviews,
+      }),
+    }];
 
+    const messages = [];
+    const result = await tryClaudeOrEmitPrompt(
+      singlePromptInfo,
+      async () => {
+        const r = await orchestrateAgents(task, (msg) => {
+          sendEvent('agent_message', msg);
+          messages.push(msg);
+        });
+        return r.finalPost;
+      },
+      sendEvent,
+      prompt_only,
+    );
+
+    if (result == null) {
+      sendEvent('done', {});
+      return;
+    }
+
+    const finalPost = result;
     const metadata = { restaurant_name, location, ramen_type, visit_date, impressions };
 
     db.prepare(
@@ -201,13 +306,14 @@ router.post('/generate', async (req, res) => {
       'draft',
     );
 
-    db.prepare(`INSERT INTO agent_conversations (id, post_id) VALUES (?, ?)`).run(convId, postId);
-
-    const insertMsg = db.prepare(
-      `INSERT INTO agent_messages (id, conversation_id, agent_role, agent_name, round, content) VALUES (?, ?, ?, ?, ?, ?)`
-    );
-    for (const msg of messages) {
-      insertMsg.run(uuidv4(), convId, msg.agent, msg.name, msg.round, msg.content);
+    if (messages.length > 0) {
+      db.prepare(`INSERT INTO agent_conversations (id, post_id) VALUES (?, ?)`).run(convId, postId);
+      const insertMsg = db.prepare(
+        `INSERT INTO agent_messages (id, conversation_id, agent_role, agent_name, round, content) VALUES (?, ?, ?, ?, ?, ?)`
+      );
+      for (const msg of messages) {
+        insertMsg.run(uuidv4(), convId, msg.agent, msg.name, msg.round, msg.content);
+      }
     }
 
     sendEvent('final_post', { post_id: postId, post_text: finalPost, has_web_reviews: !!web_reviews });
@@ -217,6 +323,18 @@ router.post('/generate', async (req, res) => {
   } finally {
     res.end();
   }
+});
+
+// POST /api/ramen/save-manual - Save manually-pasted Japanese caption as a draft
+router.post('/save-manual', (req, res) => {
+  const { post_text, restaurant_name, location, ramen_type, visit_date, impressions } = req.body;
+  if (!post_text?.trim()) return res.status(400).json({ error: 'post_text is required' });
+  const postId = uuidv4();
+  const metadata = { restaurant_name, location, ramen_type, visit_date, impressions, manual: true };
+  db.prepare(
+    `INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`
+  ).run(postId, 'ramen', post_text.trim(), JSON.stringify(metadata), 'draft');
+  res.json({ post_id: postId, post_text: post_text.trim() });
 });
 
 // POST /api/ramen/posts/:id/finalize-japanese - Lock in user-edited Japanese

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check, CalendarClock, GraduationCap, BadgeCheck, MapPin, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
+import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
+import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 import { authFetch } from '../../utils/api';
 
 const QUESTION_TYPES = [
@@ -257,6 +259,9 @@ function getDaysUntil(dateStr) {
 
 export default function EikenHome() {
   const [tab, setTab] = useState('x');
+  const [aiMode] = useAiMode();
+  const promptOnly = aiMode === 'prompt';
+
   const [questionType, setQuestionType] = useState('vocabulary');
   const [level, setLevel] = useState('2');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -266,6 +271,26 @@ export default function EikenHome() {
   const [status, setStatus] = useState('draft');
   const [script, setScript] = useState('');
   const [error, setError] = useState('');
+  const [fallbackPrompt, setFallbackPrompt] = useState(null);
+
+  const handleSaveManualEiken = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await authFetch('/eiken/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionType, level, body_text: text }),
+      });
+      const data = await res.json();
+      if (data.post_id) {
+        setPostText(data.post_text);
+        setPostId(data.post_id);
+        setFallbackPrompt(null);
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+  };
 
   const handleGenerateX = async () => {
     setIsGenerating(true);
@@ -273,12 +298,13 @@ export default function EikenHome() {
     setPostId(null);
     setStatus('draft');
     setError('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/eiken/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionType, level }),
+        body: JSON.stringify({ questionType, level, prompt_only: promptOnly }),
       });
 
       const reader = res.body.getReader();
@@ -303,6 +329,8 @@ export default function EikenHome() {
               if (event === 'final_post') {
                 setPostText(data.post_text);
                 setPostId(data.post_id);
+              } else if (event === 'fallback_prompt') {
+                setFallbackPrompt(data);
               } else if (event === 'error') {
                 setError(data.message);
               }
@@ -371,13 +399,16 @@ export default function EikenHome() {
             </div>
             <h1 className="font-bold text-lg text-gray-900">英検コンテンツ生成</h1>
           </div>
-          <Link
-            to="/eiken/history"
-            className="ml-auto flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <History className="w-4 h-4" />
-            投稿履歴
-          </Link>
+          <div className="ml-auto flex items-center gap-3">
+            <AiModeToggle />
+            <Link
+              to="/eiken/history"
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+            >
+              <History className="w-4 h-4" />
+              投稿履歴
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -524,6 +555,18 @@ export default function EikenHome() {
             )}
           </button>
         </div>}
+
+        {/* Fallback prompt panel (X tab only) */}
+        {tab === 'x' && fallbackPrompt && (
+          <PromptFallbackPanel
+            prompts={fallbackPrompt.prompts}
+            reason={fallbackPrompt.reason || 'prompt_only'}
+            errorMessage={fallbackPrompt.message}
+            placeholder="外部AIで生成したX投稿本文をここに貼り付け（前後の固定文は自動付与されます）"
+            saveLabel="本文を保存"
+            onSave={handleSaveManualEiken}
+          />
+        )}
 
         {/* Output */}
         {tab === 'x' ? (

@@ -2,6 +2,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { generateTextFull } from '../services/claudeService.js';
+import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
@@ -228,7 +229,7 @@ router.get('/exam-info', (req, res) => {
 
 // POST /api/itpass/generate - SSE single-call generation
 router.post('/generate', async (req, res) => {
-  const { contentType = 'past_question' } = req.body;
+  const { contentType = 'past_question', prompt_only = false } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -244,21 +245,41 @@ router.post('/generate', async (req, res) => {
     const { prefix } = buildPrefix();
     const { suffix, cost: suffixCost } = buildSuffix();
     const prefixCost = prefix.length;
-    const bodyLimit = 280 - prefixCost - suffixCost - 2; // 安全マージン
+    const bodyLimit = 280 - prefixCost - suffixCost - 2;
 
     const systemPrompt = 'あなたはSNSマーケティングとIT資格教育（ITパスポート・基本情報・応用情報）の両方に精通したプロです。受験者がアプリをダウンロードしたくなる、保存・シェアされる投稿を作成します。';
     const variety = pickVariety(contentType);
+    const userPrompt = buildItPassPrompt(contentType, bodyLimit, variety);
 
-    let body = '';
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
-      const prompt = buildItPassPrompt(contentType, limitForAttempt, variety);
-      body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 500, temperature: 1.0 })).trim();
-      if (body.length <= bodyLimit) break;
+    const promptInfo = [{
+      label: `ITパスポート ${contentType} 投稿生成プロンプト`,
+      system: systemPrompt,
+      user: `${userPrompt}\n\n【出力形式】\n本文のみを出力してください（前後の固定文 "${prefix}" と "${suffix}" はシステム側で付与します）。本文は ${bodyLimit} 文字以内厳守。`,
+    }];
+
+    const generated = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      async () => {
+        let body = '';
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
+          const prompt = buildItPassPrompt(contentType, limitForAttempt, variety);
+          body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 500, temperature: 1.0 })).trim();
+          if (body.length <= bodyLimit) break;
+        }
+        if (body.length > bodyLimit) body = body.slice(0, bodyLimit).trimEnd();
+        return body;
+      },
+      sendEvent,
+      prompt_only,
+    );
+
+    if (generated == null) {
+      sendEvent('done', {});
+      return;
     }
-    if (body.length > bodyLimit) body = body.slice(0, bodyLimit).trimEnd();
 
-    const postText = `${prefix}${body}${suffix}`;
+    const postText = `${prefix}${generated}${suffix}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
       postId, 'itpass', postText, JSON.stringify({ contentType }), 'draft'
@@ -271,6 +292,20 @@ router.post('/generate', async (req, res) => {
   } finally {
     res.end();
   }
+});
+
+// POST /api/itpass/save-manual - Save manually-generated body text
+router.post('/save-manual', (req, res) => {
+  const { contentType, body_text } = req.body;
+  if (!body_text?.trim()) return res.status(400).json({ error: 'body_text is required' });
+  const { prefix } = buildPrefix();
+  const { suffix } = buildSuffix();
+  const postId = uuidv4();
+  const postText = `${prefix}${body_text.trim()}${suffix}`;
+  db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+    postId, 'itpass', postText, JSON.stringify({ contentType, manual: true }), 'draft'
+  );
+  res.json({ post_id: postId, post_text: postText });
 });
 
 // GET /api/itpass/posts

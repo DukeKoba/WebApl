@@ -2,6 +2,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { generateTextFull, searchAiNews } from '../services/claudeService.js';
+import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
@@ -87,9 +88,11 @@ ${sourceRule}
 投稿文のみを出力してください。前後に説明文・見出し・コードブロックは入れないでください。`;
 }
 
+const AIEDU_SYSTEM_PROMPT = 'あなたはCocreoのX公式アカウントの中の人で、AI業務改善と補助金活用の専門家です。中小企業に伝わる言葉で、実用的でバズる日本語投稿を作ります。';
+
 // POST /api/aiedu/generate - Direct single-call generation (SSE)
 router.post('/generate', async (req, res) => {
-  const { contentType = 'subsidy_news' } = req.body;
+  const { contentType = 'subsidy_news', prompt_only = false } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -104,20 +107,46 @@ router.post('/generate', async (req, res) => {
     const postId = uuidv4();
     const label = CONTENT_TYPE_LABELS[contentType] || contentType;
 
-    // Step 1: Web search for recent news
-    sendEvent('status', { message: `${label}の最新情報を検索中...` });
-    const { summary: newsContext, sourceUrl, sources } = await searchAiNews(contentType, label);
+    // Step 1: Web search for recent news (skipped in prompt-only mode)
+    let newsContext = null;
+    let sourceUrl = null;
+    let sources = [];
+    if (!prompt_only) {
+      try {
+        sendEvent('status', { message: `${label}の最新情報を検索中...` });
+        const result = await searchAiNews(contentType, label);
+        newsContext = result?.summary || null;
+        sourceUrl = result?.sourceUrl || null;
+        sources = result?.sources || [];
+      } catch {
+        // search failure is non-fatal — fall back to no news context
+      }
+    }
 
-    // Step 2: Generate post with fresh news context
+    // Step 2: Generate post (or emit fallback prompt)
     sendEvent('status', { message: '投稿を生成中...' });
-    const prompt = buildAiEduPrompt(contentType, newsContext, sources, !!sourceUrl);
+    const userPrompt = buildAiEduPrompt(contentType, newsContext, sources, !!sourceUrl);
 
-    let postText = (await generateTextFull(
-      'あなたはCocreoのX公式アカウントの中の人で、AI業務改善と補助金活用の専門家です。中小企業に伝わる言葉で、実用的でバズる日本語投稿を作ります。',
-      prompt,
-      { maxTokens: 600 }
-    )).trim();
+    const promptInfo = [{
+      label: `${label} 投稿生成プロンプト`,
+      system: AIEDU_SYSTEM_PROMPT,
+      user: userPrompt + (newsContext ? '' : '\n\n※ プロンプトのみモードのため最新Web検索は省略しています。最新情報が必要であれば、外部AIにWeb検索を依頼してから本プロンプトを実行してください。'),
+    }];
 
+    const generated = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      () => generateTextFull(AIEDU_SYSTEM_PROMPT, userPrompt, { maxTokens: 600 }),
+      sendEvent,
+      prompt_only,
+    );
+
+    if (generated == null) {
+      // Fallback emitted — frontend will save via /save-manual
+      sendEvent('done', {});
+      return;
+    }
+
+    let postText = generated.trim();
     if (sourceUrl) postText = `${postText}\n${sourceUrl}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
@@ -140,6 +169,21 @@ router.post('/generate', async (req, res) => {
   } finally {
     res.end();
   }
+});
+
+// POST /api/aiedu/save-manual - Save manually-generated post text (used in prompt-only mode)
+router.post('/save-manual', (req, res) => {
+  const { contentType, post_text } = req.body;
+  if (!post_text?.trim()) return res.status(400).json({ error: 'post_text is required' });
+  const postId = uuidv4();
+  db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+    postId,
+    'aiedu',
+    post_text.trim(),
+    JSON.stringify({ contentType, manual: true }),
+    'draft',
+  );
+  res.json({ post_id: postId, post_text: post_text.trim() });
 });
 
 // GET /api/aiedu/posts

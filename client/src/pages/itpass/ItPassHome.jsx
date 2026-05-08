@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, Sparkles, History, ArrowLeft, CalendarClock } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
+import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
+import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
 // マーケ + IT資格講師チームで合意した「DLにつながる投稿カテゴリ12種」
 const CONTENT_TYPES = [
@@ -24,6 +26,9 @@ const CONTENT_TYPES = [
 ];
 
 export default function ItPassHome() {
+  const [aiMode] = useAiMode();
+  const promptOnly = aiMode === 'prompt';
+
   const [contentType, setContentType] = useState('past_question');
   const [isGenerating, setIsGenerating] = useState(false);
   const [postText, setPostText] = useState('');
@@ -32,6 +37,7 @@ export default function ItPassHome() {
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
   const [examInfo, setExamInfo] = useState(null);
+  const [fallbackPrompt, setFallbackPrompt] = useState(null);
 
   useEffect(() => {
     authFetch('/itpass/exam-info')
@@ -40,18 +46,38 @@ export default function ItPassHome() {
       .catch(() => {});
   }, []);
 
+  const handleSaveManual = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await authFetch('/itpass/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType, body_text: text }),
+      });
+      const data = await res.json();
+      if (data.post_id) {
+        setPostText(data.post_text);
+        setPostId(data.post_id);
+        setFallbackPrompt(null);
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
     setPostText('');
     setPostId(null);
     setStatus('draft');
     setError('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/itpass/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentType }),
+        body: JSON.stringify({ contentType, prompt_only: promptOnly }),
       });
 
       const reader = res.body.getReader();
@@ -76,6 +102,8 @@ export default function ItPassHome() {
               if (event === 'final_post') {
                 setPostText(data.post_text);
                 setPostId(data.post_id);
+              } else if (event === 'fallback_prompt') {
+                setFallbackPrompt(data);
               } else if (event === 'error') {
                 setError(data.message);
               }
@@ -121,13 +149,16 @@ export default function ItPassHome() {
             </div>
             <h1 className="font-bold text-lg text-gray-900">ITパスポート X投稿</h1>
           </div>
-          <Link
-            to="/itpass/history"
-            className="ml-auto flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <History className="w-4 h-4" />
-            投稿履歴
-          </Link>
+          <div className="ml-auto flex items-center gap-3">
+            <AiModeToggle />
+            <Link
+              to="/itpass/history"
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+            >
+              <History className="w-4 h-4" />
+              投稿履歴
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -198,6 +229,17 @@ export default function ItPassHome() {
             )}
           </button>
         </div>
+
+        {fallbackPrompt && (
+          <PromptFallbackPanel
+            prompts={fallbackPrompt.prompts}
+            reason={fallbackPrompt.reason || 'prompt_only'}
+            errorMessage={fallbackPrompt.message}
+            placeholder="外部AIで生成したX投稿本文をここに貼り付け（前後の固定文は自動付与されます）"
+            saveLabel="本文を保存"
+            onSave={handleSaveManual}
+          />
+        )}
 
         <PostPreview
           platform="x"

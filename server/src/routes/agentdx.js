@@ -2,6 +2,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { generateTextFull, searchAgentDxNews } from '../services/claudeService.js';
+import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
@@ -57,8 +58,10 @@ ${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
 投稿文のみを出力してください。前後に説明文を入れないでください。`;
 }
 
+const AGENTDX_SYSTEM_PROMPT = 'あなたは保険代理店のDX推進とInsurTechの専門家です。代理店経営者に役立つ実践的な情報をXで発信します。';
+
 router.post('/generate', async (req, res) => {
-  const { contentType = 'dx_trend' } = req.body;
+  const { contentType = 'dx_trend', prompt_only = false } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -73,18 +76,39 @@ router.post('/generate', async (req, res) => {
     const postId = uuidv4();
     const label = CONTENT_TYPE_LABELS[contentType] || contentType;
 
-    sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
-    const { summary: newsContext, sourceUrl } = await searchAgentDxNews(contentType, label);
+    let newsContext = null;
+    let sourceUrl = null;
+    if (!prompt_only) {
+      try {
+        sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
+        const result = await searchAgentDxNews(contentType, label);
+        newsContext = result?.summary || null;
+        sourceUrl = result?.sourceUrl || null;
+      } catch {}
+    }
 
     sendEvent('status', { message: '投稿を生成中...' });
-    const prompt = buildAgentDxPrompt(contentType, newsContext, !!sourceUrl);
+    const userPrompt = buildAgentDxPrompt(contentType, newsContext, !!sourceUrl);
 
-    let postText = (await generateTextFull(
-      'あなたは保険代理店のDX推進とInsurTechの専門家です。代理店経営者に役立つ実践的な情報をXで発信します。',
-      prompt,
-      { maxTokens: 600 }
-    )).trim();
+    const promptInfo = [{
+      label: `${label} 投稿生成プロンプト`,
+      system: AGENTDX_SYSTEM_PROMPT,
+      user: userPrompt + (newsContext ? '' : '\n\n※ プロンプトのみモードのためWeb検索は省略しています。最新情報が必要であれば、外部AIで先にWeb検索してから本プロンプトを実行してください。'),
+    }];
 
+    const generated = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      () => generateTextFull(AGENTDX_SYSTEM_PROMPT, userPrompt, { maxTokens: 600 }),
+      sendEvent,
+      prompt_only,
+    );
+
+    if (generated == null) {
+      sendEvent('done', {});
+      return;
+    }
+
+    let postText = generated.trim();
     if (sourceUrl) postText = `${postText}\n${sourceUrl}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
@@ -98,6 +122,16 @@ router.post('/generate', async (req, res) => {
   } finally {
     res.end();
   }
+});
+
+router.post('/save-manual', (req, res) => {
+  const { contentType, post_text } = req.body;
+  if (!post_text?.trim()) return res.status(400).json({ error: 'post_text is required' });
+  const postId = uuidv4();
+  db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+    postId, 'agentdx', post_text.trim(), JSON.stringify({ contentType, manual: true }), 'draft'
+  );
+  res.json({ post_id: postId, post_text: post_text.trim() });
 });
 
 router.get('/posts', (req, res) => {

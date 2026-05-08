@@ -20,6 +20,8 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { authFetch } from '../../utils/api';
+import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
+import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
 const RAMEN_TYPES = [
   '醤油', '味噌', '豚骨', '塩', 'つけ麺', '家系', '二郎系', '担々麺', '台湾まぜそば', 'その他',
@@ -45,6 +47,9 @@ function StepHeader({ num, title, done, active }) {
 }
 
 export default function RamenHome() {
+  const [aiMode] = useAiMode();
+  const promptOnly = aiMode === 'prompt';
+
   // Step 1: input + reviews
   const [restaurantName, setRestaurantName] = useState('');
   const [location, setLocation] = useState('');
@@ -52,15 +57,17 @@ export default function RamenHome() {
   const [visitDate, setVisitDate] = useState('');
   const [impressions, setImpressions] = useState('');
 
-  const [reviewState, setReviewState] = useState('idle'); // idle | searching | confirm | approved | rejected | not-found
+  const [reviewState, setReviewState] = useState('idle'); // idle | searching | confirm | approved | rejected | not-found | prompt
   const [reviewPreview, setReviewPreview] = useState('');
   const [approvedReviews, setApprovedReviews] = useState(null);
+  const [reviewFallbackPrompt, setReviewFallbackPrompt] = useState(null); // { prompts: [...] }
 
   // Step 2: agent generation
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [agentMessages, setAgentMessages] = useState([]);
   const [currentAgent, setCurrentAgent] = useState('');
+  const [generateFallbackPrompt, setGenerateFallbackPrompt] = useState(null);
 
   // Step 3: Japanese post review
   const [japanesePost, setJapanesePost] = useState('');
@@ -70,6 +77,7 @@ export default function RamenHome() {
   // Step 4: English translation
   const [englishPost, setEnglishPost] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
+  const [translateFallbackPrompt, setTranslateFallbackPrompt] = useState(null);
 
   const [error, setError] = useState('');
   const [copiedField, setCopiedField] = useState('');
@@ -91,6 +99,7 @@ export default function RamenHome() {
     setReviewState('searching');
     setReviewPreview('');
     setApprovedReviews(null);
+    setReviewFallbackPrompt(null);
     try {
       const res = await authFetch('/ramen/search-reviews', {
         method: 'POST',
@@ -99,10 +108,14 @@ export default function RamenHome() {
           restaurant_name: restaurantName,
           location,
           ramen_type: ramenType,
+          prompt_only: promptOnly,
         }),
       });
       const data = await res.json();
-      if (data.reviews) {
+      if (data.fallback_prompt) {
+        setReviewFallbackPrompt(data.fallback_prompt);
+        setReviewState('prompt');
+      } else if (data.reviews) {
         setReviewPreview(data.reviews);
         setReviewState('confirm');
       } else {
@@ -122,6 +135,7 @@ export default function RamenHome() {
     setPostId(null);
     setJapaneseFinalized(false);
     setEnglishPost('');
+    setGenerateFallbackPrompt(null);
     setError('');
 
     const agentNames = {
@@ -141,6 +155,7 @@ export default function RamenHome() {
           visit_date: visitDate,
           impressions,
           web_reviews: approvedReviews || null,
+          prompt_only: promptOnly,
         }),
       });
 
@@ -172,6 +187,9 @@ export default function RamenHome() {
                 setJapanesePost(data.post_text);
                 setPostId(data.post_id);
                 setCurrentAgent('');
+              } else if (event === 'fallback_prompt') {
+                setGenerateFallbackPrompt(data);
+                setCurrentAgent('');
               } else if (event === 'error') {
                 setError(data.message);
               }
@@ -184,6 +202,32 @@ export default function RamenHome() {
     } finally {
       setIsGenerating(false);
       setCurrentAgent('');
+    }
+  };
+
+  const handleSaveManualJapanese = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await authFetch('/ramen/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          post_text: text,
+          restaurant_name: restaurantName,
+          location,
+          ramen_type: ramenType,
+          visit_date: visitDate,
+          impressions,
+        }),
+      });
+      const data = await res.json();
+      if (data.post_id) {
+        setJapanesePost(data.post_text);
+        setPostId(data.post_id);
+        setGenerateFallbackPrompt(null);
+      }
+    } catch (e) {
+      setError(e.message);
     }
   };
 
@@ -205,15 +249,21 @@ export default function RamenHome() {
     if (!japanesePost.trim()) return;
     setIsTranslating(true);
     setEnglishPost('');
+    setTranslateFallbackPrompt(null);
     try {
       const res = await authFetch('/ramen/translate-to-english', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: japanesePost }),
+        body: JSON.stringify({ text: japanesePost, prompt_only: promptOnly }),
       });
       const data = await res.json();
-      if (data.english) setEnglishPost(data.english);
-      else setError('英語化に失敗しました。少し時間をおいて再度お試しください。');
+      if (data.fallback_prompt) {
+        setTranslateFallbackPrompt(data.fallback_prompt);
+      } else if (data.english) {
+        setEnglishPost(data.english);
+      } else {
+        setError('英語化に失敗しました。少し時間をおいて再度お試しください。');
+      }
     } catch (e) {
       setError(e.message);
     } finally {
@@ -255,7 +305,8 @@ export default function RamenHome() {
             <h1 className="font-bold text-lg text-gray-900">Ramen Instagram キャプション</h1>
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <Link to="/ramen/analytics" className="flex items-center gap-1.5 text-sm text-pink-500 hover:text-pink-700 font-medium">
+            <AiModeToggle />
+            <Link to="/ramen/analytics" className="hidden sm:flex items-center gap-1.5 text-sm text-pink-500 hover:text-pink-700 font-medium">
               <BarChart2 className="w-4 h-4" />
               Analytics
             </Link>
@@ -426,6 +477,22 @@ export default function RamenHome() {
                 </button>
               </div>
             )}
+
+            {reviewState === 'prompt' && reviewFallbackPrompt && (
+              <PromptFallbackPanel
+                prompts={reviewFallbackPrompt.prompts}
+                reason={reviewFallbackPrompt.reason || 'prompt_only'}
+                placeholder="ChatGPT等で口コミ検索を実行し、まとめた結果をここに貼り付けてください"
+                saveLabel="口コミを保存"
+                onSave={(text) => {
+                  if (!text.trim()) return;
+                  setReviewPreview(text);
+                  setApprovedReviews(text);
+                  setReviewState('approved');
+                  setReviewFallbackPrompt(null);
+                }}
+              />
+            )}
           </div>
         </div>
 
@@ -480,6 +547,19 @@ export default function RamenHome() {
                 ))}
               </div>
             </details>
+          )}
+
+          {generateFallbackPrompt && (
+            <div className="mt-4">
+              <PromptFallbackPanel
+                prompts={generateFallbackPrompt.prompts}
+                reason={generateFallbackPrompt.reason || 'prompt_only'}
+                errorMessage={generateFallbackPrompt.message}
+                placeholder="外部AIで生成した日本語Instagramキャプションをここに貼り付けてください（本文＋ハッシュタグ）"
+                saveLabel="日本語キャプションを保存して次へ"
+                onSave={handleSaveManualJapanese}
+              />
+            </div>
           )}
         </div>
 
@@ -549,7 +629,20 @@ export default function RamenHome() {
             <StepHeader num="4" title="英語Instagramキャプションに変換" active done={!!englishPost} />
             <p className="text-xs text-gray-500 mb-4">確定した日本語版を、Instagram向けに自然な英語へ翻訳します。</p>
 
-            {!englishPost ? (
+            {translateFallbackPrompt ? (
+              <PromptFallbackPanel
+                prompts={translateFallbackPrompt.prompts}
+                reason={translateFallbackPrompt.reason || 'prompt_only'}
+                errorMessage={translateFallbackPrompt.message}
+                placeholder="外部AIで翻訳した英語Instagramキャプションをここに貼り付けてください"
+                saveLabel="英語版を保存"
+                onSave={(text) => {
+                  if (!text.trim()) return;
+                  setEnglishPost(text);
+                  setTranslateFallbackPrompt(null);
+                }}
+              />
+            ) : !englishPost ? (
               <button
                 onClick={handleTranslate}
                 disabled={isTranslating}

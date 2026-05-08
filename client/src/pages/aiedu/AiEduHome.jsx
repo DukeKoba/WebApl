@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Sparkles, History, ArrowLeft, Search } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
+import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
+import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
 const CONTENT_TYPES = [
   { value: 'subsidy_news', label: '補助金最新情報' },
@@ -20,6 +22,9 @@ const CONTENT_TYPES = [
 ];
 
 export default function AiEduHome() {
+  const [aiMode] = useAiMode();
+  const promptOnly = aiMode === 'prompt';
+
   const [contentType, setContentType] = useState('subsidy_news');
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -32,6 +37,7 @@ export default function AiEduHome() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
+  const [fallbackPrompt, setFallbackPrompt] = useState(null);
 
   const agentNames = {
     marketer: 'マーケティングのプロ',
@@ -49,12 +55,13 @@ export default function AiEduHome() {
     setPostId(null);
     setStatus('draft');
     setError('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/aiedu/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentType }),
+        body: JSON.stringify({ contentType, prompt_only: promptOnly }),
       });
 
       const reader = res.body.getReader();
@@ -88,6 +95,10 @@ export default function AiEduHome() {
                 setSources(Array.isArray(data.sources) ? data.sources : []);
                 setStatusMessage('');
                 setCurrentAgent('');
+              } else if (event === 'fallback_prompt') {
+                setFallbackPrompt(data);
+                setStatusMessage('');
+                setCurrentAgent('');
               } else if (event === 'error') {
                 setError(data.message);
               }
@@ -100,6 +111,25 @@ export default function AiEduHome() {
     } finally {
       setIsGenerating(false);
       setCurrentAgent('');
+    }
+  };
+
+  const handleSaveManual = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await authFetch('/aiedu/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType, post_text: text }),
+      });
+      const data = await res.json();
+      if (data.post_id) {
+        setPostText(data.post_text);
+        setPostId(data.post_id);
+        setFallbackPrompt(null);
+      }
+    } catch (e) {
+      setError(e.message);
     }
   };
 
@@ -137,13 +167,16 @@ export default function AiEduHome() {
               <p className="text-[11px] text-gray-500 tracking-wide">AI業務改善・補助金活用を発信</p>
             </div>
           </div>
-          <Link
-            to="/aiedu/history"
-            className="ml-auto flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
-          >
-            <History className="w-4 h-4" />
-            投稿履歴
-          </Link>
+          <div className="ml-auto flex items-center gap-3">
+            <AiModeToggle />
+            <Link
+              to="/aiedu/history"
+              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+            >
+              <History className="w-4 h-4" />
+              投稿履歴
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -198,6 +231,17 @@ export default function AiEduHome() {
             )}
           </button>
         </div>
+
+        {fallbackPrompt && (
+          <PromptFallbackPanel
+            prompts={fallbackPrompt.prompts}
+            reason={fallbackPrompt.reason || 'prompt_only'}
+            errorMessage={fallbackPrompt.message}
+            placeholder="外部AIで生成したX投稿文をここに貼り付けて保存"
+            saveLabel="X投稿を保存"
+            onSave={handleSaveManual}
+          />
+        )}
 
         {/* News context badge & sources */}
         {postText && hadNewsContext && (
