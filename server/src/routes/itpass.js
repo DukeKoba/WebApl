@@ -158,7 +158,7 @@ function getDaysUntilExam() {
 }
 
 // マーケのプロ提案：CTAは「続きはアプリで」型で1動作完結のフリクションを減らす
-const CTA_URL = process.env.ITPASS_APP_URL || 'https://www.ipa.go.jp/shiken/kubun/ip.html';
+const CTA_URL = process.env.ITPASS_APP_URL || 'https://apps.apple.com/jp/app/id6763835091';
 const CTA_TEXT = `📲 続きはITパスポート対策アプリで → ${CTA_URL}`;
 const HASHTAGS = '#ITパスポート #IT資格 #ITパスポート試験';
 
