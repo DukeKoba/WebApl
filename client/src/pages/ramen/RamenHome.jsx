@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sparkles,
@@ -18,7 +18,10 @@ import {
   RotateCcw,
   Soup,
   CheckCircle,
+  Camera,
+  X,
 } from 'lucide-react';
+import { parse as parseExif } from 'exifr';
 import { authFetch } from '../../utils/api';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
@@ -49,6 +52,11 @@ function StepHeader({ num, title, done, active }) {
 export default function RamenHome() {
   const [aiMode] = useAiMode();
   const promptOnly = aiMode === 'prompt';
+
+  // Photo upload
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const photoInputRef = useRef(null);
 
   // Step 1: input + reviews
   const [restaurantName, setRestaurantName] = useState('');
@@ -92,6 +100,40 @@ export default function RamenHome() {
     navigator.clipboard.writeText(text);
     setCopiedField(key);
     setTimeout(() => setCopiedField(''), 2000);
+  };
+
+  const handlePhotoUpload = async (file) => {
+    if (!file) return;
+    setPhotoLoading(true);
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoPreview(previewUrl);
+    try {
+      const exif = await parseExif(file, { gps: true, tiff: true, exif: true });
+      if (exif) {
+        if (exif.DateTimeOriginal) {
+          const d = new Date(exif.DateTimeOriginal);
+          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          setVisitDate(iso);
+        }
+        if (exif.latitude != null && exif.longitude != null) {
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${exif.latitude}&lon=${exif.longitude}&format=json&accept-language=ja`,
+              { headers: { 'User-Agent': 'RamenInstagramApp/1.0' } }
+            );
+            const data = await res.json();
+            if (data.address) {
+              const a = data.address;
+              const city = a.city || a.town || a.village || a.suburb || a.county || '';
+              const pref = a.state || '';
+              const loc = [city, pref].filter(Boolean).join(', ');
+              if (loc) setLocation(loc);
+            }
+          } catch {}
+        }
+      }
+    } catch {}
+    setPhotoLoading(false);
   };
 
   const handleSearchReviews = async () => {
@@ -277,6 +319,7 @@ export default function RamenHome() {
     setRamenType('');
     setVisitDate('');
     setImpressions('');
+    setPhotoPreview('');
     setReviewState('idle');
     setReviewPreview('');
     setApprovedReviews(null);
@@ -330,6 +373,54 @@ export default function RamenHome() {
           <p className="text-xs text-gray-500 mb-4">店名・場所・ラーメンの種類で食べログ等のWeb口コミを検索します。</p>
 
           <div className="space-y-3">
+            {/* Photo upload: auto-fill date & location from EXIF */}
+            <div>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handlePhotoUpload(e.target.files[0])}
+              />
+              {photoPreview ? (
+                <div className="flex items-center gap-3 p-2.5 border border-orange-200 bg-orange-50 rounded-lg">
+                  <img src={photoPreview} alt="uploaded" className="w-14 h-14 object-cover rounded-md flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-orange-700 mb-0.5">写真から読み込み済み</p>
+                    {visitDate && <p className="text-xs text-gray-600">📅 {visitDate}</p>}
+                    {location && <p className="text-xs text-gray-600 truncate">📍 {location}</p>}
+                    {!visitDate && !location && (
+                      <p className="text-xs text-gray-500">日時・GPS情報が見つかりませんでした</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => { setPhotoPreview(''); if (photoInputRef.current) photoInputRef.current.value = ''; }}
+                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => photoInputRef.current?.click()}
+                  disabled={photoLoading}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-orange-300 hover:text-orange-500 hover:bg-orange-50 disabled:opacity-50 transition-colors"
+                >
+                  {photoLoading ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-gray-300 border-t-orange-500 rounded-full animate-spin" />
+                      日時・場所を読み込み中...
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="w-4 h-4" />
+                      写真から日時・場所を自動入力（任意）
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+
             <div className="relative">
               <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
