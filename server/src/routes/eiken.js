@@ -528,6 +528,80 @@ router.post('/posts/:id/publish', async (req, res) => {
   }
 });
 
+// POST /api/eiken/generate-university-post
+router.post('/generate-university-post', async (req, res) => {
+  const { university, level, faculty, condition, exemption, tips, prompt_only = false } = req.body;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sendEvent = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const postId = uuidv4();
+    const levelLabel = level === 'pre1' ? '準1級' : level === '2' ? '2級' : level === 'pre2' ? '準2級' : level;
+    const hashtags = `#英検${levelLabel} #大学受験 #推薦入試`;
+    const bodyLimit = 280 - hashtags.length - 2;
+
+    const systemPrompt = 'あなたはSNSマーケティングと大学受験の専門家です。';
+    const userPrompt = `大学受験で英検を活用できる情報をX（旧Twitter）に投稿する本文を書いてください。
+
+【大学情報】
+大学名: ${university}
+学部: ${faculty}
+英検レベル: 英検${levelLabel}
+出願条件: ${condition}
+英語試験の扱い: ${exemption}
+ポイント: ${tips}
+
+【要件】
+- 高校生・受験生が「これは知らなかった！」と思う情報にする
+- 英検を持っている人に刺さる内容
+- 英語試験が免除・不要である点を強調
+- 絵文字は2〜3個
+- 本文は${bodyLimit}文字以内（ハッシュタグはシステムが付与するので含めない）
+- 本文のみ出力。ハッシュタグ・URLは含めない`;
+
+    const promptInfo = [{
+      label: `${university} 大学受験X投稿プロンプト`,
+      system: systemPrompt,
+      user: userPrompt,
+    }];
+
+    const generated = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      async () => {
+        const body = (await generateTextFull(systemPrompt, userPrompt, { maxTokens: 300, temperature: 1.0 })).trim();
+        return body.length > bodyLimit ? body.slice(0, bodyLimit).trimEnd() : body;
+      },
+      sendEvent,
+      prompt_only,
+    );
+
+    if (generated == null) {
+      sendEvent('done', {});
+      return;
+    }
+
+    const postText = `${generated}\n${hashtags}`;
+
+    db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+      postId, 'eiken', postText, JSON.stringify({ university, level, type: 'university' }), 'draft'
+    );
+
+    sendEvent('final_post', { post_id: postId, post_text: postText });
+    sendEvent('done', {});
+  } catch (err) {
+    sendEvent('error', { message: err.message });
+  } finally {
+    res.end();
+  }
+});
+
 // DELETE /api/eiken/posts/:id
 router.delete('/posts/:id', (req, res) => {
   db.prepare(`DELETE FROM sns_posts WHERE id = ? AND app_type = 'eiken'`).run(req.params.id);

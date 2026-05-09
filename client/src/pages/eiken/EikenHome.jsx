@@ -119,6 +119,50 @@ const UNIVERSITY_DATA = [
     officialUrl: 'https://www.aoyama.ac.jp/admission/undergraduate/examination/recommendation_self.html',
   },
   {
+    level: 'pre1',
+    levelLabel: '準1級',
+    levelColor: 'from-purple-600 to-indigo-600',
+    levelBadge: 'bg-purple-100 text-purple-800',
+    university: '立教大学',
+    faculty: '異文化コミュニケーション学部',
+    examType: '自由選抜入試（英語重視型）',
+    location: '東京都豊島区',
+    campus: '池袋キャンパス（池袋駅徒歩7分）',
+    condition: '英検準1級以上（またはTOEFL iBT 72以上、IELTS 5.5以上等）',
+    exemption: '英語の個別入試なし。英語資格スコアで出願資格を得た後は、小論文・面接のみで審査。',
+    highlights: [
+      '異文化コミュニケーション学部は英語力を軸に国際感覚を磨く',
+      '英語開講科目比率が高く、グローバルな学習環境',
+      '留学プログラムが充実。協定校は50カ国以上',
+      '池袋という抜群のアクセスと都市型キャンパス',
+      'マスコミ・広告・国際機関への就職者多数',
+    ],
+    tips: '英検準1級があれば、立教の看板学部「異文コミ」を英語試験なしで狙える。英語力を武器にした推薦で差をつけよう！',
+    officialUrl: 'https://www.rikkyo.ac.jp/admissions/',
+  },
+  {
+    level: 'pre1',
+    levelLabel: '準1級',
+    levelColor: 'from-purple-600 to-indigo-600',
+    levelBadge: 'bg-purple-100 text-purple-800',
+    university: '明治大学',
+    faculty: '国際日本学部',
+    examType: '英語4技能・資格・検定試験利用入試',
+    location: '神奈川県川崎市',
+    campus: '中野キャンパス（中野駅徒歩5分）',
+    condition: '英検準1級以上（またはTOEFL iBT 72以上等）、評定平均3.5以上',
+    exemption: '英語の個別試験を免除。国語・小論文等で審査。共通テスト不要。',
+    highlights: [
+      '日本文化・メディア・コミュニケーションを英語で学ぶユニークな学部',
+      'グローバル人材育成に特化したカリキュラム',
+      '海外大学との交換留学が充実',
+      '中野の新キャンパスでモダンな学習環境',
+      '明治ブランドの就職力でマスコミ・外資・IT企業へ',
+    ],
+    tips: '英検準1級があれば、明治大学の国際日本学部を英語試験免除で受験可能。英語と日本文化どちらも好きな人に最適！',
+    officialUrl: 'https://www.meiji.ac.jp/isa/admission/',
+  },
+  {
     level: '2',
     levelLabel: '2級',
     levelColor: 'from-green-600 to-teal-600',
@@ -140,81 +184,244 @@ const UNIVERSITY_DATA = [
     tips: '英検2級があれば関関同立の関大商学部を公募推薦で狙える！英語試験なしで小論文と面接の対策に集中できる。',
     officialUrl: 'https://www.nyusi.kansai-u.ac.jp/admission/recommendation_commerce/',
   },
+  {
+    level: '2',
+    levelLabel: '2級',
+    levelColor: 'from-green-600 to-teal-600',
+    levelBadge: 'bg-green-100 text-green-800',
+    university: '法政大学',
+    faculty: '経済学部',
+    examType: '英語外部試験利用入試（公募推薦型）',
+    location: '東京都千代田区',
+    campus: '市ヶ谷キャンパス（市ヶ谷・飯田橋エリア）',
+    condition: '英検2級以上（またはTOEIC L&R 600以上等）、評定平均3.8以上',
+    exemption: '英語の個別試験を英検スコアで代替。現代文・小論文と面接のみで合否判定。',
+    highlights: [
+      'MARCH（明治・青山・立教・中央・法政）の一校',
+      '経済・経営・ファイナンスなど実践的なカリキュラム',
+      '市ヶ谷という都心立地でインターンや就活に有利',
+      '法政独自のキャリアサポートプログラムが充実',
+      '卒業生ネットワークが強く、業界問わず幅広く活躍',
+    ],
+    tips: '英検2級でMARCHの法政大学経済学部に推薦で挑戦できる！英語試験なしで経済系の上位私大を狙える狙い目の入試。',
+    officialUrl: 'https://www.hosei.ac.jp/admission/',
+  },
+  {
+    level: '2',
+    levelLabel: '2級',
+    levelColor: 'from-green-600 to-teal-600',
+    levelBadge: 'bg-green-100 text-green-800',
+    university: '同志社大学',
+    faculty: '商学部',
+    examType: '英語資格活用型公募制推薦入試',
+    location: '京都府京都市',
+    campus: '今出川キャンパス（京都御所の隣）',
+    condition: '英検2級以上（またはGTEC 800以上等）、評定平均4.0以上',
+    exemption: '英語の独自試験なし。英語資格で出願し、小論文と面接のみで審査。共通テスト不要。',
+    highlights: [
+      '関関同立の中でも特に就職力・知名度が高い',
+      '同志社の商学部はビジネス・経済系で関西最高峰クラス',
+      '京都御所隣という歴史ある美しいキャンパス',
+      '豊富な海外提携大学との留学プログラム',
+      '企業からの評価が高く、大手企業内定率が抜群',
+    ],
+    tips: '英検2級で憧れの同志社大学商学部を公募推薦で受験可能！英語試験なしで関西TOP私大に挑戦できる絶好のチャンス。',
+    officialUrl: 'https://www.doshisha.ac.jp/admissions/',
+  },
 ];
 
 function UniversityCard({ data }) {
   const [expanded, setExpanded] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [postText, setPostText] = useState('');
+  const [postId, setPostId] = useState(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [postStatus, setPostStatus] = useState('draft');
+  const [error, setError] = useState('');
+
+  const handleGeneratePost = async () => {
+    setIsGenerating(true);
+    setPostText('');
+    setPostId(null);
+    setPostStatus('draft');
+    setError('');
+
+    try {
+      const res = await authFetch('/eiken/generate-university-post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          university: data.university,
+          level: data.level,
+          faculty: data.faculty,
+          condition: data.condition,
+          exemption: data.exemption,
+          tips: data.tips,
+        }),
+      });
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        let event = '';
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            event = line.slice(7).trim();
+          } else if (line.startsWith('data: ')) {
+            try {
+              const d = JSON.parse(line.slice(6));
+              if (event === 'final_post') {
+                setPostText(d.post_text);
+                setPostId(d.post_id);
+              } else if (event === 'error') {
+                setError(d.message);
+              }
+            } catch {}
+          }
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handlePublish = async (id) => {
+    setIsPublishing(true);
+    try {
+      const res = await authFetch(`/eiken/posts/${id}/publish`, { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error);
+      }
+      setPostStatus('posted');
+    } catch (err) {
+      setError(err.message);
+      setPostStatus('failed');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className={`bg-gradient-to-r ${data.levelColor} p-4`}>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-            英検{data.levelLabel}で推薦出願可
+    <div className="space-y-3">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Header */}
+        <div className={`bg-gradient-to-r ${data.levelColor} p-4`}>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+              英検{data.levelLabel}で推薦出願可
+            </span>
+          </div>
+          <h3 className="text-white font-bold text-lg leading-tight">{data.university}</h3>
+          <p className="text-white/90 text-sm mt-0.5">{data.faculty}</p>
+          <p className="text-white/75 text-xs mt-1 flex items-center gap-1">
+            <MapPin className="w-3 h-3" />
+            {data.campus}
+          </p>
+        </div>
+
+        {/* Exemption highlight */}
+        <div className="bg-amber-50 border-b border-amber-100 px-4 py-3 flex gap-3">
+          <BadgeCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-semibold text-amber-800 mb-0.5">英語試験の扱い</p>
+            <p className="text-sm text-amber-700">{data.exemption}</p>
+          </div>
+        </div>
+
+        {/* Condition */}
+        <div className="px-4 py-3 border-b border-gray-100">
+          <p className="text-xs font-semibold text-gray-500 mb-1">入試種別・出願条件</p>
+          <p className="text-sm font-medium text-gray-800">{data.examType}</p>
+          <p className="text-sm text-gray-600 mt-0.5">{data.condition}</p>
+        </div>
+
+        {/* Tips */}
+        <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
+          <p className="text-sm text-blue-800 font-medium">{data.tips}</p>
+        </div>
+
+        {/* Highlights accordion */}
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <span className="flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-yellow-500" />
+            この大学の魅力を見る
           </span>
-        </div>
-        <h3 className="text-white font-bold text-lg leading-tight">{data.university}</h3>
-        <p className="text-white/90 text-sm mt-0.5">{data.faculty}</p>
-        <p className="text-white/75 text-xs mt-1 flex items-center gap-1">
-          <MapPin className="w-3 h-3" />
-          {data.campus}
-        </p>
-      </div>
+          {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+        </button>
 
-      {/* Exemption highlight */}
-      <div className="bg-amber-50 border-b border-amber-100 px-4 py-3 flex gap-3">
-        <BadgeCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-        <div>
-          <p className="text-xs font-semibold text-amber-800 mb-0.5">英語試験の扱い</p>
-          <p className="text-sm text-amber-700">{data.exemption}</p>
-        </div>
-      </div>
+        {expanded && (
+          <div className="px-4 pb-4 space-y-2">
+            {data.highlights.map((h, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <p className="text-sm text-gray-700">{h}</p>
+              </div>
+            ))}
+            <a
+              href={data.officialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              <GraduationCap className="w-4 h-4" />
+              公式入試ページを見る
+            </a>
+          </div>
+        )}
 
-      {/* Condition */}
-      <div className="px-4 py-3 border-b border-gray-100">
-        <p className="text-xs font-semibold text-gray-500 mb-1">入試種別・出願条件</p>
-        <p className="text-sm font-medium text-gray-800">{data.examType}</p>
-        <p className="text-sm text-gray-600 mt-0.5">{data.condition}</p>
-      </div>
-
-      {/* Tips */}
-      <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
-        <p className="text-sm text-blue-800 font-medium">{data.tips}</p>
-      </div>
-
-      {/* Highlights accordion */}
-      <button
-        onClick={() => setExpanded(v => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-      >
-        <span className="flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-yellow-500" />
-          この大学の魅力を見る
-        </span>
-        {expanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-      </button>
-
-      {expanded && (
-        <div className="px-4 pb-4 space-y-2">
-          {data.highlights.map((h, i) => (
-            <div key={i} className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                {i + 1}
-              </span>
-              <p className="text-sm text-gray-700">{h}</p>
+        {/* X Post generate button */}
+        <div className="px-4 pb-4 pt-3 border-t border-gray-100">
+          {error && (
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-600">
+              {error}
             </div>
-          ))}
-          <a
-            href={data.officialUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors"
+          )}
+          <button
+            onClick={handleGeneratePost}
+            disabled={isGenerating}
+            className="w-full py-2.5 bg-black hover:bg-gray-800 disabled:bg-gray-300 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
           >
-            <GraduationCap className="w-4 h-4" />
-            公式入試ページを見る
-          </a>
+            {isGenerating ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                X投稿を生成中...
+              </>
+            ) : (
+              <>
+                <Twitter className="w-4 h-4" />
+                この大学のX投稿を生成
+              </>
+            )}
+          </button>
         </div>
+      </div>
+
+      {/* Inline post preview */}
+      {postText && (
+        <PostPreview
+          platform="x"
+          text={postText}
+          onChange={postId ? setPostText : undefined}
+          postId={postId}
+          onPublish={handlePublish}
+          isPublishing={isPublishing}
+          status={postStatus}
+        />
       )}
     </div>
   );
@@ -229,7 +436,7 @@ function UniversitySection() {
           <h2 className="font-bold text-gray-900">英検で推薦入試を勝ち取ろう！</h2>
         </div>
         <p className="text-sm text-gray-600">
-          英検準1級・2級を持っていると、英語試験なしで推薦入試に出願できる大学があります。各1校ずつ厳選して紹介します。
+          英検準1級・2級を持っていると、英語試験なしで推薦入試に出願できる大学があります。各大学のX投稿を生成してそのまま投稿できます。
         </p>
       </div>
 
