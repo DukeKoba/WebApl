@@ -13,10 +13,27 @@ import { extractExifData, reverseGeocode, findNearbyRestaurant, normalizeImage }
 
 // Build a single consolidated prompt for ramen Japanese caption generation.
 // Used in prompt-only / fallback mode (skips the multi-agent discussion).
-function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate, impressions, webReviews }) {
+function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate, impressions, webReviews, imageAnalysis }) {
   const reviewBlock = webReviews
     ? `\n【取得済みWeb口コミ（このラーメンの実態を表す一次情報。架空の表現は使わない）】\n${webReviews}\n`
     : '\n（Web口コミ未取得。下記の店舗情報・感想のみで判断してください。架空・誇張は禁止）\n';
+
+  let imageBlock = '';
+  if (imageAnalysis) {
+    const lines = [];
+    if (imageAnalysis.ramen_type) lines.push(`- スタイル: ${imageAnalysis.ramen_type}`);
+    if (Array.isArray(imageAnalysis.toppings) && imageAnalysis.toppings.length > 0) {
+      lines.push(`- トッピング: ${imageAnalysis.toppings.join('、')}`);
+    }
+    if (imageAnalysis.appearance) lines.push(`- 見た目: ${imageAnalysis.appearance}`);
+    if (imageAnalysis.atmosphere) lines.push(`- 雰囲気: ${imageAnalysis.atmosphere}`);
+    if (imageAnalysis.notable_features) lines.push(`- 特筆点: ${imageAnalysis.notable_features}`);
+    if (imageAnalysis.japanese_description) lines.push(`- AIによる説明: ${imageAnalysis.japanese_description}`);
+    if (lines.length > 0) {
+      imageBlock = `\n【写真のAI解析結果（実際にユーザーが食べた一杯の客観的描写）】\n${lines.join('\n')}\n`;
+    }
+  }
+
   return `あなたはラーメン専門のInstagramコピーライターです。下記情報をもとに、Instagram用の日本語キャプションを作成してください。
 
 【店舗・ラーメン情報】
@@ -25,7 +42,7 @@ function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate
 - ラーメンの種類: ${ramenType || '不明'}
 - 訪問日: ${visitDate || '不明'}
 - ユーザーの感想: ${impressions || ''}
-${reviewBlock}
+${imageBlock}${reviewBlock}
 【要件】
 - 食欲をそそる日本語キャプション（本文200〜300文字、ハッシュタグ除く）
 - 1行目で読者の手を止める引き（具体的な味の表現・店名・特徴）
@@ -280,6 +297,7 @@ router.post('/generate', async (req, res) => {
         visitDate: visit_date,
         impressions,
         webReviews: web_reviews,
+        imageAnalysis: image_analysis,
       }),
     }];
 
@@ -338,13 +356,21 @@ router.post('/generate', async (req, res) => {
 
 // POST /api/ramen/save-manual - Save manually-pasted Japanese caption as a draft
 router.post('/save-manual', (req, res) => {
-  const { post_text, restaurant_name, location, ramen_type, visit_date, impressions } = req.body;
+  const { post_text, restaurant_name, location, ramen_type, visit_date, impressions, image_id, image_analysis } = req.body;
   if (!post_text?.trim()) return res.status(400).json({ error: 'post_text is required' });
   const postId = uuidv4();
   const metadata = { restaurant_name, location, ramen_type, visit_date, impressions, manual: true };
   db.prepare(
-    `INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`
-  ).run(postId, 'ramen', post_text.trim(), JSON.stringify(metadata), 'draft');
+    `INSERT INTO sns_posts (id, app_type, post_text, image_path, image_analysis, metadata, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    postId,
+    'ramen',
+    post_text.trim(),
+    image_id || null,
+    image_analysis ? JSON.stringify(image_analysis) : null,
+    JSON.stringify(metadata),
+    'draft',
+  );
   res.json({ post_id: postId, post_text: post_text.trim() });
 });
 

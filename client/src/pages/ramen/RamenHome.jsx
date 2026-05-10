@@ -22,7 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import { parse as parseExif } from 'exifr';
-import { authFetch } from '../../utils/api';
+import { authFetch, api } from '../../utils/api';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
@@ -56,6 +56,9 @@ export default function RamenHome() {
   // Photo upload
   const [photoPreview, setPhotoPreview] = useState('');
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [imageId, setImageId] = useState(null);
+  const [imageAnalysis, setImageAnalysis] = useState(null);
+  const [imageDetectedRestaurant, setImageDetectedRestaurant] = useState('');
   const photoInputRef = useRef(null);
 
   // Step 1: input + reviews
@@ -107,32 +110,54 @@ export default function RamenHome() {
     setPhotoLoading(true);
     const previewUrl = URL.createObjectURL(file);
     setPhotoPreview(previewUrl);
+    setImageId(null);
+    setImageAnalysis(null);
+    setImageDetectedRestaurant('');
+
+    // 1. クライアント側で先にEXIFを読んで、即座に日時・場所を仮入力（体感速度向上）
     try {
       const exif = await parseExif(file, { gps: true, tiff: true, exif: true });
-      if (exif) {
-        if (exif.DateTimeOriginal) {
-          const d = new Date(exif.DateTimeOriginal);
-          const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-          setVisitDate(iso);
-        }
-        if (exif.latitude != null && exif.longitude != null) {
-          try {
-            const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${exif.latitude}&lon=${exif.longitude}&format=json&accept-language=ja`,
-              { headers: { 'User-Agent': 'RamenInstagramApp/1.0' } }
-            );
-            const data = await res.json();
-            if (data.address) {
-              const a = data.address;
-              const city = a.city || a.town || a.village || a.suburb || a.county || '';
-              const pref = a.state || '';
-              const loc = [city, pref].filter(Boolean).join(', ');
-              if (loc) setLocation(loc);
-            }
-          } catch {}
-        }
+      if (exif?.DateTimeOriginal) {
+        const d = new Date(exif.DateTimeOriginal);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (!visitDate) setVisitDate(iso);
       }
     } catch {}
+
+    // 2. サーバーへアップロード → Claude Vision解析 + GPS逆ジオコーディング + 近隣店舗推定
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const data = await api.uploadRamenImage(formData);
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.image_id) setImageId(data.image_id);
+      if (data?.analysis) setImageAnalysis(data.analysis);
+
+      const detected = data?.detected || {};
+
+      // 訪問日: サーバー側EXIFが取れていればそちらで上書き（タイムゾーン考慮済み）
+      if (detected.taken_at) setVisitDate(detected.taken_at);
+
+      // 場所: サーバーのGPS逆ジオが取れていればそれを優先
+      if (detected.location) setLocation(detected.location);
+
+      // 店名: 看板検出 or GPS近隣推定。ユーザーが既に入力していれば上書きしない
+      if (detected.restaurant_name) {
+        setImageDetectedRestaurant(detected.restaurant_name);
+        setRestaurantName((prev) => prev.trim() ? prev : detected.restaurant_name);
+      }
+
+      // ラーメンの種類: Vision検出値が選択肢にあれば自動選択
+      const detectedType = data?.analysis?.ramen_type;
+      if (detectedType && !ramenType) {
+        const matched = RAMEN_TYPES.find((t) => detectedType.includes(t));
+        if (matched) setRamenType(matched);
+      }
+    } catch (err) {
+      // サーバー解析が失敗してもEXIFだけは活きるのでサイレント
+      console.warn('[ramen] image upload to server failed:', err?.message);
+    }
     setPhotoLoading(false);
   };
 
@@ -197,6 +222,8 @@ export default function RamenHome() {
           visit_date: visitDate,
           impressions,
           web_reviews: approvedReviews || null,
+          image_id: imageId,
+          image_analysis: imageAnalysis,
           prompt_only: promptOnly,
         }),
       });
@@ -260,6 +287,8 @@ export default function RamenHome() {
           ramen_type: ramenType,
           visit_date: visitDate,
           impressions,
+          image_id: imageId,
+          image_analysis: imageAnalysis,
         }),
       });
       const data = await res.json();
@@ -323,6 +352,9 @@ export default function RamenHome() {
     setVisitDate('');
     setImpressions('');
     setPhotoPreview('');
+    setImageId(null);
+    setImageAnalysis(null);
+    setImageDetectedRestaurant('');
     setReviewState('idle');
     setReviewPreview('');
     setApprovedReviews(null);
@@ -386,22 +418,45 @@ export default function RamenHome() {
                 onChange={(e) => handlePhotoUpload(e.target.files[0])}
               />
               {photoPreview ? (
-                <div className="flex items-center gap-3 p-2.5 border border-orange-200 bg-orange-50 rounded-lg">
-                  <img src={photoPreview} alt="uploaded" className="w-14 h-14 object-cover rounded-md flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-orange-700 mb-0.5">写真から読み込み済み</p>
-                    {visitDate && <p className="text-xs text-gray-600">📅 {visitDate}</p>}
-                    {location && <p className="text-xs text-gray-600 truncate">📍 {location}</p>}
-                    {!visitDate && !location && (
-                      <p className="text-xs text-gray-500">日時・GPS情報が見つかりませんでした</p>
-                    )}
+                <div className="p-2.5 border border-orange-200 bg-orange-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <img src={photoPreview} alt="uploaded" className="w-14 h-14 object-cover rounded-md flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-orange-700 mb-0.5">
+                        {photoLoading ? 'AI解析中...' : '写真から読み込み済み'}
+                      </p>
+                      {visitDate && <p className="text-xs text-gray-600">📅 {visitDate}</p>}
+                      {location && <p className="text-xs text-gray-600 truncate">📍 {location}</p>}
+                      {imageDetectedRestaurant && (
+                        <p className="text-xs text-gray-600 truncate">🏪 {imageDetectedRestaurant}</p>
+                      )}
+                      {!visitDate && !location && !imageDetectedRestaurant && !photoLoading && (
+                        <p className="text-xs text-gray-500">日時・GPS情報が見つかりませんでした</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setPhotoPreview('');
+                        setImageId(null);
+                        setImageAnalysis(null);
+                        setImageDetectedRestaurant('');
+                        if (photoInputRef.current) photoInputRef.current.value = '';
+                      }}
+                      className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => { setPhotoPreview(''); if (photoInputRef.current) photoInputRef.current.value = ''; }}
-                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  {imageAnalysis && (imageAnalysis.toppings?.length > 0 || imageAnalysis.appearance) && (
+                    <div className="mt-2 pt-2 border-t border-orange-200/70 flex flex-wrap gap-1">
+                      {imageAnalysis.ramen_type && (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded">{imageAnalysis.ramen_type}</span>
+                      )}
+                      {imageAnalysis.toppings?.slice(0, 4).map((t, i) => (
+                        <span key={i} className="text-[10px] px-1.5 py-0.5 bg-white text-gray-600 rounded border border-orange-200">{t}</span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <button
