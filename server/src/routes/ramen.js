@@ -191,8 +191,19 @@ router.post('/translate-to-english', async (req, res) => {
       fallback_prompt: {
         prompts: [{
           label: '英語Instagramキャプション翻訳プロンプト',
-          system: 'You are a creative food writer specializing in Japanese cuisine. Translate Japanese Instagram ramen posts into natural, engaging English. Keep hashtags as-is. Output should be vivid, appetizing, and authentic — not a literal translation.',
-          user: `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）。ハッシュタグはそのまま維持。説明文は不要、翻訳結果のみを出力：\n\n${text}`,
+          system: 'You are a creative food writer specializing in Japanese cuisine. Translate Japanese Instagram ramen posts into natural, engaging English. Keep hashtags as-is. Output should be vivid, appetizing, and authentic — not a literal translation. CRITICAL: The total output (caption body + hashtags + emojis + spaces) MUST be 2200 characters or fewer — Instagram\'s hard limit. If needed, condense the body to fit; never exceed 2200.',
+          user: `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）。ハッシュタグはそのまま維持。
+
+【最重要・絶対遵守】
+- 出力全体（本文＋空行＋ハッシュタグ＋絵文字＋スペースを含むすべて）を**2200文字以内**に収めること（Instagramキャプションのハード上限）
+- もし長くなる場合は本文を削り、ハッシュタグ数を減らしてでも必ず2200文字以下に収める
+- 出力前に文字数を確認し、超えていたら短くしてから出力
+
+【出力形式】
+- 説明文は不要、翻訳結果（本文＋空行＋ハッシュタグ）のみを出力
+
+【日本語投稿】
+${text}`,
         }],
       },
     });

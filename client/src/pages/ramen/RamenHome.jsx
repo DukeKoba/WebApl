@@ -267,6 +267,9 @@ export default function RamenHome() {
         setJapanesePost(data.post_text);
         setPostId(data.post_id);
         setGenerateFallbackPrompt(null);
+        // 外部AIで生成し、ユーザーが内容を確認したうえで貼り付けたものなので
+        // 自動的に「確定済み」にして英語化ステップを直接見せる（編集に戻すボタンは残す）
+        setJapaneseFinalized(true);
       }
     } catch (e) {
       setError(e.message);
@@ -759,11 +762,14 @@ export default function RamenHome() {
                   rows={12}
                   className="w-full p-3 border border-gray-200 rounded-lg text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-orange-300"
                 />
-                <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-                  <span>{englishPost.length} characters</span>
+                <div className="flex items-center justify-between mt-2 text-xs">
+                  <span className={englishPost.length > 2200 ? 'text-red-500 font-semibold' : 'text-gray-400'}>
+                    {englishPost.length} / 2200 characters
+                    {englishPost.length > 2200 && ` — ${englishPost.length - 2200} over Instagram limit`}
+                  </span>
                   <button
                     onClick={() => copy(englishPost, 'en')}
-                    className="flex items-center gap-1 hover:text-gray-600 transition-colors"
+                    className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {copiedField === 'en' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                     {copiedField === 'en' ? 'Copied' : 'Copy'}

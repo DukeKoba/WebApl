@@ -174,13 +174,39 @@ export async function convertImpressionToEnglish(japaneseText) {
   }
 }
 
+const INSTAGRAM_CAPTION_LIMIT = 2200;
+
 export async function translateInstagramPostToEnglish(japanesePost) {
   try {
-    return await generateTextFull(
-      'You are a creative food writer specializing in Japanese cuisine. Translate this Japanese Instagram ramen post into natural, engaging English. Keep hashtags as-is. The English should be vivid, appetizing, and authentic — not a literal translation. Output only the translated post text, no explanation.',
-      `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）:\n\n${japanesePost}`,
-      { maxTokens: 1024 }
+    let english = await generateTextFull(
+      'You are a creative food writer specializing in Japanese cuisine. Translate this Japanese Instagram ramen post into natural, engaging English. Keep hashtags as-is. The English should be vivid, appetizing, and authentic — not a literal translation. CRITICAL: The total output (caption body + hashtags + emojis + spaces, everything) MUST be 2200 characters or fewer — Instagram\'s hard limit. If it would be longer, condense the body and trim less-essential hashtags so the final output is at or under 2200. Output only the translated post text, no explanation.',
+      `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）。
+
+【最重要・絶対遵守】出力全体を**2200文字以内**に収めること（Instagramキャプションのハード上限）。本文を削ってでもハッシュタグを減らしてでも、必ず2200文字以下に収める。出力前に文字数を数えて確認すること。
+
+【出力】翻訳結果のみ（本文＋空行＋ハッシュタグ）。説明文不要。
+
+【日本語投稿】
+${japanesePost}`,
+      { maxTokens: 1500 }
     );
+
+    if (!english) return null;
+    english = english.trim();
+
+    // Safety net: if the model still went over, retry once asking it to compress.
+    if (english.length > INSTAGRAM_CAPTION_LIMIT) {
+      const retry = await generateTextFull(
+        'You compress Instagram captions to fit Instagram\'s 2200-character limit while preserving voice and hashtags. Output only the compressed caption.',
+        `次の英語Instagramキャプションは${english.length}文字あり、Instagram上限の2200文字を超えています。意味・トーン・主要なハッシュタグを保ったまま、必ず2200文字以下に収めてください。本文を圧縮し、優先度の低いハッシュタグを削ってください。出力は圧縮後のキャプションのみ：\n\n${english}`,
+        { maxTokens: 1500 }
+      );
+      if (retry && retry.trim().length <= INSTAGRAM_CAPTION_LIMIT) {
+        english = retry.trim();
+      }
+    }
+
+    return english;
   } catch {
     return null;
   }
