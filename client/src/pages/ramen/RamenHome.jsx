@@ -17,7 +17,6 @@ import {
   ThumbsDown,
   RotateCcw,
   Soup,
-  CheckCircle,
   Camera,
   X,
 } from 'lucide-react';
@@ -71,7 +70,7 @@ export default function RamenHome() {
   const [reviewState, setReviewState] = useState('idle'); // idle | searching | confirm | approved | rejected | not-found | prompt
   const [reviewPreview, setReviewPreview] = useState('');
   const [approvedReviews, setApprovedReviews] = useState(null);
-  const [reviewFallbackPrompt, setReviewFallbackPrompt] = useState(null); // { prompts: [...] }
+  const [reviewFallbackPrompt, setReviewFallbackPrompt] = useState(null);
 
   // Step 2: agent generation
   const [isGenerating, setIsGenerating] = useState(false);
@@ -80,12 +79,8 @@ export default function RamenHome() {
   const [currentAgent, setCurrentAgent] = useState('');
   const [generateFallbackPrompt, setGenerateFallbackPrompt] = useState(null);
 
-  // Step 3: Japanese post review
+  // Japanese + English results
   const [japanesePost, setJapanesePost] = useState('');
-  const [postId, setPostId] = useState(null);
-  const [japaneseFinalized, setJapaneseFinalized] = useState(false);
-
-  // Step 4: English translation
   const [englishPost, setEnglishPost] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   const [translateFallbackPrompt, setTranslateFallbackPrompt] = useState(null);
@@ -193,16 +188,42 @@ export default function RamenHome() {
     }
   };
 
+  const handleTranslate = async (textOverride) => {
+    const textToTranslate = textOverride !== undefined ? textOverride : japanesePost;
+    if (!textToTranslate.trim()) return;
+    setIsTranslating(true);
+    setEnglishPost('');
+    setTranslateFallbackPrompt(null);
+    try {
+      const res = await authFetch('/ramen/translate-to-english', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: textToTranslate, prompt_only: promptOnly }),
+      });
+      const data = await res.json();
+      if (data.fallback_prompt) {
+        setTranslateFallbackPrompt(data.fallback_prompt);
+      } else if (data.english) {
+        setEnglishPost(data.english);
+      } else {
+        setError('英語化に失敗しました。少し時間をおいて再度お試しください。');
+      }
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
     setStatusMessage('');
     setAgentMessages([]);
     setCurrentAgent('');
     setJapanesePost('');
-    setPostId(null);
-    setJapaneseFinalized(false);
     setEnglishPost('');
     setGenerateFallbackPrompt(null);
+    setTranslateFallbackPrompt(null);
     setError('');
 
     const agentNames = {
@@ -253,9 +274,17 @@ export default function RamenHome() {
                 setCurrentAgent(agentNames[data.agent] || data.name);
                 setAgentMessages((prev) => [...prev, data]);
               } else if (event === 'final_post') {
-                setJapanesePost(data.post_text);
-                setPostId(data.post_id);
+                const postText = data.post_text;
+                setJapanesePost(postText);
                 setCurrentAgent('');
+                if (data.post_id) {
+                  authFetch(`/ramen/posts/${data.post_id}/finalize-japanese`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ post_text: postText }),
+                  }).catch(() => {});
+                }
+                handleTranslate(postText);
               } else if (event === 'fallback_prompt') {
                 setGenerateFallbackPrompt(data);
                 setCurrentAgent('');
@@ -294,54 +323,16 @@ export default function RamenHome() {
       const data = await res.json();
       if (data.post_id) {
         setJapanesePost(data.post_text);
-        setPostId(data.post_id);
         setGenerateFallbackPrompt(null);
-        // 外部AIで生成し、ユーザーが内容を確認したうえで貼り付けたものなので
-        // 自動的に「確定済み」にして英語化ステップを直接見せる（編集に戻すボタンは残す）
-        setJapaneseFinalized(true);
+        authFetch(`/ramen/posts/${data.post_id}/finalize-japanese`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ post_text: data.post_text }),
+        }).catch(() => {});
+        handleTranslate(data.post_text);
       }
     } catch (e) {
       setError(e.message);
-    }
-  };
-
-  const handleFinalizeJapanese = async () => {
-    if (!postId || !japanesePost.trim()) return;
-    try {
-      await authFetch(`/ramen/posts/${postId}/finalize-japanese`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ post_text: japanesePost }),
-      });
-      setJapaneseFinalized(true);
-    } catch (e) {
-      setError(e.message);
-    }
-  };
-
-  const handleTranslate = async () => {
-    if (!japanesePost.trim()) return;
-    setIsTranslating(true);
-    setEnglishPost('');
-    setTranslateFallbackPrompt(null);
-    try {
-      const res = await authFetch('/ramen/translate-to-english', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: japanesePost, prompt_only: promptOnly }),
-      });
-      const data = await res.json();
-      if (data.fallback_prompt) {
-        setTranslateFallbackPrompt(data.fallback_prompt);
-      } else if (data.english) {
-        setEnglishPost(data.english);
-      } else {
-        setError('英語化に失敗しました。少し時間をおいて再度お試しください。');
-      }
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setIsTranslating(false);
     }
   };
 
@@ -362,8 +353,6 @@ export default function RamenHome() {
     setStatusMessage('');
     setCurrentAgent('');
     setJapanesePost('');
-    setPostId(null);
-    setJapaneseFinalized(false);
     setEnglishPost('');
     setError('');
   };
@@ -408,7 +397,7 @@ export default function RamenHome() {
           <p className="text-xs text-gray-500 mb-4">店名・場所・ラーメンの種類で食べログ等のWeb口コミを検索します。</p>
 
           <div className="space-y-3">
-            {/* Photo upload: auto-fill date & location from EXIF */}
+            {/* Photo upload */}
             <div>
               <input
                 ref={photoInputRef}
@@ -645,15 +634,17 @@ export default function RamenHome() {
           </div>
         </div>
 
-        {/* STEP 2: AIエージェントが日本語ドラフト */}
+        {/* STEP 2: AIキャプションを生成（日本語＆英語） */}
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <StepHeader
             num="2"
-            title="AIエージェントが日本語キャプションを下書き"
-            active={!japanesePost && !isGenerating ? false : (isGenerating || !!japanesePost) && !japaneseFinalized}
-            done={!!japanesePost}
+            title="AIキャプションを生成（日本語＆英語）"
+            active={isGenerating || isTranslating || (!!japanesePost && !englishPost)}
+            done={!!englishPost}
           />
-          <p className="text-xs text-gray-500 mb-4">マーケター → コピーライター → コンサルタントの3者で日本語キャプションを練り上げます。</p>
+          <p className="text-xs text-gray-500 mb-4">
+            マーケター → コピーライター → コンサルタントの3者で日本語キャプションを練り上げ、英語に自動翻訳します。
+          </p>
 
           <button
             onClick={handleGenerate}
@@ -668,7 +659,7 @@ export default function RamenHome() {
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                {japanesePost ? '日本語ドラフトを再生成' : '日本語ドラフトを生成'}
+                {japanesePost ? 'キャプションを再生成' : 'キャプションを生成'}
               </>
             )}
           </button>
@@ -679,7 +670,7 @@ export default function RamenHome() {
             </p>
           )}
 
-          {/* Agent stream */}
+          {/* Agent stream log */}
           {agentMessages.length > 0 && (
             <details className="mt-4 border border-gray-100 rounded-lg overflow-hidden">
               <summary className="px-3 py-2 bg-gray-50 text-xs font-semibold text-gray-600 cursor-pointer">
@@ -698,6 +689,7 @@ export default function RamenHome() {
             </details>
           )}
 
+          {/* Fallback for Japanese generation (prompt mode) */}
           {generateFallbackPrompt && (
             <div className="mt-4">
               <PromptFallbackPanel
@@ -705,142 +697,106 @@ export default function RamenHome() {
                 reason={generateFallbackPrompt.reason || 'prompt_only'}
                 errorMessage={generateFallbackPrompt.message}
                 placeholder="外部AIで生成した日本語Instagramキャプションをここに貼り付けてください（本文＋ハッシュタグ）"
-                saveLabel="日本語キャプションを保存して次へ"
+                saveLabel="日本語キャプションを保存して英語化"
                 onSave={handleSaveManualJapanese}
               />
+            </div>
+          )}
+
+          {/* Japanese result (inline) */}
+          {japanesePost && (
+            <div className="mt-4 space-y-4">
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="text-xs font-semibold text-gray-600">日本語キャプション</span>
+                </div>
+                <textarea
+                  value={japanesePost}
+                  onChange={(e) => setJapanesePost(e.target.value)}
+                  rows={10}
+                  className="w-full p-3 border border-gray-200 rounded-lg text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-orange-300"
+                />
+                <div className="flex items-center justify-between mt-1 text-xs text-gray-400">
+                  <span>{japanesePost.length} 文字</span>
+                  <button
+                    onClick={() => copy(japanesePost, 'ja')}
+                    className="flex items-center gap-1 hover:text-gray-600 transition-colors"
+                  >
+                    {copiedField === 'ja' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                    {copiedField === 'ja' ? 'コピー済み' : 'コピー'}
+                  </button>
+                </div>
+              </div>
+
+              {/* English result */}
+              <div className="border-t border-gray-100 pt-4">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Globe className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-xs font-semibold text-blue-600">英語キャプション（自動翻訳）</span>
+                </div>
+
+                {isTranslating && (
+                  <div className="flex items-center gap-2 py-2.5 px-3 bg-blue-50 rounded-lg text-sm text-blue-600">
+                    <span className="w-3.5 h-3.5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin flex-shrink-0" />
+                    英語に翻訳中...
+                  </div>
+                )}
+
+                {translateFallbackPrompt && !isTranslating && (
+                  <PromptFallbackPanel
+                    prompts={translateFallbackPrompt.prompts}
+                    reason={translateFallbackPrompt.reason || 'prompt_only'}
+                    errorMessage={translateFallbackPrompt.message}
+                    placeholder="外部AIで翻訳した英語Instagramキャプションをここに貼り付けてください"
+                    saveLabel="英語版を保存"
+                    onSave={(text) => {
+                      if (!text.trim()) return;
+                      setEnglishPost(text);
+                      setTranslateFallbackPrompt(null);
+                    }}
+                  />
+                )}
+
+                {englishPost && !isTranslating && (
+                  <div>
+                    <textarea
+                      value={englishPost}
+                      onChange={(e) => setEnglishPost(e.target.value)}
+                      rows={10}
+                      className="w-full p-3 border border-gray-200 rounded-lg text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    />
+                    <div className="flex items-center justify-between mt-1 text-xs">
+                      <span className={englishPost.length > 2200 ? 'text-red-500 font-semibold' : 'text-gray-400'}>
+                        {englishPost.length} / 2200 characters
+                        {englishPost.length > 2200 && ` — ${englishPost.length - 2200} over limit`}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleTranslate()}
+                          disabled={isTranslating}
+                          className="flex items-center gap-1 hover:text-gray-600 disabled:opacity-50 transition-colors"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          もう一度翻訳
+                        </button>
+                        <button
+                          onClick={() => copy(englishPost, 'en')}
+                          className="flex items-center gap-1 hover:text-gray-600 transition-colors"
+                        >
+                          {copiedField === 'en' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                          {copiedField === 'en' ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
 
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">{error}</div>
-        )}
-
-        {/* STEP 3: 日本語の確認・編集・確定 */}
-        {japanesePost && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <StepHeader
-              num="3"
-              title="日本語キャプションを確認・編集して確定"
-              active={!japaneseFinalized}
-              done={japaneseFinalized}
-            />
-            <p className="text-xs text-gray-500 mb-3">確定する前に自由に編集できます。OKなら「確定」ボタンを押すと英語化に進みます。</p>
-
-            <div className="relative">
-              <textarea
-                value={japanesePost}
-                onChange={(e) => setJapanesePost(e.target.value)}
-                rows={12}
-                disabled={japaneseFinalized}
-                className="w-full p-3 border border-gray-200 rounded-lg text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-orange-300 disabled:bg-gray-50 disabled:text-gray-600"
-              />
-              <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-                <span>{japanesePost.length} 文字</span>
-                <button
-                  onClick={() => copy(japanesePost, 'ja')}
-                  className="flex items-center gap-1 hover:text-gray-600 transition-colors"
-                >
-                  {copiedField === 'ja' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                  {copiedField === 'ja' ? 'コピー済み' : 'コピー'}
-                </button>
-              </div>
-            </div>
-
-            {!japaneseFinalized ? (
-              <button
-                onClick={handleFinalizeJapanese}
-                className="w-full mt-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-sm rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                この日本語で確定して英語化に進む
-              </button>
-            ) : (
-              <div className="mt-4 flex items-center justify-between py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-lg text-sm">
-                <span className="flex items-center gap-1.5 text-emerald-700">
-                  <Check className="w-3.5 h-3.5" />
-                  日本語確定済み
-                </span>
-                <button
-                  onClick={() => setJapaneseFinalized(false)}
-                  className="text-gray-400 hover:text-gray-600 text-xs"
-                >
-                  編集に戻す
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* STEP 4: 英語キャプション */}
-        {japaneseFinalized && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <StepHeader num="4" title="英語Instagramキャプションに変換" active done={!!englishPost} />
-            <p className="text-xs text-gray-500 mb-4">確定した日本語版を、Instagram向けに自然な英語へ翻訳します。</p>
-
-            {translateFallbackPrompt ? (
-              <PromptFallbackPanel
-                prompts={translateFallbackPrompt.prompts}
-                reason={translateFallbackPrompt.reason || 'prompt_only'}
-                errorMessage={translateFallbackPrompt.message}
-                placeholder="外部AIで翻訳した英語Instagramキャプションをここに貼り付けてください"
-                saveLabel="英語版を保存"
-                onSave={(text) => {
-                  if (!text.trim()) return;
-                  setEnglishPost(text);
-                  setTranslateFallbackPrompt(null);
-                }}
-              />
-            ) : !englishPost ? (
-              <button
-                onClick={handleTranslate}
-                disabled={isTranslating}
-                className="w-full py-2.5 border border-orange-300 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-              >
-                {isTranslating ? (
-                  <>
-                    <span className="w-3.5 h-3.5 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin" />
-                    英語に翻訳中...
-                  </>
-                ) : (
-                  <>
-                    <Globe className="w-4 h-4" />
-                    英語に変換する
-                  </>
-                )}
-              </button>
-            ) : (
-              <div>
-                <textarea
-                  value={englishPost}
-                  onChange={(e) => setEnglishPost(e.target.value)}
-                  rows={12}
-                  className="w-full p-3 border border-gray-200 rounded-lg text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-orange-300"
-                />
-                <div className="flex items-center justify-between mt-2 text-xs">
-                  <span className={englishPost.length > 2200 ? 'text-red-500 font-semibold' : 'text-gray-400'}>
-                    {englishPost.length} / 2200 characters
-                    {englishPost.length > 2200 && ` — ${englishPost.length - 2200} over Instagram limit`}
-                  </span>
-                  <button
-                    onClick={() => copy(englishPost, 'en')}
-                    className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    {copiedField === 'en' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                    {copiedField === 'en' ? 'Copied' : 'Copy'}
-                  </button>
-                </div>
-                <button
-                  onClick={handleTranslate}
-                  disabled={isTranslating}
-                  className="w-full mt-3 py-2 text-xs text-gray-500 hover:text-gray-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  もう一度翻訳
-                </button>
-              </div>
-            )}
-          </div>
         )}
 
         {/* Reset */}
