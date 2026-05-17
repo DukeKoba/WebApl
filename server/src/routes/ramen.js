@@ -11,6 +11,8 @@ import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postPhoto } from '../services/instagramService.js';
 import { extractExifData, reverseGeocode, findNearbyRestaurant, normalizeImage } from '../services/photoLocationService.js';
 
+const SLURP_APP_URL = 'https://apps.apple.com/app/id6761906850';
+
 // Build a single consolidated prompt for ramen Japanese caption generation.
 // Used in prompt-only / fallback mode (skips the multi-agent discussion).
 function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate, impressions, webReviews, imageAnalysis }) {
@@ -48,16 +50,15 @@ ${imageBlock}${reviewBlock}
 - 1行目で読者の手を止める引き（具体的な味の表現・店名・特徴）
 - 口コミ・感想に基づき、架空の情報は入れない
 - 絵文字を効果的に使用
-- 末尾付近に「📲 Slurpでもっとラーメン情報をチェック！」を自然に挿入
-- 1行空けて、ハッシュタグ20〜30個（日本語・英語混在）：
-  - 一般フード系: #foodie #food #instafood #グルメ #食べスタグラム など
-  - ラーメン系: #ラーメン #ramen #らーめん #拉麺 #ラーメン部 など
-  - 日本食系: #日本食 #japanesefood #japanfood
-  - スタイル系: ${ramenType ? `#${ramenType}` : '（該当する種類）'}
-  - 場所系: ${location ? `#${location.replace(/[\s,]/g, '')}` : '#tokyo など'}
+- 末尾付近に「📲 Slurpでもっとラーメン情報をチェック！ ${SLURP_APP_URL}」を自然に挿入
+- 1行空けて、ハッシュタグを最大5個（最も関連性の高いものを厳選）：
+  - #ラーメン を必ず含める
+  - ${ramenType ? `#${ramenType}` : 'ラーメンの種類に合ったタグ'}
+  - ${location ? `#${location.replace(/[\s,]/g, '')}` : '場所タグ'}
+  - あと2個を口コミ・特徴から厳選（重複しないこと）
 
 【出力形式】
-キャプション本文（Slurpの一文を含む）＋空行＋ハッシュタグの順で出力してください。前後に説明文は不要です。`;
+キャプション本文（SlurpのURLを含む一文を含む）＋空行＋ハッシュタグの順で出力してください。前後に説明文は不要です。`;
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
