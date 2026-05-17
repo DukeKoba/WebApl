@@ -59,6 +59,7 @@ export default function RamenHome() {
   const [imageAnalysis, setImageAnalysis] = useState(null);
   const [imageDetectedRestaurant, setImageDetectedRestaurant] = useState('');
   const photoInputRef = useRef(null);
+  const photoCancelledRef = useRef(false);
 
   // Step 1: input + reviews
   const [restaurantName, setRestaurantName] = useState('');
@@ -100,8 +101,19 @@ export default function RamenHome() {
     setTimeout(() => setCopiedField(''), 2000);
   };
 
+  const clearPhoto = () => {
+    photoCancelledRef.current = true;
+    setPhotoPreview('');
+    setPhotoLoading(false);
+    setImageId(null);
+    setImageAnalysis(null);
+    setImageDetectedRestaurant('');
+    if (photoInputRef.current) photoInputRef.current.value = '';
+  };
+
   const handlePhotoUpload = async (file) => {
     if (!file) return;
+    photoCancelledRef.current = false;
     setPhotoLoading(true);
     const previewUrl = URL.createObjectURL(file);
     setPhotoPreview(previewUrl);
@@ -112,7 +124,7 @@ export default function RamenHome() {
     // 1. クライアント側で先にEXIFを読んで、即座に日時・場所を仮入力（体感速度向上）
     try {
       const exif = await parseExif(file, { gps: true, tiff: true, exif: true });
-      if (exif?.DateTimeOriginal) {
+      if (!photoCancelledRef.current && exif?.DateTimeOriginal) {
         const d = new Date(exif.DateTimeOriginal);
         const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         if (!visitDate) setVisitDate(iso);
@@ -124,6 +136,7 @@ export default function RamenHome() {
       const formData = new FormData();
       formData.append('image', file);
       const data = await api.uploadRamenImage(formData);
+      if (photoCancelledRef.current) return;
       if (data?.error) throw new Error(data.error);
 
       if (data?.image_id) setImageId(data.image_id);
@@ -150,10 +163,10 @@ export default function RamenHome() {
         if (matched) setRamenType(matched);
       }
     } catch (err) {
-      // サーバー解析が失敗してもEXIFだけは活きるのでサイレント
+      if (photoCancelledRef.current) return;
       console.warn('[ramen] image upload to server failed:', err?.message);
     }
-    setPhotoLoading(false);
+    if (!photoCancelledRef.current) setPhotoLoading(false);
   };
 
   const handleSearchReviews = async () => {
@@ -342,10 +355,13 @@ export default function RamenHome() {
     setRamenType('');
     setVisitDate('');
     setImpressions('');
+    photoCancelledRef.current = true;
     setPhotoPreview('');
+    setPhotoLoading(false);
     setImageId(null);
     setImageAnalysis(null);
     setImageDetectedRestaurant('');
+    if (photoInputRef.current) photoInputRef.current.value = '';
     setReviewState('idle');
     setReviewPreview('');
     setApprovedReviews(null);
@@ -424,14 +440,9 @@ export default function RamenHome() {
                       )}
                     </div>
                     <button
-                      onClick={() => {
-                        setPhotoPreview('');
-                        setImageId(null);
-                        setImageAnalysis(null);
-                        setImageDetectedRestaurant('');
-                        if (photoInputRef.current) photoInputRef.current.value = '';
-                      }}
+                      onClick={clearPhoto}
                       className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                      title="写真をクリア"
                     >
                       <X className="w-4 h-4" />
                     </button>
