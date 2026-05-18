@@ -46,6 +46,7 @@ export default function AgentDxHome() {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
+      let event = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -55,7 +56,6 @@ export default function AgentDxHome() {
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
-        let event = '';
         for (const line of lines) {
           if (line.startsWith('event: ')) {
             event = line.slice(7).trim();
