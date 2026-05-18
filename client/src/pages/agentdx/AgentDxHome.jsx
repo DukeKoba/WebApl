@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Building2, Sparkles, History, ArrowLeft } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
+import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
 const CONTENT_TYPES = [
   { value: 'ins_news', label: '保険業界ニュース' },
@@ -24,6 +25,7 @@ export default function AgentDxHome() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
+  const [fallbackPrompt, setFallbackPrompt] = useState(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -32,6 +34,7 @@ export default function AgentDxHome() {
     setStatus('draft');
     setError('');
     setStatusMessage('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/agentdx/generate', {
@@ -65,6 +68,9 @@ export default function AgentDxHome() {
                 setStatusMessage('');
               } else if (event === 'status') {
                 setStatusMessage(data.message);
+              } else if (event === 'fallback_prompt') {
+                setFallbackPrompt(data);
+                setStatusMessage('');
               } else if (event === 'error') {
                 setError(data.message);
               }
@@ -76,6 +82,25 @@ export default function AgentDxHome() {
       setError(err.message);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSaveManual = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await authFetch('/agentdx/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType, post_text: text }),
+      });
+      const data = await res.json();
+      if (data.post_id) {
+        setPostText(data.post_text);
+        setPostId(data.post_id);
+        setFallbackPrompt(null);
+      }
+    } catch (e) {
+      setError(e.message);
     }
   };
 
@@ -179,6 +204,17 @@ export default function AgentDxHome() {
             )}
           </button>
         </div>
+
+        {fallbackPrompt && (
+          <PromptFallbackPanel
+            prompts={fallbackPrompt.prompts}
+            reason={fallbackPrompt.reason}
+            errorMessage={fallbackPrompt.message}
+            placeholder="外部AIで生成したX投稿文をここに貼り付け"
+            saveLabel="投稿を保存"
+            onSave={handleSaveManual}
+          />
+        )}
 
         <PostPreview
           platform="x"

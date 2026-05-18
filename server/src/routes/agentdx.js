@@ -2,6 +2,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { generateAgentDxPost } from '../services/claudeService.js';
+import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
@@ -30,6 +31,47 @@ const CONTENT_TYPE_CONTEXT = {
 
 const AGENTDX_SYSTEM_PROMPT = 'あなたは保険業界専門のニュース記者・編集者です。最新の業界ニュース・法改正・新商品情報をWebで調査し、保険代理店の経営者・担当者に向けて分かりやすく編集・発信します。事実に基づいた具体的な情報を伝えることを最優先にします。';
 
+function buildFallbackPrompt(contentType, label, extraContext) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const recentTag = `${y}年${m}月`;
+
+  const queries = {
+    ins_news:      `保険業界 ニュース 経営 提携 ${recentTag}`,
+    law_reform:    `保険業法 改正 金融庁 規制 ${recentTag}`,
+    new_products:  `保険 新商品 発売 生命保険 損害保険 ${recentTag}`,
+    market_data:   `保険市場 統計 加入率 ${recentTag}`,
+    disaster_risk: `自然災害 保険金支払い サイバーリスク ${recentTag}`,
+    agency_ops:    `保険代理店 手数料 乗合 経営 ${recentTag}`,
+    consumer_trend:`保険 消費者 加入動向 意識調査 ${recentTag}`,
+    global_ins:    `海外保険業界 InsurTech グローバル ${recentTag}`,
+  };
+  const query = queries[contentType] || `保険代理店 ${label} 最新 ${recentTag}`;
+
+  return `あなたは保険業界専門のニュース記者・編集者です。
+
+## 手順
+
+1. **Web検索**: 「${query}」で検索し、直近3ヶ月以内の最新ニュースを3〜5件ピックアップしてください
+2. **記事選定**: 保険代理店の担当者が最も注目すべき記事を1件選ぶ
+3. **X投稿を執筆**: 以下の要件で投稿文を1件作成する
+
+## テーマ
+${label}（${extraContext}）
+
+## 投稿要件
+- 280文字以内（ハッシュタグ含む）
+- ニュースの核心を端的に伝え、代理店実務への影響・注目ポイントを一言添える
+- 具体的な数字・社名・制度名など事実を盛り込む
+- 絵文字を効果的に使用
+- ハッシュタグ2〜3個（末尾）
+- 最後の行にソースURL
+
+## 出力形式
+投稿文のみを出力してください。前後に説明文は不要です。`;
+}
+
 router.post('/generate', async (req, res) => {
   const { contentType = 'ins_news' } = req.body;
 
@@ -49,10 +91,19 @@ router.post('/generate', async (req, res) => {
 
     sendEvent('status', { message: `${label}の最新情報を調査・編集中...` });
 
-    const result = await generateAgentDxPost(contentType, label, extraContext, AGENTDX_SYSTEM_PROMPT);
+    const promptInfo = {
+      label: `${label} ニュース投稿プロンプト`,
+      system: AGENTDX_SYSTEM_PROMPT,
+      user: buildFallbackPrompt(contentType, label, extraContext),
+    };
 
-    if (!result) {
-      sendEvent('error', { message: 'ニュースの取得・生成に失敗しました。再試行してください。' });
+    const result = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      () => generateAgentDxPost(contentType, label, extraContext, AGENTDX_SYSTEM_PROMPT),
+      sendEvent,
+    );
+
+    if (result == null) {
       sendEvent('done', {});
       return;
     }
