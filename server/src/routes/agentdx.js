@@ -67,6 +67,7 @@ router.post('/generate', async (req, res) => {
     sendEvent('final_post', { post_id: postId, post_text: postText });
     sendEvent('done', {});
   } catch (err) {
+    console.error('[agentdx] generate error:', err);
     sendEvent('error', { message: err.message });
   } finally {
     res.end();

@@ -141,25 +141,21 @@ export async function generateAgentDxPost(contentType, label, extraContext, syst
 【出力形式】
 投稿文とSOURCE_URLのみ出力してください。前後に説明文を入れないでください。`;
 
-  try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1200,
-      system: systemPrompt,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
-      messages: [{ role: 'user', content: userMessage }],
-    });
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1200,
+    system: systemPrompt,
+    tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+    messages: [{ role: 'user', content: userMessage }],
+  });
 
-    const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-    if (!text) return null;
+  const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+  if (!text) throw new Error('Claude からテキスト応答が返りませんでした');
 
-    const urlMatch = text.match(/SOURCE_URL:\s*(https?:\/\/\S+)/);
-    const sourceUrl = urlMatch ? urlMatch[1] : null;
-    const postText = text.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
-    return { postText, sourceUrl };
-  } catch {
-    return null;
-  }
+  const urlMatch = text.match(/SOURCE_URL:\s*(https?:\/\/\S+)/);
+  const sourceUrl = urlMatch ? urlMatch[1] : null;
+  const postText = text.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
+  return { postText, sourceUrl };
 }
 
 export async function searchRamenTypeReviews(ramenType, location) {
