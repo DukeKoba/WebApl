@@ -100,36 +100,65 @@ X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条�
   }
 }
 
-export async function searchAgentDxNews(contentType, label) {
+export async function generateAgentDxPost(contentType, label, extraContext, systemPrompt) {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const todayStr = `${y}-${String(m).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const recentTag = `${y}年${m}月 OR ${y}年${m === 1 ? 12 : m - 1}月 最新 速報`;
+
   const queries = {
-    ins_news:      '保険業界 最新ニュース 経営 提携 戦略 2025 2026',
-    law_reform:    '保険業法 改正 金融庁 監督指針 規制 2025 2026',
-    new_products:  '保険 新商品 発売 改定 生命保険 損害保険 2025 2026',
-    market_data:   '保険市場 統計 加入率 保険料収入 契約件数 2025 2026',
-    disaster_risk: '自然災害 台風 地震 保険金支払い サイバーリスク 2025 2026',
-    agency_ops:    '保険代理店 手数料 乗合 登録 経営 監査 2025 2026',
-    consumer_trend:'保険 消費者 加入動向 意識調査 比較サイト 2025 2026',
-    global_ins:    '海外保険業界 InsurTech グローバル 欧米 規制 2025 2026',
+    ins_news:      `保険業界 ニュース 経営 提携 新戦略 ${recentTag}`,
+    law_reform:    `保険業法 改正 金融庁 監督指針 規制変更 ${recentTag}`,
+    new_products:  `保険 新商品 発売 改定 生命保険 損害保険 ${recentTag}`,
+    market_data:   `保険市場 統計データ 加入率 保険料収入 ${recentTag}`,
+    disaster_risk: `自然災害 台風 地震 保険金支払い サイバーリスク ${recentTag}`,
+    agency_ops:    `保険代理店 手数料 乗合 登録要件 経営 ${recentTag}`,
+    consumer_trend:`保険 消費者 加入動向 意識調査 ニーズ ${recentTag}`,
+    global_ins:    `海外保険業界 InsurTech グローバル 規制 ${recentTag}`,
   };
-  const query = queries[contentType] || `保険代理店 ${label} 最新 2025 2026`;
+  const query = queries[contentType] || `保険代理店 ${label} 最新 ${recentTag}`;
+
+  const userMessage = `今日は ${todayStr} です。
+
+【テーマ】${label}
+【背景】${extraContext}
+
+保険業界ニュース記者として、以下の手順でX（Twitter）投稿を1件作成してください：
+
+1. 「${query}」でWebを検索し、直近3ヶ月以内の最新ニュース・情報を探す
+2. 最もインパクトが大きく代理店担当者が知るべき記事を1件選ぶ
+3. そのニュースを元に、以下の要件でX投稿を執筆する
+
+【投稿要件】
+- 280文字以内（ハッシュタグ含む）
+- ニュースの核心を端的に伝え、代理店実務への影響・注目ポイントを一言添える
+- 具体的な数字・社名・制度名など事実を盛り込む
+- 絵文字を効果的に使用
+- ハッシュタグ2〜3個（末尾）
+- 最後の行にソースURL（形式: SOURCE_URL: https://...）
+
+【出力形式】
+投稿文とSOURCE_URLのみ出力してください。前後に説明文を入れないでください。`;
+
   try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-      messages: [{
-        role: 'user',
-        content: `「${query}」で最新のニュースや情報を検索してください。保険代理店向けX投稿のネタになりそうなトピックを3〜5件、箇条書きで日本語にまとめてください。各項目は具体的な数字・サービス名・事例を含めてください。最後に、最もバズりそうなトピックの出典URLを1件「SOURCE_URL: https://...」の形式で必ず記載してください。情報が見つからない場合は「情報なし」と返してください。`,
-      }],
+      max_tokens: 1200,
+      system: systemPrompt,
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+      messages: [{ role: 'user', content: userMessage }],
     });
+
     const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
-    if (!text || text.includes('情報なし')) return { summary: null, sourceUrl: null };
+    if (!text) return null;
+
     const urlMatch = text.match(/SOURCE_URL:\s*(https?:\/\/\S+)/);
     const sourceUrl = urlMatch ? urlMatch[1] : null;
-    const summary = text.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
-    return { summary, sourceUrl };
+    const postText = text.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
+    return { postText, sourceUrl };
   } catch {
-    return { summary: null, sourceUrl: null };
+    return null;
   }
 }
 

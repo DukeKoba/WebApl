@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import { Building2, Sparkles, History, ArrowLeft } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
-import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
-import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
 const CONTENT_TYPES = [
   { value: 'ins_news', label: '保険業界ニュース' },
@@ -18,9 +16,6 @@ const CONTENT_TYPES = [
 ];
 
 export default function AgentDxHome() {
-  const [aiMode] = useAiMode();
-  const promptOnly = aiMode === 'prompt';
-
   const [contentType, setContentType] = useState('ins_news');
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -29,7 +24,6 @@ export default function AgentDxHome() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
-  const [fallbackPrompt, setFallbackPrompt] = useState(null);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -38,13 +32,12 @@ export default function AgentDxHome() {
     setStatus('draft');
     setError('');
     setStatusMessage('');
-    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/agentdx/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentType, prompt_only: promptOnly }),
+        body: JSON.stringify({ contentType }),
       });
 
       const reader = res.body.getReader();
@@ -72,9 +65,6 @@ export default function AgentDxHome() {
                 setStatusMessage('');
               } else if (event === 'status') {
                 setStatusMessage(data.message);
-              } else if (event === 'fallback_prompt') {
-                setFallbackPrompt(data);
-                setStatusMessage('');
               } else if (event === 'error') {
                 setError(data.message);
               }
@@ -86,25 +76,6 @@ export default function AgentDxHome() {
       setError(err.message);
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const handleSaveManual = async (text) => {
-    if (!text.trim()) return;
-    try {
-      const res = await authFetch('/agentdx/save-manual', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentType, post_text: text }),
-      });
-      const data = await res.json();
-      if (data.post_id) {
-        setPostText(data.post_text);
-        setPostId(data.post_id);
-        setFallbackPrompt(null);
-      }
-    } catch (e) {
-      setError(e.message);
     }
   };
 
@@ -136,10 +107,9 @@ export default function AgentDxHome() {
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
               <Building2 className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">代理店DX X投稿</h1>
+            <h1 className="font-bold text-lg text-gray-900">保険ニュース X投稿</h1>
           </div>
-          <div className="ml-auto flex items-center gap-3">
-            <AiModeToggle />
+          <div className="ml-auto">
             <Link
               to="/agentdx/history"
               className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
@@ -199,7 +169,7 @@ export default function AgentDxHome() {
             {isGenerating ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                {statusMessage || 'AIが生成中...'}
+                {statusMessage || 'ニュースを調査・編集中...'}
               </>
             ) : (
               <>
@@ -209,17 +179,6 @@ export default function AgentDxHome() {
             )}
           </button>
         </div>
-
-        {fallbackPrompt && (
-          <PromptFallbackPanel
-            prompts={fallbackPrompt.prompts}
-            reason={fallbackPrompt.reason || 'prompt_only'}
-            errorMessage={fallbackPrompt.message}
-            placeholder="外部AIで生成したX投稿文をここに貼り付け"
-            saveLabel="投稿を保存"
-            onSave={handleSaveManual}
-          />
-        )}
 
         <PostPreview
           platform="x"

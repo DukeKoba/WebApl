@@ -1,8 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
-import { generateTextFull, searchAgentDxNews } from '../services/claudeService.js';
-import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
+import { generateAgentDxPost } from '../services/claudeService.js';
 import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
@@ -29,35 +28,10 @@ const CONTENT_TYPE_CONTEXT = {
   global_ins:    `海外の保険業界・InsurTechの最新動向。欧米アジアの規制変化・グローバル大手の戦略・国際的なInsurTechトレンドで国内市場への示唆を発信する。`,
 };
 
-function buildAgentDxPrompt(contentType, newsContext, hasSourceUrl) {
-  const label = CONTENT_TYPE_LABELS[contentType] || contentType;
-  const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
-  const newsSection = newsContext
-    ? `\n【直近の最新ニュース・情報（Web検索結果）】\n${newsContext}\n\n上記の最新トピックの中から最もインパクトのある内容を1つ選んでX投稿にしてください。\n`
-    : '';
-  const charLimit = hasSourceUrl ? '240文字以内（URLは別途末尾に追加するため本文は240文字以内に収める）' : '280文字以内';
-  return `保険代理店に関わる最新ニュース・法改正・新商品情報などをXに日本語で投稿します。ターゲットは保険代理店の経営者・担当者です。現在は2026年5月です。
-
-コンテンツタイプ: ${label}
-${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
-以下の要件で投稿文を1つ作成してください：
-
-【要件】
-- X（Twitter）の${charLimit}（ハッシュタグ含む）
-- 保険代理店の担当者が「知らなかった、シェアしたい」と感じる最新ニュース・情報
-- ニュースの要点を分かりやすく整理し、代理店実務への影響・対応ポイントも一言添える
-- 2025〜2026年の直近情報を優先して使用
-- 絵文字を効果的に使用
-- ハッシュタグは末尾に2〜3個（例: #保険代理店 #保険業界 #法改正）
-
-【出力形式】
-投稿文のみを出力してください。前後に説明文を入れないでください。`;
-}
-
-const AGENTDX_SYSTEM_PROMPT = 'あなたは保険業界の最新動向に精通したアナリストです。保険代理店の経営者・担当者に向けて、直近ニュース・法改正・新商品情報をXで分かりやすく発信します。';
+const AGENTDX_SYSTEM_PROMPT = 'あなたは保険業界専門のニュース記者・編集者です。最新の業界ニュース・法改正・新商品情報をWebで調査し、保険代理店の経営者・担当者に向けて分かりやすく編集・発信します。事実に基づいた具体的な情報を伝えることを最優先にします。';
 
 router.post('/generate', async (req, res) => {
-  const { contentType = 'dx_trend', prompt_only = false } = req.body;
+  const { contentType = 'ins_news' } = req.body;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -71,44 +45,23 @@ router.post('/generate', async (req, res) => {
   try {
     const postId = uuidv4();
     const label = CONTENT_TYPE_LABELS[contentType] || contentType;
+    const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
 
-    let newsContext = null;
-    let sourceUrl = null;
-    if (!prompt_only) {
-      try {
-        sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
-        const result = await searchAgentDxNews(contentType, label);
-        newsContext = result?.summary || null;
-        sourceUrl = result?.sourceUrl || null;
-      } catch {}
-    }
+    sendEvent('status', { message: `${label}の最新情報を調査・編集中...` });
 
-    sendEvent('status', { message: '投稿を生成中...' });
-    const userPrompt = buildAgentDxPrompt(contentType, newsContext, !!sourceUrl);
+    const result = await generateAgentDxPost(contentType, label, extraContext, AGENTDX_SYSTEM_PROMPT);
 
-    const promptInfo = [{
-      label: `${label} 投稿生成プロンプト`,
-      system: AGENTDX_SYSTEM_PROMPT,
-      user: userPrompt + (newsContext ? '' : '\n\n※ プロンプトのみモードのためWeb検索は省略しています。最新情報が必要であれば、外部AIで先にWeb検索してから本プロンプトを実行してください。'),
-    }];
-
-    const generated = await tryClaudeOrEmitPrompt(
-      promptInfo,
-      () => generateTextFull(AGENTDX_SYSTEM_PROMPT, userPrompt, { maxTokens: 600 }),
-      sendEvent,
-      prompt_only,
-    );
-
-    if (generated == null) {
+    if (!result) {
+      sendEvent('error', { message: 'ニュースの取得・生成に失敗しました。再試行してください。' });
       sendEvent('done', {});
       return;
     }
 
-    let postText = generated.trim();
-    if (sourceUrl) postText = `${postText}\n${sourceUrl}`;
+    let postText = result.postText;
+    if (result.sourceUrl) postText = `${postText}\n${result.sourceUrl}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'agentdx', postText, JSON.stringify({ contentType, had_news_context: !!newsContext, sourceUrl }), 'draft'
+      postId, 'agentdx', postText, JSON.stringify({ contentType, sourceUrl: result.sourceUrl }), 'draft'
     );
 
     sendEvent('final_post', { post_id: postId, post_text: postText });
