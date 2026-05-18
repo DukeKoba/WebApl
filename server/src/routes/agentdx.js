@@ -8,39 +8,35 @@ import { postTweet } from '../services/xService.js';
 const router = express.Router();
 
 const CONTENT_TYPE_LABELS = {
-  dx_trend: 'DXトレンド',
-  insurtech: 'InsurTech動向',
-  compliance: 'コンプライアンス・規制',
-  customer_mgmt: '顧客管理DX',
-  digital_sales: 'デジタル営業',
-  ai_usecase: 'AI活用事例',
-  paperless: 'ペーパーレス化',
-  remote_meeting: 'リモート商談',
-  subsidy: '補助金・助成金',
-  case_study: '成功事例・ノウハウ',
+  ins_news:      '保険業界ニュース',
+  law_reform:    '法改正・規制動向',
+  new_products:  '新商品・金融商品',
+  market_data:   '市場動向・統計',
+  disaster_risk: '災害・リスク情報',
+  agency_ops:    '代理店経営・運営',
+  consumer_trend:'顧客・消費者動向',
+  global_ins:    'グローバル・海外動向',
 };
 
 const CONTENT_TYPE_CONTEXT = {
-  dx_trend: `保険代理店のDX推進に関する最新トレンド。金融庁の方針、SBI・楽天など大手のデジタル戦略、中小代理店のデジタル化実態など2025〜2026年の動向を発信する。`,
-  insurtech: `InsurTech（インシュアテック）の最新動向。AI査定・デジタル保険商品・ブロックチェーン活用・APIエコノミーなど国内外の最新事例を発信する。`,
-  compliance: `保険業法・金融庁ガイドライン・意向把握義務・比較推奨規制など保険代理店が押さえるべき最新のコンプライアンス情報を分かりやすく発信する。`,
-  customer_mgmt: `保険代理店向けの顧客管理DX。CRM導入・顧客データ活用・ライフイベント通知・継続管理自動化など実践的なノウハウを発信する。`,
-  digital_sales: `保険代理店のデジタル営業手法。LINE活用・Web集客・SNS運用・オンライン見積もりツール・動画活用など最新の営業DX事例を発信する。`,
-  ai_usecase: `保険代理店へのAI活用事例。意向把握AI・書類自動生成・チャットボット・音声解析・商品比較AIなど実際に使えるAIツールの情報を発信する。`,
-  paperless: `保険代理店のペーパーレス化・電子化。電子署名・クラウド書類管理・PDF自動生成・郵送レス化など具体的な導入方法とメリットを発信する。`,
-  remote_meeting: `保険代理店のリモート商談・オンライン対応。Zoom活用・画面共有での説明技法・オンライン契約の流れ・顧客満足度向上のコツを発信する。`,
-  subsidy: `保険代理店が活用できる補助金・助成金情報。IT導入補助金・小規模事業者持続化補助金・DX投資促進税制など申請のポイントと活用事例を発信する。`,
-  case_study: `保険代理店のDX成功事例・ノウハウ。実際にDXで業績を伸ばした代理店の取り組み、失敗談と教訓、明日から使えるTipsを発信する。`,
+  ins_news:      `保険業界全般の直近ニュース。各社の新戦略・業績発表・提携・経営ニュース・業界団体の動きなど2025〜2026年の最新情報を取り上げる。`,
+  law_reform:    `保険業法改正・金融庁ガイドライン・監督指針・意向把握義務・比較推奨規制など、代理店が即座に対応すべき法令・規制の最新動向を分かりやすく伝える。`,
+  new_products:  `生命保険・損害保険・第三分野・投資型保険・金融商品の新商品情報。各社の新商品発売・改定内容・販売戦略など代理店担当者が押さえるべき商品ニュースを発信する。`,
+  market_data:   `保険市場の統計データ・調査結果・ランキング。契約件数・保険料収入・解約率・加入率トレンドなど業界全体の市場動向を数字とともに伝える。`,
+  disaster_risk: `自然災害・事故・リスク情報と保険への影響。台風・地震・水害の保険金支払い実績、新たなリスク領域（サイバー・気候変動）と保険商品の関連情報を発信する。`,
+  agency_ops:    `保険代理店の経営・運営に直結する情報。手数料体系の変更・乗合申請・登録要件・監査対応・人材確保など代理店経営者が気になる最新トピックを伝える。`,
+  consumer_trend:`顧客・消費者の保険に対する意識・行動変化。加入動機・解約理由・比較サイト利用実態・SNSでの口コミ傾向など、代理店の営業戦略に活きる消費者インサイトを発信する。`,
+  global_ins:    `海外の保険業界・InsurTechの最新動向。欧米アジアの規制変化・グローバル大手の戦略・国際的なInsurTechトレンドで国内市場への示唆を発信する。`,
 };
 
 function buildAgentDxPrompt(contentType, newsContext, hasSourceUrl) {
   const label = CONTENT_TYPE_LABELS[contentType] || contentType;
   const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
   const newsSection = newsContext
-    ? `\n【今日の最新ニュース・トレンド（Web検索結果）】\n${newsContext}\n\n上記の最新トピックの中から最もバズりそうな内容を1つ選んでX投稿にしてください。\n`
+    ? `\n【直近の最新ニュース・情報（Web検索結果）】\n${newsContext}\n\n上記の最新トピックの中から最もインパクトのある内容を1つ選んでX投稿にしてください。\n`
     : '';
   const charLimit = hasSourceUrl ? '240文字以内（URLは別途末尾に追加するため本文は240文字以内に収める）' : '280文字以内';
-  return `保険代理店のDX・デジタル化に関するニュース・情報をXに日本語で投稿します。ターゲットは保険代理店の経営者・担当者、FinTech・InsurTech関係者です。現在は2026年4月です。
+  return `保険代理店に関わる最新ニュース・法改正・新商品情報などをXに日本語で投稿します。ターゲットは保険代理店の経営者・担当者です。現在は2026年5月です。
 
 コンテンツタイプ: ${label}
 ${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
@@ -48,17 +44,17 @@ ${extraContext ? `\n背景情報: ${extraContext}\n` : ''}${newsSection}
 
 【要件】
 - X（Twitter）の${charLimit}（ハッシュタグ含む）
-- 保険代理店の実務担当者が「保存・シェアしたい」と思える具体的な情報
-- 読者がすぐに行動・活用できる実践的な内容（${label}に関するTipsや事例）
-- 2025〜2026年現在の最新情報を使用
+- 保険代理店の担当者が「知らなかった、シェアしたい」と感じる最新ニュース・情報
+- ニュースの要点を分かりやすく整理し、代理店実務への影響・対応ポイントも一言添える
+- 2025〜2026年の直近情報を優先して使用
 - 絵文字を効果的に使用
-- ハッシュタグは末尾に2〜3個（例: #保険代理店DX #InsurTech #保険業界）
+- ハッシュタグは末尾に2〜3個（例: #保険代理店 #保険業界 #法改正）
 
 【出力形式】
 投稿文のみを出力してください。前後に説明文を入れないでください。`;
 }
 
-const AGENTDX_SYSTEM_PROMPT = 'あなたは保険代理店のDX推進とInsurTechの専門家です。代理店経営者に役立つ実践的な情報をXで発信します。';
+const AGENTDX_SYSTEM_PROMPT = 'あなたは保険業界の最新動向に精通したアナリストです。保険代理店の経営者・担当者に向けて、直近ニュース・法改正・新商品情報をXで分かりやすく発信します。';
 
 router.post('/generate', async (req, res) => {
   const { contentType = 'dx_trend', prompt_only = false } = req.body;

@@ -102,16 +102,14 @@ X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条�
 
 export async function searchAgentDxNews(contentType, label) {
   const queries = {
-    dx_trend:     '保険代理店 DX デジタル化 最新動向 2025 2026',
-    insurtech:    'InsurTech インシュアテック 最新 国内 2025 2026',
-    compliance:   '保険業法 金融庁 規制 ガイドライン 2025 2026',
-    customer_mgmt:'保険代理店 CRM 顧客管理 デジタル化 2025 2026',
-    digital_sales: '保険 デジタル営業 LINE SNS Web集客 2025 2026',
-    ai_usecase:   '保険代理店 AI 活用事例 導入 2025 2026',
-    paperless:    '保険 電子化 ペーパーレス 電子署名 2025 2026',
-    remote_meeting:'保険 オンライン商談 リモート 2025 2026',
-    subsidy:      'IT導入補助金 小規模事業者 保険代理店 2025 2026',
-    case_study:   '保険代理店 DX 成功事例 2025 2026',
+    ins_news:      '保険業界 最新ニュース 経営 提携 戦略 2025 2026',
+    law_reform:    '保険業法 改正 金融庁 監督指針 規制 2025 2026',
+    new_products:  '保険 新商品 発売 改定 生命保険 損害保険 2025 2026',
+    market_data:   '保険市場 統計 加入率 保険料収入 契約件数 2025 2026',
+    disaster_risk: '自然災害 台風 地震 保険金支払い サイバーリスク 2025 2026',
+    agency_ops:    '保険代理店 手数料 乗合 登録 経営 監査 2025 2026',
+    consumer_trend:'保険 消費者 加入動向 意識調査 比較サイト 2025 2026',
+    global_ins:    '海外保険業界 InsurTech グローバル 欧米 規制 2025 2026',
   };
   const query = queries[contentType] || `保険代理店 ${label} 最新 2025 2026`;
   try {

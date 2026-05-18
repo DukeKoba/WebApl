@@ -7,23 +7,21 @@ import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
 const CONTENT_TYPES = [
-  { value: 'dx_trend', label: 'DXトレンド' },
-  { value: 'insurtech', label: 'InsurTech動向' },
-  { value: 'compliance', label: 'コンプライアンス' },
-  { value: 'customer_mgmt', label: '顧客管理DX' },
-  { value: 'digital_sales', label: 'デジタル営業' },
-  { value: 'ai_usecase', label: 'AI活用事例' },
-  { value: 'paperless', label: 'ペーパーレス化' },
-  { value: 'remote_meeting', label: 'リモート商談' },
-  { value: 'subsidy', label: '補助金・助成金' },
-  { value: 'case_study', label: '成功事例' },
+  { value: 'ins_news', label: '保険業界ニュース' },
+  { value: 'law_reform', label: '法改正・規制動向' },
+  { value: 'new_products', label: '新商品・金融商品' },
+  { value: 'market_data', label: '市場動向・統計' },
+  { value: 'disaster_risk', label: '災害・リスク情報' },
+  { value: 'agency_ops', label: '代理店経営・運営' },
+  { value: 'consumer_trend', label: '顧客・消費者動向' },
+  { value: 'global_ins', label: 'グローバル・海外動向' },
 ];
 
 export default function AgentDxHome() {
   const [aiMode] = useAiMode();
   const promptOnly = aiMode === 'prompt';
 
-  const [contentType, setContentType] = useState('dx_trend');
+  const [contentType, setContentType] = useState('ins_news');
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [postText, setPostText] = useState('');
@@ -157,7 +155,7 @@ export default function AgentDxHome() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 leading-relaxed">
             <strong className="text-gray-700">投稿戦略：</strong>
-            保険代理店のDX推進・InsurTech・AI活用に関するニュースや実践Tips を発信し、
+            保険業界の最新ニュース・法改正・新商品情報などをいち早く発信し、
             代理店経営者・担当者のフォロー獲得とCocreoブランド認知向上を目指します。
           </p>
         </div>
