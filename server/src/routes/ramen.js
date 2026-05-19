@@ -15,7 +15,7 @@ const SLURP_APP_URL = 'https://apps.apple.com/app/id6761906850';
 
 // Build a single consolidated prompt for ramen Japanese caption generation.
 // Used in prompt-only / fallback mode (skips the multi-agent discussion).
-function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate, impressions, webReviews, imageAnalysis }) {
+function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate, impressions, webReviews, imageAnalysis, previousPosts }) {
   const reviewBlock = webReviews
     ? `\n【取得済みWeb口コミ（このラーメンの実態を表す一次情報。架空の表現は使わない）】\n${webReviews}\n`
     : '\n（Web口コミ未取得。下記の店舗情報・感想のみで判断してください。架空・誇張は禁止）\n';
@@ -36,6 +36,10 @@ function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate
     }
   }
 
+  const previousPostsBlock = previousPosts?.length
+    ? `\n【この店の過去投稿（必ず異なる切り口・表現・構成で書くこと。同じフレーズや冒頭を繰り返さない）】\n${previousPosts.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
+    : '';
+
   return `あなたはラーメン専門のInstagramコピーライターです。下記情報をもとに、Instagram用の日本語キャプションを作成してください。
 
 【店舗・ラーメン情報】
@@ -44,7 +48,7 @@ function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate
 - ラーメンの種類: ${ramenType || '不明'}
 - 訪問日: ${visitDate || '不明'}
 - ユーザーの感想: ${impressions || ''}
-${imageBlock}${reviewBlock}
+${imageBlock}${reviewBlock}${previousPostsBlock}
 【要件】
 - 食欲をそそる日本語キャプション（本文200〜300文字、ハッシュタグ除く）
 - 1行目で読者の手を止める引き（具体的な味の表現・店名・特徴）
@@ -209,18 +213,18 @@ router.post('/translate-to-english', async (req, res) => {
       fallback_prompt: {
         prompts: [{
           label: '英語Instagramキャプション翻訳プロンプト',
-          system: 'You are a creative food writer specializing in Japanese cuisine. Translate Japanese Instagram ramen posts into natural, engaging English. Keep hashtags as-is. Output should be vivid, appetizing, and authentic — not a literal translation. CRITICAL: The total output (caption body + hashtags + emojis + spaces) MUST be 2200 characters or fewer — Instagram\'s hard limit. If needed, condense the body to fit; never exceed 2200.',
-          user: `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）。ハッシュタグはそのまま維持。
+          system: `You are a creative food writer specializing in Japanese ramen culture, crafting captions for an international Instagram audience. Your goal is a vivid food story — not a literal translation, but an authentic experience.
 
-【最重要・絶対遵守】
-- 出力全体（本文＋空行＋ハッシュタグ＋絵文字＋スペースを含むすべて）を**2200文字以内**に収めること（Instagramキャプションのハード上限）
-- もし長くなる場合は本文を削り、ハッシュタグ数を減らしてでも必ず2200文字以下に収める
-- 出力前に文字数を確認し、超えていたら短くしてから出力
+Rules:
+1. STORYTELLING: Write as if sharing a personal food discovery. Use sensory language (aroma, texture, depth of flavor). Make readers feel they must visit.
+2. RAMEN TERMS: Naturally explain Japanese terms inline (e.g., "shoyu — a clear, soy-seasoned broth", "chashu — melt-in-your-mouth braised pork", "tsukemen — thick noodles served for dipping").
+3. HASHTAGS: Replace ALL Japanese hashtags with English equivalents that international users actually search. Use: #ramen #ramennoodles #japanesefood #foodie #tokyofood (adjust location/type to English). Never keep Japanese-script hashtags.
+4. SLURP LINE: The line starting with "📲 Slurp" must become: "📲 Discover more ramen spots on Slurp! [keep the original URL]"
+5. LENGTH: Total output MUST be 2200 characters or fewer. Condense if needed.
+6. OUTPUT: Caption body + one blank line + hashtags only. No explanation.`,
+          user: `Craft an English Instagram caption from this Japanese ramen post. Follow all rules in the system prompt exactly.
 
-【出力形式】
-- 説明文は不要、翻訳結果（本文＋空行＋ハッシュタグ）のみを出力
-
-【日本語投稿】
+[Japanese post]
 ${text}`,
         }],
       },
@@ -274,6 +278,12 @@ router.post('/generate', async (req, res) => {
     const postId = uuidv4();
     const convId = uuidv4();
 
+    const previousPosts = restaurant_name
+      ? db.prepare(
+          `SELECT post_text FROM sns_posts WHERE app_type = 'ramen' AND json_extract(metadata, '$.restaurant_name') = ? ORDER BY created_at DESC LIMIT 3`
+        ).all(restaurant_name).map(r => r.post_text)
+      : [];
+
     const task = {
       type: 'ramen',
       platform: 'instagram',
@@ -284,6 +294,7 @@ router.post('/generate', async (req, res) => {
       visitDate: visit_date,
       impressions,
       webReviews: web_reviews || null,
+      previousPosts,
     };
 
     // Build a consolidated single prompt for prompt-only / fallback mode
@@ -299,6 +310,7 @@ router.post('/generate', async (req, res) => {
         impressions,
         webReviews: web_reviews,
         imageAnalysis: image_analysis,
+        previousPosts,
       }),
     }];
 

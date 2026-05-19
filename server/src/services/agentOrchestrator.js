@@ -103,6 +103,9 @@ function buildMarketerR1Prompt(task) {
     const reviewBlock = task.webReviews
       ? `\n【取得済みWeb口コミ（このラーメンの実態を正確に表現する一次情報）】\n${task.webReviews}\n`
       : '\n（Web口コミ未取得。下記のユーザー入力情報のみで判断してください。架空の表現は避けること）\n';
+    const previousPostsBlock = task.previousPosts?.length
+      ? `\n【この店の過去投稿（今回は必ず異なる切り口・表現で投稿すること）】\n${task.previousPosts.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
+      : '';
     return `Instagramにラーメン体験を投稿します（日本語で作成し、後で英語に翻訳します）。
 
 【ユーザー入力】
@@ -111,7 +114,7 @@ function buildMarketerR1Prompt(task) {
 - ラーメンの種類: ${task.ramenType || '不明'}
 - 訪問日: ${task.visitDate || '不明'}
 - 感想: ${task.impressions || 'なし'}
-${reviewBlock}
+${reviewBlock}${previousPostsBlock}
 以下を日本語で分析・提案してください：
 1. 最適なターゲット層（ラーメン好き、食べ歩きファン、旅行者など）
 2. 推奨投稿時間帯
@@ -156,6 +159,9 @@ function buildCopywriterR1Prompt(task, marketerAnalysis) {
     const reviewSection = task.webReviews
       ? `\n【Web口コミ情報（この情報を主軸に書いてください。架空の情報は使わないこと）】\n${task.webReviews}\n`
       : '\n⚠ Web口コミなし。下記の店舗情報・ラーメン種別・ユーザーの感想のみを使用してください。架空・誇張した表現は避けること。\n';
+    const previousPostsSection = task.previousPosts?.length
+      ? `\n【この店の過去投稿（冒頭フレーズ・構成・強調ポイントを全て変えること。同じ言い回しを一切使わない）】\n${task.previousPosts.map((t, i) => `${i + 1}. ${t}`).join('\n')}\n`
+      : '';
     return `Instagramのラーメン体験投稿文の初稿を日本語で作成してください（後で英語に翻訳します）。
 
 【店舗・ラーメン情報】
@@ -164,7 +170,7 @@ function buildCopywriterR1Prompt(task, marketerAnalysis) {
 - ラーメンの種類: ${task.ramenType || '不明'}
 - 訪問日: ${task.visitDate || '不明'}
 - ユーザーの感想: ${task.impressions || ''}
-${reviewSection}
+${reviewSection}${previousPostsSection}
 マーケターの分析: ${marketerAnalysis}
 
 要件：

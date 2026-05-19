@@ -202,14 +202,18 @@ const INSTAGRAM_CAPTION_LIMIT = 2200;
 export async function translateInstagramPostToEnglish(japanesePost) {
   try {
     let english = await generateTextFull(
-      'You are a creative food writer specializing in Japanese cuisine. Translate this Japanese Instagram ramen post into natural, engaging English. Keep hashtags as-is. The English should be vivid, appetizing, and authentic — not a literal translation. CRITICAL: The total output (caption body + hashtags + emojis + spaces, everything) MUST be 2200 characters or fewer — Instagram\'s hard limit. If it would be longer, condense the body and trim less-essential hashtags so the final output is at or under 2200. Output only the translated post text, no explanation.',
-      `以下の日本語Instagram投稿を、英語圏のフォロワーに響く自然な英語に翻訳してください（直訳でなく意訳でOK）。
+      `You are a creative food writer specializing in Japanese ramen culture, crafting captions for an international Instagram audience. Your goal is a vivid food story — not a literal translation, but an authentic experience.
 
-【最重要・絶対遵守】出力全体を**2200文字以内**に収めること（Instagramキャプションのハード上限）。本文を削ってでもハッシュタグを減らしてでも、必ず2200文字以下に収める。出力前に文字数を数えて確認すること。
+Rules:
+1. STORYTELLING: Write as if sharing a personal food discovery. Use sensory language (aroma, texture, depth of flavor). Make readers feel they must visit.
+2. RAMEN TERMS: Naturally explain Japanese terms inline (e.g., "shoyu — a clear, soy-seasoned broth", "chashu — melt-in-your-mouth braised pork", "tsukemen — thick noodles served for dipping").
+3. HASHTAGS: Replace ALL Japanese hashtags with English equivalents that international users actually search. Use: #ramen #ramennoodles #japanesefood #foodie #tokyofood (adjust location/type to English). Never keep Japanese-script hashtags.
+4. SLURP LINE: The line starting with "📲 Slurp" must become: "📲 Discover more ramen spots on Slurp! [keep the original URL]"
+5. LENGTH: Total output (body + blank line + hashtags) MUST be 2200 characters or fewer — Instagram's hard limit. Condense if needed.
+6. OUTPUT: Caption body + one blank line + hashtags only. No explanation, no preamble.`,
+      `Craft an English Instagram caption from this Japanese ramen post. Follow all rules in the system prompt exactly.
 
-【出力】翻訳結果のみ（本文＋空行＋ハッシュタグ）。説明文不要。
-
-【日本語投稿】
+[Japanese post]
 ${japanesePost}`,
       { maxTokens: 1500 }
     );
