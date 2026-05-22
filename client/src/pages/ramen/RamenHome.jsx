@@ -63,6 +63,7 @@ export default function RamenHome() {
 
   // Step 1: input + reviews
   const [restaurantName, setRestaurantName] = useState('');
+  const [ramenName, setRamenName] = useState('');
   const [location, setLocation] = useState('');
   const [ramenType, setRamenType] = useState('');
   const [visitDate, setVisitDate] = useState('');
@@ -181,6 +182,7 @@ export default function RamenHome() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           restaurant_name: restaurantName,
+          ramen_name: ramenName,
           location,
           ramen_type: ramenType,
           prompt_only: promptOnly,
@@ -251,6 +253,7 @@ export default function RamenHome() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           restaurant_name: restaurantName,
+          ramen_name: ramenName,
           location,
           ramen_type: ramenType,
           visit_date: visitDate,
@@ -351,6 +354,7 @@ export default function RamenHome() {
 
   const handleResetAll = () => {
     setRestaurantName('');
+    setRamenName('');
     setLocation('');
     setRamenType('');
     setVisitDate('');
@@ -494,6 +498,20 @@ export default function RamenHome() {
               />
             </div>
             <div className="relative">
+              <Soup className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="ラーメン名（例: 特製醤油ラーメン）"
+                value={ramenName}
+                onChange={(e) => {
+                  setRamenName(e.target.value);
+                  setReviewState('idle');
+                  setApprovedReviews(null);
+                }}
+                className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+              />
+            </div>
+            <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
@@ -548,7 +566,9 @@ export default function RamenHome() {
                 className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-orange-300 rounded-lg text-sm text-orange-600 hover:bg-orange-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <Search className="w-4 h-4" />
-                {restaurantName ? `「${restaurantName}」のWeb口コミを検索` : 'まず店名を入力してください'}
+                {restaurantName
+                  ? `「${ramenName ? `${restaurantName} ${ramenName}` : restaurantName}」のWeb口コミを検索`
+                  : 'まず店名を入力してください'}
               </button>
             )}
             {reviewState === 'searching' && (

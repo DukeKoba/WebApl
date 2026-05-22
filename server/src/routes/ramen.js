@@ -15,7 +15,7 @@ const SLURP_APP_URL = 'https://apps.apple.com/app/id6761906850';
 
 // Build a single consolidated prompt for ramen Japanese caption generation.
 // Used in prompt-only / fallback mode (skips the multi-agent discussion).
-function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate, impressions, webReviews, imageAnalysis, previousPosts }) {
+function buildRamenSinglePrompt({ restaurantName, ramenName, location, ramenType, visitDate, impressions, webReviews, imageAnalysis, previousPosts }) {
   const reviewBlock = webReviews
     ? `\n【取得済みWeb口コミ（このラーメンの実態を表す一次情報。架空の表現は使わない）】\n${webReviews}\n`
     : '\n（Web口コミ未取得。下記の店舗情報・感想のみで判断してください。架空・誇張は禁止）\n';
@@ -44,6 +44,7 @@ function buildRamenSinglePrompt({ restaurantName, location, ramenType, visitDate
 
 【店舗・ラーメン情報】
 - 店舗: ${restaurantName || '不明'}
+- ラーメン名（メニュー）: ${ramenName || '不明'}
 - 場所: ${location || '不明'}
 - ラーメンの種類: ${ramenType || '不明'}
 - 訪問日: ${visitDate || '不明'}
@@ -152,23 +153,24 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 
 // POST /api/ramen/search-reviews - Search web reviews for a restaurant
 router.post('/search-reviews', async (req, res) => {
-  const { restaurant_name, location, ramen_type, prompt_only = false } = req.body;
+  const { restaurant_name, ramen_name, location, ramen_type, prompt_only = false } = req.body;
   if (!restaurant_name) return res.json({ reviews: null });
 
   if (prompt_only) {
-    // Return search query + fetch instructions for the user to run externally
     const parts = [restaurant_name];
+    if (ramen_name) parts.push(ramen_name);
     if (location) parts.push(location);
     if (ramen_type) parts.push(ramen_type);
     parts.push('ラーメン 口コミ');
     const query = parts.join(' ');
+    const focusNote = ramen_name ? `特に「${ramen_name}」に関する口コミ・評価を重点的に調べてください。` : '';
     return res.json({
       reviews: null,
       fallback_prompt: {
         prompts: [{
           label: '口コミ検索プロンプト（外部AIまたはGoogle検索で実行）',
           system: 'あなたは日本のラーメン口コミに詳しいリサーチャーです。',
-          user: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索し、以下を日本語でまとめてください：
+          user: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索し、以下を日本語でまとめてください：${focusNote}
 ・スープの特徴・味わい（具体的に）
 ・麺の種類・食感
 ・人気メニュー・おすすめ
@@ -183,7 +185,7 @@ router.post('/search-reviews', async (req, res) => {
   }
 
   try {
-    const reviews = await searchRestaurantReviews(restaurant_name, location, ramen_type);
+    const reviews = await searchRestaurantReviews(restaurant_name, location, ramen_type, ramen_name);
     res.json({ reviews: reviews || null });
   } catch (err) {
     res.json({ reviews: null, error: err.message });
@@ -257,6 +259,7 @@ router.post('/generate', async (req, res) => {
     image_id,
     image_analysis,
     restaurant_name,
+    ramen_name,
     location,
     ramen_type,
     visit_date,
@@ -289,6 +292,7 @@ router.post('/generate', async (req, res) => {
       platform: 'instagram',
       imageAnalysis: image_analysis || null,
       restaurantName: restaurant_name,
+      ramenName: ramen_name || null,
       location,
       ramenType: ramen_type,
       visitDate: visit_date,
@@ -304,6 +308,7 @@ router.post('/generate', async (req, res) => {
       system: 'あなたはラーメン専門のInstagramコピーライターです。日本語で食欲をそそる魅力的なキャプションを書きます。',
       user: buildRamenSinglePrompt({
         restaurantName: restaurant_name,
+        ramenName: ramen_name || null,
         location,
         ramenType: ramen_type,
         visitDate: visit_date,

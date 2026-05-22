@@ -110,6 +110,7 @@ function buildMarketerR1Prompt(task) {
 
 【ユーザー入力】
 - 店舗: ${task.restaurantName || '不明'}
+- ラーメン名（メニュー）: ${task.ramenName || '不明'}
 - 場所: ${task.location || '不明'}
 - ラーメンの種類: ${task.ramenType || '不明'}
 - 訪問日: ${task.visitDate || '不明'}
@@ -166,6 +167,7 @@ function buildCopywriterR1Prompt(task, marketerAnalysis) {
 
 【店舗・ラーメン情報】
 - 店舗: ${task.restaurantName || '不明'}
+- ラーメン名（メニュー）: ${task.ramenName || '不明'}
 - 場所: ${task.location || '不明'}
 - ラーメンの種類: ${task.ramenType || '不明'}
 - 訪問日: ${task.visitDate || '不明'}

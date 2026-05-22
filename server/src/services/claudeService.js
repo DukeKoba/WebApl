@@ -239,21 +239,25 @@ ${japanesePost}`,
   }
 }
 
-export async function searchRestaurantReviews(restaurantName, location, ramenType) {
+export async function searchRestaurantReviews(restaurantName, location, ramenType, ramenName) {
   if (!restaurantName) return null;
   try {
     const parts = [restaurantName];
+    if (ramenName) parts.push(ramenName);
     if (location) parts.push(location);
     if (ramenType) parts.push(ramenType);
     parts.push('ラーメン');
     const query = parts.join(' ');
+    const focusNote = ramenName
+      ? `特に「${ramenName}」というメニューに関する口コミ・評価を重点的に調べてください。`
+      : ramenType ? `特に「${ramenType}」スタイルのラーメンに関する記述を優先して拾ってください。` : '';
     const response = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 2048,
       tools: [{ type: 'web_search_20250305', name: 'web_search' }],
       messages: [{
         role: 'user',
-        content: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索してください。${ramenType ? `特に「${ramenType}」スタイルのラーメンに関する記述を優先して拾ってください。` : ''}以下を日本語でまとめてください：
+        content: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索してください。${focusNote}以下を日本語でまとめてください：
 ・スープの特徴・味わい（具体的に）
 ・麺の種類・食感
 ・人気メニュー・おすすめ
