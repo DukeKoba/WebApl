@@ -9,38 +9,42 @@ const products = [
   {
     id: 'eiken-jun2',
     name: 'AI英検準２級 Pass',
-    sub: '準2級',
+    sub: 'P2',
     badge: '配信中',
     badgeStyle: 'bg-emerald-500 text-white',
-    desc: '高校在学レベルの英語力を徹底強化。AIが苦手分野を分析して最短合格へ導きます。',
+    desc: '頻出単語と文法を、AIが弱点だけ集中出題。高校在学レベルを最短で突破。',
     available: true,
-  },
-  {
-    id: 'eiken-2',
-    name: 'AI英検２級 Pass',
-    sub: '2級',
-    badge: '配信中',
-    badgeStyle: 'bg-emerald-500 text-white',
-    desc: '大学入試・就活に直結する２級をAIパーソナルコーチで突破。',
-    available: true,
-  },
-  {
-    id: 'eiken-1',
-    name: 'AI英検準１級 Pass',
-    sub: '準1級',
-    badge: '配信中',
-    badgeStyle: 'bg-emerald-500 text-white',
-    desc: '語彙・長文・英作文まで網羅。準1級合格に必要な全スキルをAIが最適化。',
-    available: true,
+    href: 'https://apps.apple.com/jp/app/id6762229086',
   },
   {
     id: 'eiken-jun2plus',
     name: 'AI英検準２級プラス Pass',
-    sub: '準2+',
-    badge: '審査待ち',
-    badgeStyle: 'bg-yellow-400 text-black',
-    desc: '準2級合格者が2級へステップアップするための強化版。弱点ドリルが充実。',
-    available: false,
+    sub: 'P2+',
+    badge: '配信中',
+    badgeStyle: 'bg-emerald-500 text-white',
+    desc: '2級へつながる長文と語彙に、少しずつ慣れる。準2級合格者の次のステップ。',
+    available: true,
+    href: 'https://apps.apple.com/jp/app/id6762537264',
+  },
+  {
+    id: 'eiken-2',
+    name: 'AI英検２級 Pass',
+    sub: '2',
+    badge: '配信中',
+    badgeStyle: 'bg-emerald-500 text-white',
+    desc: '過去問演習×AI分析で、弱点を最短ルートで攻略。大学入試・就活に直結。',
+    available: true,
+    href: 'https://apps.apple.com/jp/app/id6761838561',
+  },
+  {
+    id: 'eiken-1',
+    name: 'AI英検準１級 Pass',
+    sub: 'P1',
+    badge: '配信中',
+    badgeStyle: 'bg-emerald-500 text-white',
+    desc: '難単語と長文読解を、AIで効率よく対策。語彙・長文・英作文まで網羅。',
+    available: true,
+    href: 'https://apps.apple.com/jp/app/id6762535365',
   },
   {
     id: 'itpassport',
@@ -50,6 +54,7 @@ const products = [
     badgeStyle: 'bg-orange-500 text-white',
     desc: 'ストラテジ・マネジメント・テクノロジ系の3分野をAIが効率よくカバー。',
     available: false,
+    href: '',
   },
 ];
 
@@ -79,7 +84,6 @@ const features = [
 const faqs = [
   { q: 'どのデバイスで使えますか？', a: 'iPhone / iPad に対応しています。App Storeからダウンロードいただけます。' },
   { q: '各アプリは独立していますか？', a: 'はい、各資格ごとに独立したアプリです。目標の試験に合わせてお選びください。' },
-  { q: 'AI英検準２級プラス Passはいつ配信されますか？', a: 'App Review審査中です。承認され次第App Storeに公開されます。今しばらくお待ちください。' },
   { q: 'AI ITPassport Passはいつ配信されますか？', a: '現在提出準備中です。近日中に審査申請予定です。リリースをお楽しみに。' },
   { q: '問題数はどのくらいですか？', a: '各アプリとも数百問以上を収録。AIが学習履歴に基づき最適な問題を選んで出題します。' },
 ];
@@ -234,12 +238,17 @@ export default function OptimaLrnLanding() {
                 <p className="text-sm text-gray-500 leading-relaxed flex-1 mb-5">{p.desc}</p>
 
                 {p.available ? (
-                  <button className="w-full flex items-center justify-center gap-2 bg-black text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-colors">
+                  <a
+                    href={p.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 bg-black text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-colors"
+                  >
                     <Apple className="w-4 h-4" /> App Storeで入手
-                  </button>
+                  </a>
                 ) : (
                   <div className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-400 py-2.5 rounded-xl text-sm font-semibold cursor-default">
-                    {p.badge === '審査待ち' ? '審査中 — まもなく公開' : '近日公開'}
+                    近日公開
                   </div>
                 )}
               </div>
