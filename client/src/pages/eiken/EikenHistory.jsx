@@ -90,6 +90,11 @@ export default function EikenHistory() {
                         </span>
                       </div>
                       <p className="text-sm text-gray-800 line-clamp-3 whitespace-pre-wrap">{post.post_text}</p>
+                      {post.metadata?.reply_text && (
+                        <p className="text-xs text-gray-500 line-clamp-2 whitespace-pre-wrap mt-2 pl-3 border-l-2 border-gray-200">
+                          💬 {post.metadata.reply_text}
+                        </p>
+                      )}
                     </div>
                     <button
                       onClick={() => handleDelete(post.id)}
