@@ -482,6 +482,35 @@ function defaultFormat(questionType) {
   return ['vocabulary', 'grammar'].includes(questionType) ? 'quiz_reply' : 'value';
 }
 
+// 週間投稿カレンダー（docs/EIKEN_GROWTH_STRATEGY.md）。index = getDay()（0=日）
+const WEEKLY_PLAN = [
+  [ // 日
+    { time: '朝', label: '文化表現・雑学', questionType: 'american_culture', format: 'value' },
+    { time: '夜', label: '面接Tips', questionType: 'interview', format: 'value' },
+  ],
+  [ // 月
+    { time: '朝', label: '語彙クイズ', questionType: 'vocabulary', format: 'quiz_reply' },
+  ],
+  [ // 火
+    { time: '朝', label: '文法クイズ', questionType: 'grammar', format: 'quiz_reply' },
+    { time: '夜', label: '学習のコツ', questionType: 'study_tips', format: 'value' },
+  ],
+  [ // 水
+    { time: '朝', label: '語彙クイズ', questionType: 'vocabulary', format: 'quiz_reply' },
+  ],
+  [ // 木
+    { time: '朝', label: '大学入試×英検', university: true },
+    { time: '夜', label: '英語耳・リスニング', questionType: 'listening_tips', format: 'value' },
+  ],
+  [ // 金
+    { time: '朝', label: '語彙クイズ', questionType: 'vocabulary', format: 'quiz_reply' },
+  ],
+  [ // 土
+    { time: '朝', label: 'AI活用Tips', questionType: 'ai_tips', format: 'value' },
+    { time: '夜', label: 'アプリ紹介（週1のリンク付き枠）', questionType: 'study_tips', format: 'promo' },
+  ],
+];
+
 export default function EikenHome() {
   const [tab, setTab] = useState('x');
   const [aiMode] = useAiMode();
@@ -626,6 +655,17 @@ export default function EikenHome() {
 
   const levelLabel = EIKEN_LEVELS.find(l => l.value === level)?.label;
   const nextExam = getNextExam();
+  const todayPlan = WEEKLY_PLAN[new Date().getDay()];
+
+  const applyPlanSlot = (slot) => {
+    if (slot.university) {
+      setTab('university');
+      return;
+    }
+    setTab('x');
+    setQuestionType(slot.questionType);
+    setFormat(slot.format);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -670,6 +710,27 @@ export default function EikenHome() {
               {nextExam.daysUntil > 60 && (
                 <span className="text-xs text-amber-600 ml-2">※投稿へのカウントダウン自動付与は60日前から</span>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Today's recommended posts (weekly content calendar) */}
+        {todayPlan?.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
+            <p className="text-xs font-semibold text-gray-500 mb-2">
+              📆 今日の推奨投稿（{['日', '月', '火', '水', '木', '金', '土'][new Date().getDay()]}曜日）— クリックで設定を反映
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {todayPlan.map((slot, i) => (
+                <button
+                  key={i}
+                  onClick={() => applyPlanSlot(slot)}
+                  className="flex items-center gap-1.5 text-xs font-medium bg-green-50 text-green-800 border border-green-200 hover:bg-green-100 px-3 py-1.5 rounded-full transition-colors"
+                >
+                  <span className="font-bold">{slot.time}</span>
+                  {slot.label}
+                </button>
+              ))}
             </div>
           </div>
         )}

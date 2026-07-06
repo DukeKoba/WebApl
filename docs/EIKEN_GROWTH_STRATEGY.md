@@ -143,5 +143,5 @@ X→ストアの帰属は正確には取れないため、**promo投稿・プロ
 - `server/src/routes/eiken.js` — 投稿フォーマット3種（quiz_reply/value/promo）、2026年度試験日程の自動更新、カウントダウン60日窓、品質ルール、ハッシュタグ削減、PUT/publishのリプ対応
 - `server/src/services/xService.js` — スレッド（リプライ）投稿対応
 - `server/src/services/agentOrchestrator.js` — 英検コピーライターに品質ルール追加
-- `client/src/pages/eiken/EikenHome.jsx` — フォーマット選択UI、解答リプのプレビュー・編集、試験カウントダウン修正、編集が投稿に反映されないバグ修正
+- `client/src/pages/eiken/EikenHome.jsx` — フォーマット選択UI、解答リプのプレビュー・編集、試験カウントダウン修正、編集が投稿に反映されないバグ修正、**週間投稿カレンダーに基づく「今日の推奨投稿」ワンクリック設定**
 - `client/src/pages/eiken/EikenHistory.jsx` — 解答リプの履歴表示
