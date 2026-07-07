@@ -1006,7 +1006,9 @@ export default function EikenHome() {
             prompts={fallbackPrompt.prompts}
             reason={fallbackPrompt.reason || 'prompt_only'}
             errorMessage={fallbackPrompt.message}
-            placeholder='外部AIの出力をそのまま貼り付け（{"post": "...", "reply": "..."} のJSON、または投稿テキスト。完成形としてそのまま保存されます）'
+            placeholder={format === 'quiz_reply'
+              ? '外部AIの出力（{"post": "...", "reply": "..."} のJSON）をそのまま貼り付けてください'
+              : '外部AIが出力した投稿テキストをそのまま貼り付けてください（完成形として保存されます）'}
             saveLabel="完成形として保存"
             onSave={handleSaveManualEiken}
           />
