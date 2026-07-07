@@ -324,3 +324,160 @@ function extractFinalPostText(finalAgentResponse) {
     .trim();
   return cleaned;
 }
+
+/* ═══════════════════════ 英検専用エージェントチーム ═══════════════════════
+ * マーケター（ブリーフ策定）→ コピーライター（初稿）→ コンサルタント（品質確定）
+ * の3ラウンド。過去投稿との被り防止・フックの型のローテーションを行い、
+ * マーケティングプラン（docs/EIKEN_GROWTH_STRATEGY.md）に沿った投稿を生成する。
+ * 出力は {post, reply} の本文のみ。固定部（カウントダウン・ハッシュタグ・CTA）は
+ * 呼び出し側（routes/eiken.js）が組み立てる。
+ */
+
+// Extract {post, reply} JSON from an agent response (reply is optional)
+export function parseEikenPostJson(text) {
+  const match = String(text || '').match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try {
+    const obj = JSON.parse(match[0]);
+    if (typeof obj.post === 'string' && obj.post.trim()) {
+      return {
+        post: obj.post.trim(),
+        reply: typeof obj.reply === 'string' && obj.reply.trim() ? obj.reply.trim() : null,
+      };
+    }
+  } catch { /* fall through */ }
+  return null;
+}
+
+function eikenRecentPostsBlock(recentPosts) {
+  if (!recentPosts?.length) return '（過去投稿なし）';
+  return recentPosts.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n');
+}
+
+function buildEikenBriefPrompt(task) {
+  return `X（@optimalrnai）に英検${task.levelLabel}の「${task.typeLabel}」投稿を1本出します。コンテンツブリーフを作成してください。
+
+${task.playbook}
+
+【今回の投稿枠】
+フォーマット: ${task.formatDesc}
+ターゲット: ${task.target}
+
+【最近の投稿（題材・フックの型・言い回しを絶対に被らせないこと）】
+${eikenRecentPostsBlock(task.recentPosts)}
+
+【フックの型（最近の投稿で使われていないものを選ぶ）】
+${task.hookPatterns}
+
+【参考テーマ候補】${task.varietyHint || 'なし'}（採用してもしなくてもよい。より刺さる題材があればそちらを優先）
+
+以下を簡潔に決めてください：
+1. 今回の題材（具体的な単語・文法事項・テーマを1つに確定。最近の投稿と重複禁止）
+2. フックの型と冒頭1行の案
+3. ターゲットのどんな悩み・欲求に刺すか（1文）
+4. ${task.format === 'quiz_reply' ? 'リプ欄で答えたくなる仕掛け' : '保存・シェアしたくなる要素'}（1文）
+
+箇条書きで簡潔に。`;
+}
+
+function buildEikenDraftPrompt(task, brief) {
+  return `マーケターのブリーフに沿って、英検${task.levelLabel}のX投稿本文を書いてください。
+
+【ブリーフ】
+${brief}
+
+【難易度・使用語彙の厳守事項】
+${task.difficulty}
+上記レベルを必ず守り、それより難しい語彙・文法を使わないこと。
+
+${task.qualityRules}
+
+${task.formatRequirements}
+
+【文字数制限（厳守）】
+- post: ${task.bodyLimit}文字以内
+- reply: ${task.replyLimit}文字以内
+
+【重要】受験日カウントダウン・URL・ハッシュタグはシステムが自動付与するため、本文に一切含めないこと。
+
+【出力形式】
+次のJSONだけを出力（前後に説明文・コードブロック記号を付けない）：
+${task.format === 'quiz_reply'
+  ? '{"post": "問題ポスト本文", "reply": "解答リプライ本文"}'
+  : '{"post": "投稿本文", "reply": null}'}`;
+}
+
+function buildEikenReviewPrompt(task, brief, draftRaw) {
+  return `コピーライターが以下の投稿案を作成しました。品質チェックし、問題があれば修正した最終版を出力してください。
+
+【投稿案】
+${draftRaw}
+
+【ブリーフ】
+${brief}
+
+【チェックリスト】
+1. 難易度: ${task.difficulty} — レベル逸脱があれば修正
+2. ${task.qualityRules.replace(/\n/g, '\n   ')}
+3. フックの強さ: 冒頭1行で手が止まるか。弱ければ書き直す
+4. 最近の投稿との重複: 以下と題材・言い回しが被っていれば題材を守りつつ表現を変える
+${eikenRecentPostsBlock(task.recentPosts)}
+5. 文字数: postは${task.bodyLimit}文字以内、replyは${task.replyLimit}文字以内。超えていれば削る
+6. 英語の正確性: 例文・訳・正解が正しいか
+${task.format === 'quiz_reply' ? '7. postに正解・解説が漏れていないか（正解は必ずreplyのみ）' : ''}
+
+【出力形式】
+修正を反映した最終版を、次のJSONだけで出力（前後に説明文を付けない）：
+${task.format === 'quiz_reply'
+  ? '{"post": "問題ポスト本文", "reply": "解答リプライ本文"}'
+  : '{"post": "投稿本文", "reply": null}'}`;
+}
+
+function buildEikenShortenPrompt(task, parsed) {
+  return `以下の投稿が文字数制限を超えています。内容の核を残したまま短縮してください。
+
+post（${task.bodyLimit}文字以内に）:
+${parsed.post}
+${parsed.reply ? `\nreply（${task.replyLimit}文字以内に）:\n${parsed.reply}` : ''}
+
+【出力形式】
+次のJSONだけを出力：
+${task.format === 'quiz_reply'
+  ? '{"post": "短縮後の問題ポスト", "reply": "短縮後の解答リプライ"}'
+  : '{"post": "短縮後の投稿本文", "reply": null}'}`;
+}
+
+function eikenWithinLimits(parsed, task) {
+  if (!parsed) return false;
+  if (parsed.post.length > task.bodyLimit) return false;
+  if (task.format === 'quiz_reply' && !parsed.reply) return false;
+  if (parsed.reply && parsed.reply.length > task.replyLimit) return false;
+  return true;
+}
+
+export async function orchestrateEikenPost(task, onMessage) {
+  const conversation = [];
+  const run = async (role, prompt, round) => {
+    const content = await callAgent(role, prompt, [], onMessage, round);
+    conversation.push({ agent: role, name: AGENTS[role].name, round, content });
+    return content;
+  };
+
+  const brief = await run('marketer', buildEikenBriefPrompt(task), 1);
+  const draftRaw = await run('copywriter', buildEikenDraftPrompt(task, brief), 1);
+  const finalRaw = await run('consultant', buildEikenReviewPrompt(task, brief, draftRaw), 2);
+
+  let parsed = parseEikenPostJson(finalRaw) || parseEikenPostJson(draftRaw);
+  if (!parsed) throw new Error('エージェント出力のJSONパースに失敗しました。もう一度お試しください。');
+
+  // 文字数オーバー時はコピーライターに1回だけ短縮させ、それでもダメなら切り詰める
+  if (!eikenWithinLimits(parsed, task)) {
+    const shortenedRaw = await run('copywriter', buildEikenShortenPrompt(task, parsed), 3);
+    const shortened = parseEikenPostJson(shortenedRaw);
+    if (shortened) parsed = shortened;
+    parsed.post = parsed.post.slice(0, task.bodyLimit).trimEnd();
+    if (parsed.reply) parsed.reply = parsed.reply.slice(0, task.replyLimit).trimEnd();
+  }
+
+  return { conversation, post: parsed.post, reply: parsed.reply };
+}
