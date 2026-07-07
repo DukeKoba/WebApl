@@ -4,7 +4,7 @@ import db from '../database.js';
 import { generateTextFull } from '../services/claudeService.js';
 import { tryClaudeOrEmitPrompt, isClaudeCreditError } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
-import { orchestrateEikenPost, parseEikenPostJson } from '../services/agentOrchestrator.js';
+import { orchestrateEikenPost, parseEikenPostJson, parseEikenMarkedText } from '../services/agentOrchestrator.js';
 
 const router = express.Router();
 
@@ -426,9 +426,14 @@ function buildEikenSinglePrompt(task, fixed) {
 - 固定文を除いた本文部分は${task.bodyLimit}文字以内`;
 
   const outputRules = task.format === 'quiz_reply'
-    ? `そのままXに貼れる完成形を、次のJSONだけで出力してください（前後に説明文・コードブロック記号を付けない）：
-{"post": "投稿欄に貼る完成テキスト", "reply": "リプ欄に貼る完成テキスト"}
-※JSON文字列内の改行は必ず \\n とエスケープすること`
+    ? `次の形式で、そのままXに貼れる2つの完成テキストだけを出力してください。
+JSON・コードブロック・前後の説明文は一切付けないこと。「【投稿欄】」「【リプ欄】」の見出しは一字一句このまま使うこと：
+
+【投稿欄】
+（投稿欄にそのまま貼るテキスト）
+
+【リプ欄】
+（リプ欄にそのまま貼るテキスト）`
     : `そのままXに貼れる完成形の投稿テキストのみを出力してください。
 JSON・コードブロック・前後の説明文・見出しは一切付けず、投稿テキストだけを出力すること。`;
 
@@ -576,11 +581,12 @@ router.post('/save-manual', (req, res) => {
   if (!body_text?.trim()) return res.status(400).json({ error: 'body_text is required' });
   const postId = uuidv4();
 
-  // quiz_reply は {"post": "...", "reply": "..."} のJSON、単発投稿はプレーンテキストが基本。
-  // どちらのフォーマットでも逆の形式が貼られた場合は救済する（不正エスケープJSONも修復を試みる）
+  // quiz_reply は「【投稿欄】/【リプ欄】」区切りテキストが基本形式。
+  // 旧形式のJSON（スマートクォート・不正エスケープ含む）や、単発投稿のプレーンテキストも受け付ける
   const trimmed = body_text.trim();
   const looksLikeJson = trimmed.startsWith('{') || trimmed.startsWith('```');
-  const parsed = (format === 'quiz_reply' || looksLikeJson) ? parseEikenPostJson(trimmed) : null;
+  const parsed = parseEikenMarkedText(trimmed)
+    || ((format === 'quiz_reply' || looksLikeJson) ? parseEikenPostJson(trimmed) : null);
   const postText = parsed ? parsed.post : trimmed.replace(/```(?:json)?/gi, '').trim();
   const replyText = parsed?.reply || null;
 
