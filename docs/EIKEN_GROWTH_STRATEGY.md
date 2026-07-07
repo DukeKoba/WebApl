@@ -145,5 +145,8 @@ X→ストアの帰属は正確には取れないため、**promo投稿・プロ
 - `server/src/services/xService.js` — スレッド（リプライ）投稿対応
 - `server/src/services/claudeFallback.js` — APIキー未設定エラーもプロンプト提示フォールバックの対象に
 - `client/src/pages/eiken/EikenHome.jsx` — フォーマット選択UI、試験カウントダウン修正、週間投稿カレンダー「今日の推奨投稿」、**「①投稿欄に貼る／②リプ欄に貼る」の2ブロック・ワンクリックコピーUI**、エージェント協議のリアルタイム表示、自動スレッド投稿ボタン
-- `client/src/components/shared/AiModeToggle.jsx` — 同一タブ内でAI実行/プロンプトのみ切替が反映されないバグを修正
+- `client/src/components/shared/AiModeToggle.jsx` — 同一タブ内でAI実行/プロンプトのみ切替が反映されないバグを修正。**デフォルトを「プロンプトのみ」に変更**（APIクレジットを消費しない運用が基本）
+
+### APIキーなし運用（プロンプトのみモード）
+Claude APIのクレジットがなくても全機能が使える。デフォルトの「プロンプトのみ」モードでは、生成ボタンを押すと完成済みプロンプトが表示され、ワンクリックでClaude.ai / ChatGPT / Geminiがプロンプト入力済みの状態で開く。外部AIの出力（完成形）を貼り戻せば、X投稿・解答リプ・動画台本・大学受験投稿のすべてがそのまま使える。APIキー設定済みでもクレジット切れ・認証エラー時は自動でプロンプト方式にフォールバックする。
 - `client/src/pages/eiken/EikenHistory.jsx` — 解答リプの履歴表示

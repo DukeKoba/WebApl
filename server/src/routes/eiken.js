@@ -2,7 +2,7 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { generateTextFull } from '../services/claudeService.js';
-import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
+import { tryClaudeOrEmitPrompt, isClaudeCreditError } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
 import { orchestrateEikenPost, parseEikenPostJson } from '../services/agentOrchestrator.js';
 
@@ -590,14 +590,25 @@ router.post('/generate-script', async (req, res) => {
 
 台本のみを出力してください。前後に説明文を入れないでください。`;
 
+  const systemPrompt = 'あなたはTikTok・Instagram Reelsの動画制作と英語教育の専門家です。高校生に刺さる短尺動画の台本を作成します。';
+  const promptInfo = [{
+    label: `英検${lv.label} ${typeLabel} 動画台本プロンプト`,
+    system: systemPrompt,
+    user: prompt,
+  }];
+
+  // APIキーなし運用: プロンプトのみモード、またはAPIが使えない場合はプロンプトを返して外部AIで実行してもらう
+  if (req.body.prompt_only) {
+    return res.json({ fallback: { reason: 'prompt_only', prompts: promptInfo } });
+  }
+
   try {
-    const script = await generateTextFull(
-      'あなたはTikTok・Instagram Reelsの動画制作と英語教育の専門家です。高校生に刺さる短尺動画の台本を作成します。',
-      prompt,
-      { maxTokens: 1000 }
-    );
+    const script = await generateTextFull(systemPrompt, prompt, { maxTokens: 1000 });
     res.json({ script: script.trim() });
   } catch (err) {
+    if (isClaudeCreditError(err)) {
+      return res.json({ fallback: { reason: 'api_error', message: err.message, prompts: promptInfo } });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -692,7 +703,7 @@ router.post('/generate-university-post', async (req, res) => {
     const bodyLimit = 280 - hashtags.length - 2;
 
     const systemPrompt = 'あなたはSNSマーケティングと大学受験の専門家です。';
-    const userPrompt = `大学受験で英検を活用できる情報をX（旧Twitter）に投稿する本文を書いてください。
+    const userPrompt = `大学受験で英検を活用できる情報を、そのままX（旧Twitter）に投稿できる完成形で書いてください。
 
 【大学情報】
 大学名: ${university}
@@ -708,11 +719,13 @@ router.post('/generate-university-post', async (req, res) => {
 - 英語試験が免除・不要である点を強調
 - 記載された事実のみを使い、誇張・断定（「必ず受かる」等）をしない
 - 絵文字は2〜3個
-- 本文は${bodyLimit}文字以内（ハッシュタグはシステムが付与するので含めない）
-- 本文のみ出力。ハッシュタグ・URLは含めない`;
+- 本文は${bodyLimit}文字以内
+- 末尾に次のハッシュタグを一字一句このまま置く: "${hashtags}"
+- URLは含めない
+- 投稿テキストのみを出力（前後に説明文を付けない）`;
 
     const promptInfo = [{
-      label: `${university} 大学受験X投稿プロンプト`,
+      label: `${university} 大学受験X投稿プロンプト（完成形出力）`,
       system: systemPrompt,
       user: userPrompt,
     }];
@@ -721,7 +734,7 @@ router.post('/generate-university-post', async (req, res) => {
       promptInfo,
       async () => {
         const body = (await generateTextFull(systemPrompt, userPrompt, { maxTokens: 300, temperature: 1.0 })).trim();
-        return body.length > bodyLimit ? body.slice(0, bodyLimit).trimEnd() : body;
+        return body;
       },
       sendEvent,
       prompt_only,
@@ -732,7 +745,8 @@ router.post('/generate-university-post', async (req, res) => {
       return;
     }
 
-    const postText = `${generated}\n${hashtags}`;
+    // 完成形出力（末尾ハッシュタグ込み）。念のため欠けていた場合のみ付与する
+    const postText = generated.includes(hashtags) ? generated : `${generated}\n${hashtags}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
       postId, 'eiken', postText, JSON.stringify({ university, level, type: 'university' }), 'draft'

@@ -297,6 +297,27 @@ function UniversityCard({ data }) {
   const [isPublishing, setIsPublishing] = useState(false);
   const [postStatus, setPostStatus] = useState('draft');
   const [error, setError] = useState('');
+  const [fallbackPrompt, setFallbackPrompt] = useState(null);
+  const [aiMode] = useAiMode();
+
+  const handleSaveManual = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await authFetch('/eiken/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionType: 'university', level: data.level, format: 'value', body_text: text }),
+      });
+      const d = await res.json();
+      if (d.post_id) {
+        setPostText(d.post_text);
+        setPostId(d.post_id);
+        setFallbackPrompt(null);
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+  };
 
   const handleGeneratePost = async () => {
     setIsGenerating(true);
@@ -304,6 +325,7 @@ function UniversityCard({ data }) {
     setPostId(null);
     setPostStatus('draft');
     setError('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/eiken/generate-university-post', {
@@ -316,6 +338,7 @@ function UniversityCard({ data }) {
           condition: data.condition,
           exemption: data.exemption,
           tips: data.tips,
+          prompt_only: aiMode === 'prompt',
         }),
       });
 
@@ -339,6 +362,8 @@ function UniversityCard({ data }) {
               if (event === 'final_post') {
                 setPostText(d.post_text);
                 setPostId(d.post_id);
+              } else if (event === 'fallback_prompt') {
+                setFallbackPrompt(d);
               } else if (event === 'error') {
                 setError(d.message);
               }
@@ -356,6 +381,12 @@ function UniversityCard({ data }) {
   const handlePublish = async (id) => {
     setIsPublishing(true);
     try {
+      // プレビューで編集した本文を保存してから投稿する
+      await authFetch(`/eiken/posts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_text: postText }),
+      });
       const res = await authFetch(`/eiken/posts/${id}/publish`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
@@ -469,6 +500,18 @@ function UniversityCard({ data }) {
           </button>
         </div>
       </div>
+
+      {/* Fallback prompt panel (プロンプトのみ / API利用不可) */}
+      {fallbackPrompt && (
+        <PromptFallbackPanel
+          prompts={fallbackPrompt.prompts}
+          reason={fallbackPrompt.reason || 'prompt_only'}
+          errorMessage={fallbackPrompt.message}
+          placeholder="外部AIで生成した投稿テキスト（ハッシュタグ込みの完成形）をそのまま貼り付けてください"
+          saveLabel="完成形として保存"
+          onSave={handleSaveManual}
+        />
+      )}
 
       {/* Inline post preview */}
       {postText && (
@@ -679,16 +722,21 @@ export default function EikenHome() {
     setIsGenerating(true);
     setScript('');
     setError('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/eiken/generate-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionType, level }),
+        body: JSON.stringify({ questionType, level, prompt_only: promptOnly }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setScript(data.script);
+      if (data.fallback) {
+        setFallbackPrompt(data.fallback);
+      } else {
+        setScript(data.script);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -952,7 +1000,7 @@ export default function EikenHome() {
           </button>
         </div>}
 
-        {/* Fallback prompt panel (X tab only) */}
+        {/* Fallback prompt panel */}
         {tab === 'x' && fallbackPrompt && (
           <PromptFallbackPanel
             prompts={fallbackPrompt.prompts}
@@ -961,6 +1009,19 @@ export default function EikenHome() {
             placeholder='外部AIの出力をそのまま貼り付け（{"post": "...", "reply": "..."} のJSON、または投稿テキスト。完成形としてそのまま保存されます）'
             saveLabel="完成形として保存"
             onSave={handleSaveManualEiken}
+          />
+        )}
+        {tab === 'script' && fallbackPrompt && (
+          <PromptFallbackPanel
+            prompts={fallbackPrompt.prompts}
+            reason={fallbackPrompt.reason || 'prompt_only'}
+            errorMessage={fallbackPrompt.message}
+            placeholder="外部AIで生成した動画台本をそのまま貼り付けてください"
+            saveLabel="台本として表示"
+            onSave={(text) => {
+              setScript(text.trim());
+              setFallbackPrompt(null);
+            }}
           />
         )}
 
