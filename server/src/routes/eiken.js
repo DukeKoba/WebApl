@@ -207,64 +207,71 @@ const LEVEL_CONFIG = {
     label: '準1級',
     target: '大学生・社会人（TOEIC600点相当、上級英語力を目指す学習者）',
     hook: '準1級合格で英語力を証明したいという向上心に響く冒頭フック',
-    hashtags: '#英検準1級 #英語学習 #TOEIC',
+    hashtags: '#英検準1級 #英語学習',
     difficulty: 'TOEIC700点・大学上位レベル。allocate/discrepancy/paradigm相当のアカデミック語彙、倒置・強調構文・仮定法過去完了、抽象度の高い論説文を扱う。',
   },
   '2': {
     label: '2級',
     target: '高校生（推薦・一般入試で英検2級を目指している学生）',
     hook: '高校生が「推薦のために英検2級を取りたい」という動機に響く冒頭フック',
-    hashtags: '#英検2級 #英語学習 #大学受験',
+    hashtags: '#英検2級 #大学受験',
     difficulty: '高校英語・大学受験レベル。acquire/inevitable/propose相当の語彙、関係詞・仮定法・分詞構文、社会的テーマの長文を扱う。',
   },
   pre2: {
     label: '準2級',
     target: '中高生（高校入試や英語の基礎固めを目指す学習者）',
     hook: '準2級で英語に自信をつけたい中高生に響く冒頭フック',
-    hashtags: '#英検準2級 #英語学習 #高校受験',
+    hashtags: '#英検準2級 #英語学習',
     difficulty: '中学〜高校初級レベル。environment/experience/promise相当の語彙、不定詞・受動態・比較、日常的な話題を扱う。難しすぎる表現は使わない。',
   },
   pre2plus: {
     label: '準2級プラス',
     target: '高校生（準2級合格後、2級を目指してステップアップしたい学習者）',
     hook: '準2級合格後に2級へ向けてレベルアップしたい高校生に響く冒頭フック',
-    hashtags: '#英検準2級プラス #英語学習 #高校受験',
+    hashtags: '#英検準2級プラス #英語学習',
     difficulty: '高校初〜中級レベル（準2級と2級の中間）。acquire/propose相当の語彙、仮定法入門・分詞・間接疑問、やや抽象的なテーマも扱う。2級ほど難しくしない。',
   },
   '3': {
     label: '3級',
     target: '中学生（英検3級取得を目指す学習者）',
     hook: '中学生が英検3級に挑戦する動機に響く冒頭フック',
-    hashtags: '#英検3級 #英語学習 #中学英語',
+    hashtags: '#英検3級 #中学英語',
     difficulty: '中学英語レベル。enjoy/practice/excited相当の基本語彙、現在完了・不定詞・接続詞、短くわかりやすい文を使う。仮定法や分詞構文は使わない。',
   },
   '4': {
     label: '4級',
     target: '小中学生（英検4級を目指す学習者）',
     hook: '英語の基礎を楽しく学びたい小中学生に響く冒頭フック',
-    hashtags: '#英検4級 #英語学習 #小学英語',
+    hashtags: '#英検4級 #英語学習',
     difficulty: '小〜中学初級レベル。food/sport/family相当の日常語彙、be動詞・一般動詞・過去形・can、例文は10語以内のシンプルな文のみ。現在完了・仮定法は使わない。',
   },
   '5': {
     label: '5級',
     target: '小学生・英語初心者（英検5級にチャレンジする学習者）',
     hook: '英語を初めて学ぶ子どもや保護者に響く冒頭フック',
-    hashtags: '#英検5級 #英語学習 #英語初心者',
+    hashtags: '#英検5級 #英語初心者',
     difficulty: '超基礎レベル。hello/cat/red/Monday/school相当の最も基本的な語彙のみ。be動詞と簡単な一般動詞のみ使用、例文は5〜7語以内、難しい文法は一切使わない。',
   },
 };
 
-const EXAM_DATES = {
-  '2': new Date('2026-05-31'),
-};
+// 一次試験（本会場）は全級共通日程。過去の日付は自動でスキップされる。
+const EXAM_SCHEDULE = [
+  { round: '2026年度第1回', date: '2026-05-31' },
+  { round: '2026年度第2回', date: '2026-10-04' },
+  { round: '2026年度第3回', date: '2027-01-24' },
+];
 
-function getDaysUntilExam(level) {
-  const examDate = EXAM_DATES[level];
-  if (!examDate) return null;
+// カウントダウンは直前期のみ（残り日数が大きいと訴求力がなく本文の文字数も削るため）
+const COUNTDOWN_WINDOW_DAYS = 60;
+
+function getNextExam() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const diff = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
-  return diff > 0 ? diff : 0;
+  for (const exam of EXAM_SCHEDULE) {
+    const daysUntil = Math.ceil((new Date(exam.date) - today) / (1000 * 60 * 60 * 24));
+    if (daysUntil >= 0) return { ...exam, daysUntil };
+  }
+  return null;
 }
 
 const CTA_LINKS = {
@@ -286,20 +293,39 @@ function calcXCharCount(text) {
   return text.replace(urlRegex, 'x'.repeat(23)).length;
 }
 
-// Build the fixed suffix (CTA + hashtags) and return it with its X char cost
-function buildSuffix(lv, level) {
-  const ctaText = buildCtaText(level);
+// 投稿フォーマット:
+//  - quiz_reply: 本文はリンクなしのクイズ。解答・解説＋アプリリンクはリプ欄に投稿（リーチとCVの両立）
+//  - value:      リンクなしの価値提供投稿（Xは外部リンク付き投稿のリーチを下げるため通常はこちら）
+//  - promo:      本文にアプリリンクを含める宣伝投稿（週1回程度に抑える想定）
+const POST_FORMATS = ['quiz_reply', 'value', 'promo'];
+
+function defaultFormat(questionType) {
+  return ['vocabulary', 'grammar'].includes(questionType) ? 'quiz_reply' : 'value';
+}
+
+// Build the fixed suffix (hashtags, and CTA only for promo) with its X char cost
+function buildSuffix(lv, level, format) {
+  const ctaText = format === 'promo' ? buildCtaText(level) : null;
   const suffix = ctaText ? `\n${ctaText}\n${lv.hashtags}` : `\n${lv.hashtags}`;
   return { suffix, cost: calcXCharCount(suffix) };
 }
 
-// Build the fixed prefix (exam countdown) and return it with its X char cost
-function buildPrefix(level) {
-  const daysUntil = getDaysUntilExam(level);
-  if (daysUntil === null) return { prefix: '', cost: 0 };
-  const prefix = `📅 1次試験まであと${daysUntil}日！\n`;
+// Build the fixed prefix (exam countdown, only within the countdown window)
+function buildPrefix() {
+  const exam = getNextExam();
+  if (!exam || exam.daysUntil > COUNTDOWN_WINDOW_DAYS) return { prefix: '', cost: 0 };
+  const prefix = `📅 1次試験まであと${exam.daysUntil}日！\n`;
   return { prefix, cost: prefix.length };
 }
+
+// 誇大表現・偽の限定性・エンゲージメント乞いはアカウントの信頼とリーチを毀損するため全生成で禁止する
+const CONTENT_QUALITY_RULES = `【コンテンツ品質ルール（厳守）】
+- 架空の統計・数字を作らない（「合格者の98%が知っている」「受験生の92%が間違える」等は禁止）
+- 「残り○時間限定」「正解者にプレゼント」など、実施していない企画や偽の限定性を書かない
+- 「いいね・RT・フォローお願いします」等のお願い・依頼文を入れない
+- 「これだけで合格」「絶対に出る」等の誇大な断定をしない
+- 読んだ人がこの投稿だけで1つ確実に学べる、具体的で正確な内容にする
+- 冒頭1行は挨拶や前置きではなく、続きを読みたくなる具体的なフックにする（問い・意外な事実・あるあるの失敗など）`;
 
 function buildEikenPrompt(questionType, level, bodyLimit, variety = '') {
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
@@ -318,11 +344,13 @@ function buildEikenPrompt(questionType, level, bodyLimit, variety = '') {
 ${lv.difficulty}
 上記レベルを必ず守り、それより難しい語彙・文法を使わないこと。
 
+${CONTENT_QUALITY_RULES}
+
 【本文の要件】
 - ${lv.hook}
 ${extra ? `- ${extra}` : `- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ`}
 ${varietyLine}
-- クイズ形式なら選択肢は①②の2択のみ
+- クイズ形式なら選択肢は①②の2択のみとし、正解と一言解説も同じ本文内に含める
 - 絵文字は1〜2個まで
 - **本文は${bodyLimit}文字以内**（厳守）
 
@@ -330,19 +358,71 @@ ${varietyLine}
 本文テキストのみ。URL・ハッシュタグ・受験日カウントダウン・前置き・説明文は一切含めないこと。`;
 }
 
+// quiz_reply: 本文＝出題（正解を書かない）、リプ＝解答・解説。JSONで両方を生成させる
+function buildQuizReplyPrompt(questionType, level, bodyLimit, replyLimit, variety = '') {
+  const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
+  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+  const varietyLine = variety ? `- 今回のテーマ・切り口：「${variety}」で出題してください（毎回違う内容にするため）` : '';
+
+  return `英検${lv.label}の${typeLabel}クイズをX（Twitter）用に作成してください。ターゲット: **${lv.target}**
+
+【役割】
+あなたはSNSマーケティングと英語教育の専門家です。
+「問題ポスト」と「解答リプライ」の2つを作成します。フォロワーがリプ欄で答えたくなる構成にしてください。
+
+【難易度・使用語彙の厳守事項】
+${lv.difficulty}
+上記レベルを必ず守り、それより難しい語彙・文法を使わないこと。
+
+${CONTENT_QUALITY_RULES}
+
+【問題ポスト（post）の要件】
+- ${lv.hook}
+- 選択肢は①〜④の4択（3択でも可）
+- **正解・解説は絶対に書かない**（「答えはリプ欄👇」で締める）
+${varietyLine}
+- 絵文字は1〜2個まで
+- ${bodyLimit}文字以内（厳守）
+
+【解答リプライ（reply）の要件】
+- 1行目で正解を明示（例：「正解は②！」）
+- なぜその答えになるか＋覚え方や関連知識を簡潔に解説
+- 絵文字は1個まで
+- ${replyLimit}文字以内（厳守）
+- URL・ハッシュタグは書かない（システムが自動付与）
+
+【出力形式】
+次のJSONだけを出力してください。前後に説明文・コードブロック記号を付けないこと。
+{"post": "問題ポスト本文", "reply": "解答リプライ本文"}`;
+}
+
+// Extract {post, reply} from a model response that should be JSON
+function parseQuizJson(text) {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try {
+    const obj = JSON.parse(match[0]);
+    if (typeof obj.post === 'string' && typeof obj.reply === 'string') {
+      return { post: obj.post.trim(), reply: obj.reply.trim() };
+    }
+  } catch { /* fall through */ }
+  return null;
+}
+
 // GET /api/eiken/exam-info
 router.get('/exam-info', (req, res) => {
-  const info = {};
-  for (const [level, date] of Object.entries(EXAM_DATES)) {
-    const days = getDaysUntilExam(level);
-    info[level] = { examDate: date.toISOString().slice(0, 10), daysUntil: days };
-  }
-  res.json(info);
+  const next = getNextExam();
+  res.json({
+    next,
+    countdownActive: !!next && next.daysUntil <= COUNTDOWN_WINDOW_DAYS,
+    schedule: EXAM_SCHEDULE,
+  });
 });
 
 // POST /api/eiken/generate - Direct single-call generation (SSE)
 router.post('/generate', async (req, res) => {
   const { questionType = 'vocabulary', level = '2', prompt_only = false } = req.body;
+  const format = POST_FORMATS.includes(req.body.format) ? req.body.format : defaultFormat(questionType);
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -356,24 +436,49 @@ router.post('/generate', async (req, res) => {
   try {
     const postId = uuidv4();
     const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-    const { prefix } = buildPrefix(level);
-    const { suffix, cost: suffixCost } = buildSuffix(lv, level);
+    const { prefix } = buildPrefix();
+    const { suffix, cost: suffixCost } = buildSuffix(lv, level, format);
     const prefixCost = prefix.length;
     const bodyLimit = 280 - prefixCost - suffixCost - 2; // 2 for safety margin
 
     const systemPrompt = 'あなたはSNSマーケティングと英語教育の専門家です。';
     const variety = pickVariety(questionType, level);
-    const userPrompt = buildEikenPrompt(questionType, level, bodyLimit, variety);
+
+    // 解答リプにはCTAリンクを付ける（本文をリンクなしに保ちつつ、正解を見に来た人に届く）
+    const ctaText = buildCtaText(level);
+    const replySuffix = ctaText ? `\n\n${ctaText}` : '';
+    const replyLimit = 280 - calcXCharCount(replySuffix) - 2;
+
+    const userPrompt = format === 'quiz_reply'
+      ? buildQuizReplyPrompt(questionType, level, bodyLimit, replyLimit, variety)
+      : buildEikenPrompt(questionType, level, bodyLimit, variety);
 
     const promptInfo = [{
-      label: `英検${lv.label} ${questionType} 投稿生成プロンプト`,
+      label: `英検${lv.label} ${questionType} 投稿生成プロンプト（${format}）`,
       system: systemPrompt,
-      user: `${userPrompt}\n\n【出力形式】\n本文のみを出力してください（前後の固定文 "${prefix}" と "${suffix}" はシステム側で付与します）。本文は ${bodyLimit} 文字以内厳守。`,
+      user: format === 'quiz_reply'
+        ? userPrompt
+        : `${userPrompt}\n\n【出力形式】\n本文のみを出力してください（前後の固定文 "${prefix}" と "${suffix}" はシステム側で付与します）。本文は ${bodyLimit} 文字以内厳守。`,
     }];
 
     const generated = await tryClaudeOrEmitPrompt(
       promptInfo,
       async () => {
+        if (format === 'quiz_reply') {
+          for (let attempt = 0; attempt < 3; attempt++) {
+            const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
+            const prompt = buildQuizReplyPrompt(questionType, level, limitForAttempt, replyLimit, variety);
+            const raw = await generateTextFull(systemPrompt, prompt, { maxTokens: 700, temperature: 1.0 });
+            const parsed = parseQuizJson(raw);
+            if (parsed && parsed.post.length <= bodyLimit && parsed.reply.length <= replyLimit) return parsed;
+            if (parsed && attempt === 2) {
+              parsed.post = parsed.post.slice(0, bodyLimit).trimEnd();
+              parsed.reply = parsed.reply.slice(0, replyLimit).trimEnd();
+              return parsed;
+            }
+          }
+          throw new Error('クイズ生成のJSONパースに失敗しました。もう一度お試しください。');
+        }
         let body = '';
         for (let attempt = 0; attempt < 3; attempt++) {
           const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
@@ -393,13 +498,15 @@ router.post('/generate', async (req, res) => {
       return;
     }
 
-    const postText = `${prefix}${generated}${suffix}`;
+    const body = typeof generated === 'string' ? generated : generated.post;
+    const replyText = typeof generated === 'string' ? null : `${generated.reply}${replySuffix}`;
+    const postText = `${prefix}${body}${suffix}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'eiken', postText, JSON.stringify({ questionType, level }), 'draft'
+      postId, 'eiken', postText, JSON.stringify({ questionType, level, format, ...(replyText ? { reply_text: replyText } : {}) }), 'draft'
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText });
+    sendEvent('final_post', { post_id: postId, post_text: postText, reply_text: replyText });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });
@@ -411,16 +518,30 @@ router.post('/generate', async (req, res) => {
 // POST /api/eiken/save-manual - Save manually-generated post text
 router.post('/save-manual', (req, res) => {
   const { questionType, level = '2', body_text } = req.body;
+  const format = POST_FORMATS.includes(req.body.format) ? req.body.format : defaultFormat(questionType);
   if (!body_text?.trim()) return res.status(400).json({ error: 'body_text is required' });
   const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-  const { prefix } = buildPrefix(level);
-  const { suffix } = buildSuffix(lv, level);
+  const { prefix } = buildPrefix();
+  const { suffix } = buildSuffix(lv, level, format);
   const postId = uuidv4();
-  const postText = `${prefix}${body_text.trim()}${suffix}`;
+
+  // quiz_reply の外部AI出力は {"post": "...", "reply": "..."} のJSONでも受け付ける
+  let body = body_text.trim();
+  let replyText = null;
+  if (format === 'quiz_reply') {
+    const parsed = parseQuizJson(body);
+    if (parsed) {
+      body = parsed.post;
+      const ctaText = buildCtaText(level);
+      replyText = ctaText ? `${parsed.reply}\n\n${ctaText}` : parsed.reply;
+    }
+  }
+
+  const postText = `${prefix}${body}${suffix}`;
   db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-    postId, 'eiken', postText, JSON.stringify({ questionType, level, manual: true }), 'draft'
+    postId, 'eiken', postText, JSON.stringify({ questionType, level, format, manual: true, ...(replyText ? { reply_text: replyText } : {}) }), 'draft'
   );
-  res.json({ post_id: postId, post_text: postText });
+  res.json({ post_id: postId, post_text: postText, reply_text: replyText });
 });
 
 // POST /api/eiken/generate-script - TikTok/Reels script generation
@@ -429,9 +550,9 @@ router.post('/generate-script', async (req, res) => {
   const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
 
-  const daysUntilScript = getDaysUntilExam(level);
-  const examHook = daysUntilScript !== null
-    ? `\n- フック冒頭で「1次試験まであと${daysUntilScript}日！」を必ず入れる` : '';
+  const nextExam = getNextExam();
+  const examHook = nextExam && nextExam.daysUntil <= COUNTDOWN_WINDOW_DAYS
+    ? `\n- フック冒頭で「1次試験まであと${nextExam.daysUntil}日！」を必ず入れる` : '';
   const cta = CTA_LINKS[level];
   const ctaLabel = cta ? cta.label : 'AI英検Pass';
   const ctaUrl = cta ? cta.url : '';
@@ -506,8 +627,17 @@ router.get('/posts/:id', (req, res) => {
 
 // PUT /api/eiken/posts/:id
 router.put('/posts/:id', (req, res) => {
-  const { post_text } = req.body;
-  db.prepare(`UPDATE sns_posts SET post_text = ? WHERE id = ? AND app_type = 'eiken'`).run(post_text, req.params.id);
+  const { post_text, reply_text } = req.body;
+  const post = db.prepare(`SELECT * FROM sns_posts WHERE id = ? AND app_type = 'eiken'`).get(req.params.id);
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+
+  const metadata = JSON.parse(post.metadata || '{}');
+  if (reply_text !== undefined) {
+    if (reply_text) metadata.reply_text = reply_text;
+    else delete metadata.reply_text;
+  }
+  db.prepare(`UPDATE sns_posts SET post_text = ?, metadata = ? WHERE id = ? AND app_type = 'eiken'`)
+    .run(post_text ?? post.post_text, JSON.stringify(metadata), req.params.id);
   res.json({ success: true });
 });
 
@@ -521,7 +651,23 @@ router.post('/posts/:id/publish', async (req, res) => {
     db.prepare(
       `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP WHERE id = ?`
     ).run(result.id, post.id);
-    res.json({ success: true, tweet_id: result.id });
+
+    // quiz_reply: 解答（＋アプリリンク）をリプ欄にぶら下げる
+    const metadata = JSON.parse(post.metadata || '{}');
+    let replyTweetId = null;
+    let replyError = null;
+    if (metadata.reply_text) {
+      try {
+        const replyResult = await postTweet(metadata.reply_text, { replyToId: result.id });
+        replyTweetId = replyResult.id;
+      } catch (err) {
+        replyError = err.message;
+        db.prepare(`UPDATE sns_posts SET error_message = ? WHERE id = ?`)
+          .run(`本文は投稿済み。解答リプの投稿に失敗: ${err.message}`, post.id);
+      }
+    }
+
+    res.json({ success: true, tweet_id: result.id, reply_tweet_id: replyTweetId, reply_error: replyError });
   } catch (err) {
     db.prepare(`UPDATE sns_posts SET status = 'failed', error_message = ? WHERE id = ?`).run(err.message, post.id);
     res.status(500).json({ error: err.message });
@@ -544,7 +690,7 @@ router.post('/generate-university-post', async (req, res) => {
   try {
     const postId = uuidv4();
     const levelLabel = level === 'pre1' ? '準1級' : level === '2' ? '2級' : level === 'pre2' ? '準2級' : level;
-    const hashtags = `#英検${levelLabel} #大学受験 #推薦入試`;
+    const hashtags = `#英検${levelLabel} #推薦入試`;
     const bodyLimit = 280 - hashtags.length - 2;
 
     const systemPrompt = 'あなたはSNSマーケティングと大学受験の専門家です。';
@@ -562,6 +708,7 @@ router.post('/generate-university-post', async (req, res) => {
 - 高校生・受験生が「これは知らなかった！」と思う情報にする
 - 英検を持っている人に刺さる内容
 - 英語試験が免除・不要である点を強調
+- 記載された事実のみを使い、誇張・断定（「必ず受かる」等）をしない
 - 絵文字は2〜3個
 - 本文は${bodyLimit}文字以内（ハッシュタグはシステムが付与するので含めない）
 - 本文のみ出力。ハッシュタグ・URLは含めない`;

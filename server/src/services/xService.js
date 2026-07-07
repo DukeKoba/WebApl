@@ -9,9 +9,12 @@ function getClient() {
   });
 }
 
-export async function postTweet(text) {
+export async function postTweet(text, { replyToId } = {}) {
   const client = getClient();
-  const result = await client.v2.tweet(text);
+  const payload = replyToId
+    ? { text, reply: { in_reply_to_tweet_id: replyToId } }
+    : { text };
+  const result = await client.v2.tweet(payload);
   return result.data;
 }
 

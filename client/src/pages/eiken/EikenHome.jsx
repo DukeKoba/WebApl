@@ -441,7 +441,7 @@ function UniversitySection() {
       </div>
 
       {UNIVERSITY_DATA.map(data => (
-        <UniversityCard key={data.level} data={data} />
+        <UniversityCard key={`${data.university}-${data.faculty}`} data={data} />
       ))}
 
       <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
@@ -454,15 +454,62 @@ function UniversitySection() {
   );
 }
 
-const EXAM_DATES = { '2': '2026-05-31' };
+// 一次試験（本会場）は全級共通日程。過去の日付は自動でスキップ（サーバー側 eiken.js と同期）
+const EXAM_SCHEDULE = [
+  { round: '2026年度第1回', date: '2026-05-31' },
+  { round: '2026年度第2回', date: '2026-10-04' },
+  { round: '2026年度第3回', date: '2027-01-24' },
+];
 
-function getDaysUntil(dateStr) {
+function getNextExam() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = new Date(dateStr);
-  const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
-  return diff > 0 ? diff : 0;
+  for (const exam of EXAM_SCHEDULE) {
+    const daysUntil = Math.ceil((new Date(exam.date) - today) / (1000 * 60 * 60 * 24));
+    if (daysUntil >= 0) return { ...exam, daysUntil };
+  }
+  return null;
 }
+
+// 投稿フォーマット（server/src/routes/eiken.js の POST_FORMATS と対応）
+const POST_FORMAT_OPTIONS = [
+  { value: 'quiz_reply', label: 'クイズ＋答えはリプ欄', desc: '本文はリンクなしのクイズ。解答とアプリリンクはリプライで自動投稿（リーチ重視・推奨）' },
+  { value: 'value', label: '価値提供', desc: 'リンクなしのTips投稿。リーチを稼いでプロフィール経由でアプリへ誘導' },
+  { value: 'promo', label: 'アプリ訴求', desc: '本文にApp Storeリンクを含める宣伝投稿。リーチが下がるため週1回程度に' },
+];
+
+function defaultFormat(questionType) {
+  return ['vocabulary', 'grammar'].includes(questionType) ? 'quiz_reply' : 'value';
+}
+
+// 週間投稿カレンダー（docs/EIKEN_GROWTH_STRATEGY.md）。index = getDay()（0=日）
+const WEEKLY_PLAN = [
+  [ // 日
+    { time: '朝', label: '文化表現・雑学', questionType: 'american_culture', format: 'value' },
+    { time: '夜', label: '面接Tips', questionType: 'interview', format: 'value' },
+  ],
+  [ // 月
+    { time: '朝', label: '語彙クイズ', questionType: 'vocabulary', format: 'quiz_reply' },
+  ],
+  [ // 火
+    { time: '朝', label: '文法クイズ', questionType: 'grammar', format: 'quiz_reply' },
+    { time: '夜', label: '学習のコツ', questionType: 'study_tips', format: 'value' },
+  ],
+  [ // 水
+    { time: '朝', label: '語彙クイズ', questionType: 'vocabulary', format: 'quiz_reply' },
+  ],
+  [ // 木
+    { time: '朝', label: '大学入試×英検', university: true },
+    { time: '夜', label: '英語耳・リスニング', questionType: 'listening_tips', format: 'value' },
+  ],
+  [ // 金
+    { time: '朝', label: '語彙クイズ', questionType: 'vocabulary', format: 'quiz_reply' },
+  ],
+  [ // 土
+    { time: '朝', label: 'AI活用Tips', questionType: 'ai_tips', format: 'value' },
+    { time: '夜', label: 'アプリ紹介（週1のリンク付き枠）', questionType: 'study_tips', format: 'promo' },
+  ],
+];
 
 export default function EikenHome() {
   const [tab, setTab] = useState('x');
@@ -471,8 +518,10 @@ export default function EikenHome() {
 
   const [questionType, setQuestionType] = useState('vocabulary');
   const [level, setLevel] = useState('2');
+  const [format, setFormat] = useState(defaultFormat('vocabulary'));
   const [isGenerating, setIsGenerating] = useState(false);
   const [postText, setPostText] = useState('');
+  const [replyText, setReplyText] = useState('');
   const [postId, setPostId] = useState(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
@@ -480,17 +529,23 @@ export default function EikenHome() {
   const [error, setError] = useState('');
   const [fallbackPrompt, setFallbackPrompt] = useState(null);
 
+  const handleSelectQuestionType = (value) => {
+    setQuestionType(value);
+    setFormat(defaultFormat(value));
+  };
+
   const handleSaveManualEiken = async (text) => {
     if (!text.trim()) return;
     try {
       const res = await authFetch('/eiken/save-manual', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionType, level, body_text: text }),
+        body: JSON.stringify({ questionType, level, format, body_text: text }),
       });
       const data = await res.json();
       if (data.post_id) {
         setPostText(data.post_text);
+        setReplyText(data.reply_text || '');
         setPostId(data.post_id);
         setFallbackPrompt(null);
       }
@@ -502,6 +557,7 @@ export default function EikenHome() {
   const handleGenerateX = async () => {
     setIsGenerating(true);
     setPostText('');
+    setReplyText('');
     setPostId(null);
     setStatus('draft');
     setError('');
@@ -511,7 +567,7 @@ export default function EikenHome() {
       const res = await authFetch('/eiken/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionType, level, prompt_only: promptOnly }),
+        body: JSON.stringify({ questionType, level, format, prompt_only: promptOnly }),
       });
 
       const reader = res.body.getReader();
@@ -535,6 +591,7 @@ export default function EikenHome() {
               const data = JSON.parse(line.slice(6));
               if (event === 'final_post') {
                 setPostText(data.post_text);
+                setReplyText(data.reply_text || '');
                 setPostId(data.post_id);
               } else if (event === 'fallback_prompt') {
                 setFallbackPrompt(data);
@@ -575,12 +632,18 @@ export default function EikenHome() {
 
   const handlePublish = async (id) => {
     setIsPublishing(true);
+    setError('');
     try {
+      // プレビューで編集した本文・解答リプを保存してから投稿する
+      await authFetch(`/eiken/posts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_text: postText, reply_text: replyText || null }),
+      });
       const res = await authFetch(`/eiken/posts/${id}/publish`, { method: 'POST' });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error);
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      if (data.reply_error) setError(`本文は投稿されましたが、解答リプの投稿に失敗しました: ${data.reply_error}`);
       setStatus('posted');
     } catch (err) {
       setError(err.message);
@@ -591,6 +654,18 @@ export default function EikenHome() {
   };
 
   const levelLabel = EIKEN_LEVELS.find(l => l.value === level)?.label;
+  const nextExam = getNextExam();
+  const todayPlan = WEEKLY_PLAN[new Date().getDay()];
+
+  const applyPlanSlot = (slot) => {
+    if (slot.university) {
+      setTab('university');
+      return;
+    }
+    setTab('x');
+    setQuestionType(slot.questionType);
+    setFormat(slot.format);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -621,17 +696,41 @@ export default function EikenHome() {
 
       <div className="max-w-2xl mx-auto p-4 lg:p-6 space-y-4">
         {/* Exam countdown banner */}
-        {tab !== 'university' && EXAM_DATES[level] && (
+        {tab !== 'university' && nextExam && (
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
             <CalendarClock className="w-5 h-5 text-amber-500 shrink-0" />
             <div className="text-sm">
               <span className="font-semibold text-amber-800">
-                英検{EIKEN_LEVELS.find(l => l.value === level)?.label} 1次試験
+                英検{nextExam.round} 1次試験
               </span>
-              <span className="text-amber-700">（{EXAM_DATES[level]}）まで</span>
+              <span className="text-amber-700">（{nextExam.date}）まで</span>
               <span className="font-bold text-amber-900 text-base ml-1">
-                あと{getDaysUntil(EXAM_DATES[level])}日！
+                あと{nextExam.daysUntil}日！
               </span>
+              {nextExam.daysUntil > 60 && (
+                <span className="text-xs text-amber-600 ml-2">※投稿へのカウントダウン自動付与は60日前から</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Today's recommended posts (weekly content calendar) */}
+        {todayPlan?.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
+            <p className="text-xs font-semibold text-gray-500 mb-2">
+              📆 今日の推奨投稿（{['日', '月', '火', '水', '木', '金', '土'][new Date().getDay()]}曜日）— クリックで設定を反映
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {todayPlan.map((slot, i) => (
+                <button
+                  key={i}
+                  onClick={() => applyPlanSlot(slot)}
+                  className="flex items-center gap-1.5 text-xs font-medium bg-green-50 text-green-800 border border-green-200 hover:bg-green-100 px-3 py-1.5 rounded-full transition-colors"
+                >
+                  <span className="font-bold">{slot.time}</span>
+                  {slot.label}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -721,7 +820,7 @@ export default function EikenHome() {
               {QUESTION_TYPES.map(qt => (
                 <button
                   key={qt.value}
-                  onClick={() => setQuestionType(qt.value)}
+                  onClick={() => handleSelectQuestionType(qt.value)}
                   className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                     questionType === qt.value
                       ? 'bg-green-600 text-white'
@@ -733,6 +832,30 @@ export default function EikenHome() {
               ))}
             </div>
           </div>
+
+          {tab === 'x' && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">投稿フォーマット</label>
+              <div className="space-y-2">
+                {POST_FORMAT_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setFormat(opt.value)}
+                    className={`w-full text-left px-3 py-2.5 rounded-lg border transition-colors ${
+                      format === opt.value
+                        ? 'border-green-600 bg-green-50'
+                        : 'border-gray-200 bg-white hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className={`text-sm font-semibold ${format === opt.value ? 'text-green-700' : 'text-gray-700'}`}>
+                      {opt.label}
+                    </span>
+                    <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
@@ -777,15 +900,35 @@ export default function EikenHome() {
 
         {/* Output */}
         {tab === 'x' ? (
-          <PostPreview
-            platform="x"
-            text={postText}
-            onChange={postId ? setPostText : undefined}
-            postId={postId}
-            onPublish={handlePublish}
-            isPublishing={isPublishing}
-            status={status}
-          />
+          <>
+            <PostPreview
+              platform="x"
+              text={postText}
+              onChange={postId ? setPostText : undefined}
+              postId={postId}
+              onPublish={handlePublish}
+              isPublishing={isPublishing}
+              status={status}
+            />
+            {replyText && (
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 bg-gray-800">
+                  <span className="text-white font-semibold text-sm">💬 解答リプライ（本文の直後にスレッドとして自動投稿）</span>
+                </div>
+                <div className="p-4">
+                  <textarea
+                    value={replyText}
+                    onChange={e => setReplyText(e.target.value)}
+                    rows={5}
+                    className="w-full text-sm border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    アプリリンクはリプ側に付きます（本文をリンクなしに保つことでリーチ低下を防ぐ）
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
         ) : tab === 'script' ? (
           <ScriptPreview script={script} onScriptChange={setScript} />
         ) : null}
