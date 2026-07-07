@@ -3,23 +3,35 @@ import { Bot, FileText } from 'lucide-react';
 
 const STORAGE_KEY = 'cocreo_ai_mode';
 
+// デフォルトは「プロンプトのみ」。APIクレジットを消費しない運用が基本で、
+// AI実行はユーザーが明示的に選んだ場合のみ（切替はlocalStorageに保存される）
 export function getAiMode() {
-  if (typeof window === 'undefined') return 'api';
-  return window.localStorage.getItem(STORAGE_KEY) === 'prompt' ? 'prompt' : 'api';
+  if (typeof window === 'undefined') return 'prompt';
+  return window.localStorage.getItem(STORAGE_KEY) === 'api' ? 'api' : 'prompt';
 }
+
+// storage イベントは別タブでしか発火しないため、同一タブ内の useAiMode 同士は
+// カスタムイベントで同期する（トグルと生成ボタンが別コンポーネントにあるため必須）
+const SYNC_EVENT = 'cocreo-ai-mode-change';
 
 export function useAiMode() {
   const [mode, setModeState] = useState(getAiMode);
   useEffect(() => {
+    const sync = () => setModeState(getAiMode());
     const onStorage = (e) => {
-      if (e.key === STORAGE_KEY) setModeState(e.newValue === 'prompt' ? 'prompt' : 'api');
+      if (e.key === STORAGE_KEY) sync();
     };
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener(SYNC_EVENT, sync);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener(SYNC_EVENT, sync);
+    };
   }, []);
   const setMode = (next) => {
     window.localStorage.setItem(STORAGE_KEY, next);
     setModeState(next);
+    window.dispatchEvent(new Event(SYNC_EVENT));
   };
   return [mode, setMode];
 }

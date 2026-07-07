@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check, CalendarClock, GraduationCap, BadgeCheck, MapPin, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
+import AgentDiscussion from '../../components/shared/AgentDiscussion';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 import { authFetch } from '../../utils/api';
@@ -47,6 +48,64 @@ const APP_LINKS = {
     label: 'AI英検Pass準2プラス',
   },
 };
+
+// X counts every URL as exactly 23 chars regardless of length
+function calcXLength(t) {
+  if (!t) return 0;
+  return t.replace(/https?:\/\/\S+/g, 'x'.repeat(23)).length;
+}
+
+// そのままXに貼れるテキストブロック（投稿欄用・リプ欄用に分けてワンクリックコピー）
+function CopyBlock({ step, title, hint, text, onChange, rows = 6 }) {
+  const [copied, setCopied] = useState(false);
+  const count = calcXLength(text);
+  const over = count > 280;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text || '');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100 bg-black">
+        <span className="w-5 h-5 rounded-full bg-white text-black text-xs font-bold flex items-center justify-center shrink-0">
+          {step}
+        </span>
+        <span className="text-white font-semibold text-sm">{title}</span>
+        <span className={`ml-auto text-xs ${over ? 'text-red-400 font-bold' : 'text-gray-400'}`}>
+          {count} / 280
+        </span>
+      </div>
+      <div className="p-3">
+        <textarea
+          value={text || ''}
+          onChange={onChange ? (e => onChange(e.target.value)) : undefined}
+          readOnly={!onChange}
+          rows={rows}
+          className={`w-full text-sm border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 ${
+            over ? 'border-red-300 focus:ring-red-300' : 'border-gray-200 focus:ring-blue-300'
+          }`}
+        />
+        {over && <p className="text-xs text-red-500 mb-1">Xの文字数制限を超えています</p>}
+        {hint && <p className="text-xs text-gray-400 mb-2">{hint}</p>}
+        <button
+          onClick={handleCopy}
+          className={`w-full py-2.5 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-2 ${
+            copied ? 'bg-green-500 text-white' : 'bg-gray-900 hover:bg-gray-700 text-white'
+          }`}
+        >
+          {copied ? (
+            <><Check className="w-4 h-4" />コピーしました！Xに貼り付けてください</>
+          ) : (
+            <><Copy className="w-4 h-4" />{title}をコピー</>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function ScriptPreview({ script, onScriptChange }) {
   const [copied, setCopied] = useState(false);
@@ -238,6 +297,27 @@ function UniversityCard({ data }) {
   const [isPublishing, setIsPublishing] = useState(false);
   const [postStatus, setPostStatus] = useState('draft');
   const [error, setError] = useState('');
+  const [fallbackPrompt, setFallbackPrompt] = useState(null);
+  const [aiMode] = useAiMode();
+
+  const handleSaveManual = async (text) => {
+    if (!text.trim()) return;
+    try {
+      const res = await authFetch('/eiken/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionType: 'university', level: data.level, format: 'value', body_text: text }),
+      });
+      const d = await res.json();
+      if (d.post_id) {
+        setPostText(d.post_text);
+        setPostId(d.post_id);
+        setFallbackPrompt(null);
+      }
+    } catch (e) {
+      setError(e.message);
+    }
+  };
 
   const handleGeneratePost = async () => {
     setIsGenerating(true);
@@ -245,6 +325,7 @@ function UniversityCard({ data }) {
     setPostId(null);
     setPostStatus('draft');
     setError('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/eiken/generate-university-post', {
@@ -257,6 +338,7 @@ function UniversityCard({ data }) {
           condition: data.condition,
           exemption: data.exemption,
           tips: data.tips,
+          prompt_only: aiMode === 'prompt',
         }),
       });
 
@@ -280,6 +362,8 @@ function UniversityCard({ data }) {
               if (event === 'final_post') {
                 setPostText(d.post_text);
                 setPostId(d.post_id);
+              } else if (event === 'fallback_prompt') {
+                setFallbackPrompt(d);
               } else if (event === 'error') {
                 setError(d.message);
               }
@@ -297,6 +381,12 @@ function UniversityCard({ data }) {
   const handlePublish = async (id) => {
     setIsPublishing(true);
     try {
+      // プレビューで編集した本文を保存してから投稿する
+      await authFetch(`/eiken/posts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_text: postText }),
+      });
       const res = await authFetch(`/eiken/posts/${id}/publish`, { method: 'POST' });
       if (!res.ok) {
         const err = await res.json();
@@ -411,6 +501,18 @@ function UniversityCard({ data }) {
         </div>
       </div>
 
+      {/* Fallback prompt panel (プロンプトのみ / API利用不可) */}
+      {fallbackPrompt && (
+        <PromptFallbackPanel
+          prompts={fallbackPrompt.prompts}
+          reason={fallbackPrompt.reason || 'prompt_only'}
+          errorMessage={fallbackPrompt.message}
+          placeholder="外部AIで生成した投稿テキスト（ハッシュタグ込みの完成形）をそのまま貼り付けてください"
+          saveLabel="完成形として保存"
+          onSave={handleSaveManual}
+        />
+      )}
+
       {/* Inline post preview */}
       {postText && (
         <PostPreview
@@ -482,6 +584,9 @@ function defaultFormat(questionType) {
   return ['vocabulary', 'grammar'].includes(questionType) ? 'quiz_reply' : 'value';
 }
 
+// エージェントチームの実行順（server/src/services/agentOrchestrator.js の orchestrateEikenPost と対応）
+const AGENT_SEQUENCE = ['マーケティングのプロ', '有名コピーライター', 'デジタルマーケティングコンサルタント', '有名コピーライター（最終調整）'];
+
 // 週間投稿カレンダー（docs/EIKEN_GROWTH_STRATEGY.md）。index = getDay()（0=日）
 const WEEKLY_PLAN = [
   [ // 日
@@ -528,6 +633,7 @@ export default function EikenHome() {
   const [script, setScript] = useState('');
   const [error, setError] = useState('');
   const [fallbackPrompt, setFallbackPrompt] = useState(null);
+  const [agentMessages, setAgentMessages] = useState([]);
 
   const handleSelectQuestionType = (value) => {
     setQuestionType(value);
@@ -562,6 +668,7 @@ export default function EikenHome() {
     setStatus('draft');
     setError('');
     setFallbackPrompt(null);
+    setAgentMessages([]);
 
     try {
       const res = await authFetch('/eiken/generate', {
@@ -593,6 +700,8 @@ export default function EikenHome() {
                 setPostText(data.post_text);
                 setReplyText(data.reply_text || '');
                 setPostId(data.post_id);
+              } else if (event === 'agent_message') {
+                setAgentMessages(prev => [...prev, data]);
               } else if (event === 'fallback_prompt') {
                 setFallbackPrompt(data);
               } else if (event === 'error') {
@@ -613,16 +722,21 @@ export default function EikenHome() {
     setIsGenerating(true);
     setScript('');
     setError('');
+    setFallbackPrompt(null);
 
     try {
       const res = await authFetch('/eiken/generate-script', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionType, level }),
+        body: JSON.stringify({ questionType, level, prompt_only: promptOnly }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setScript(data.script);
+      if (data.fallback) {
+        setFallbackPrompt(data.fallback);
+      } else {
+        setScript(data.script);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -886,47 +1000,89 @@ export default function EikenHome() {
           </button>
         </div>}
 
-        {/* Fallback prompt panel (X tab only) */}
+        {/* Fallback prompt panel */}
         {tab === 'x' && fallbackPrompt && (
           <PromptFallbackPanel
             prompts={fallbackPrompt.prompts}
             reason={fallbackPrompt.reason || 'prompt_only'}
             errorMessage={fallbackPrompt.message}
-            placeholder="外部AIで生成したX投稿本文をここに貼り付け（前後の固定文は自動付与されます）"
-            saveLabel="本文を保存"
+            placeholder='外部AIの出力をそのまま貼り付け（{"post": "...", "reply": "..."} のJSON、または投稿テキスト。完成形としてそのまま保存されます）'
+            saveLabel="完成形として保存"
             onSave={handleSaveManualEiken}
+          />
+        )}
+        {tab === 'script' && fallbackPrompt && (
+          <PromptFallbackPanel
+            prompts={fallbackPrompt.prompts}
+            reason={fallbackPrompt.reason || 'prompt_only'}
+            errorMessage={fallbackPrompt.message}
+            placeholder="外部AIで生成した動画台本をそのまま貼り付けてください"
+            saveLabel="台本として表示"
+            onSave={(text) => {
+              setScript(text.trim());
+              setFallbackPrompt(null);
+            }}
           />
         )}
 
         {/* Output */}
         {tab === 'x' ? (
           <>
-            <PostPreview
-              platform="x"
-              text={postText}
-              onChange={postId ? setPostText : undefined}
-              postId={postId}
-              onPublish={handlePublish}
-              isPublishing={isPublishing}
-              status={status}
-            />
-            {replyText && (
-              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 bg-gray-800">
-                  <span className="text-white font-semibold text-sm">💬 解答リプライ（本文の直後にスレッドとして自動投稿）</span>
-                </div>
-                <div className="p-4">
-                  <textarea
-                    value={replyText}
-                    onChange={e => setReplyText(e.target.value)}
-                    rows={5}
-                    className="w-full text-sm border border-gray-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"
+            {/* エージェントチームの協議ログ */}
+            {(isGenerating || agentMessages.length > 0) && (
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                  🤝 エージェントチームの協議{agentMessages.length > 0 && `（${agentMessages.length}件）`}
+                </h3>
+                <div className="max-h-72 overflow-y-auto">
+                  <AgentDiscussion
+                    messages={agentMessages}
+                    isGenerating={isGenerating}
+                    currentAgent={AGENT_SEQUENCE[Math.min(agentMessages.length, AGENT_SEQUENCE.length - 1)]}
                   />
-                  <p className="text-xs text-gray-400 mt-1">
-                    アプリリンクはリプ側に付きます（本文をリンクなしに保つことでリーチ低下を防ぐ）
-                  </p>
                 </div>
               </div>
+            )}
+
+            {/* そのままXに貼れる完成テキスト */}
+            {postText && (
+              <>
+                {status === 'posted' && (
+                  <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-semibold">
+                    <Check className="w-4 h-4" />
+                    Xに投稿しました
+                  </div>
+                )}
+                <CopyBlock
+                  step="①"
+                  title="投稿欄に貼るテキスト"
+                  text={postText}
+                  onChange={postId ? setPostText : undefined}
+                />
+                {replyText && (
+                  <CopyBlock
+                    step="②"
+                    title="リプ欄に貼るテキスト"
+                    hint="①を投稿した直後に、その投稿へのリプライとして貼り付けてください（解答＋アプリリンク）"
+                    text={replyText}
+                    onChange={setReplyText}
+                    rows={5}
+                  />
+                )}
+                {postId && status !== 'posted' && (
+                  <button
+                    onClick={() => handlePublish(postId)}
+                    disabled={isPublishing || calcXLength(postText) > 280 || calcXLength(replyText) > 280}
+                    className="w-full py-3 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2 bg-black hover:bg-gray-800 text-white disabled:bg-gray-300"
+                  >
+                    {isPublishing ? (
+                      <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />投稿中...</>
+                    ) : (
+                      <><Twitter className="w-4 h-4" />{replyText ? 'Xに自動投稿（①→②をスレッドで投稿）' : 'Xに自動投稿'}</>
+                    )}
+                  </button>
+                )}
+              </>
             )}
           </>
         ) : tab === 'script' ? (

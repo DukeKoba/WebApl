@@ -2,8 +2,9 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { generateTextFull } from '../services/claudeService.js';
-import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
+import { tryClaudeOrEmitPrompt, isClaudeCreditError } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
+import { orchestrateEikenPost, parseEikenPostJson } from '../services/agentOrchestrator.js';
 
 const router = express.Router();
 
@@ -327,86 +328,93 @@ const CONTENT_QUALITY_RULES = `【コンテンツ品質ルール（厳守）】
 - 読んだ人がこの投稿だけで1つ確実に学べる、具体的で正確な内容にする
 - 冒頭1行は挨拶や前置きではなく、続きを読みたくなる具体的なフックにする（問い・意外な事実・あるあるの失敗など）`;
 
-function buildEikenPrompt(questionType, level, bodyLimit, variety = '') {
-  const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
-  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-  const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replaceAll('{level}', lv.label);
-  const varietyLine = variety ? `- 今回のテーマ・切り口：「${variety}」で書いてください（毎回違う内容にするため）` : '';
+// docs/EIKEN_GROWTH_STRATEGY.md の要約。エージェントチームの共通コンテキスト
+const EIKEN_PLAYBOOK = `【マーケティング方針（要約）】
+- 目的: X（@optimalrnai）経由でAI英検Passアプリの認知・ダウンロードを増やす。ただし投稿の大半は売り込みではなく「価値提供」でリーチとフォローを稼ぐ（価値8:宣伝2）
+- リンク付き投稿はリーチが下がるため、アプリリンクは解答リプライまたは週1のpromo枠のみ
+- 勝ちパターン: ①リプ欄で答えたくなる参加型クイズ ②「知らなかった」と保存されるTips ③受験・進学に直結する実利情報
+- トーン: 上から目線の先生ではなく、頼れる先輩・伴走者。丁寧すぎず、チャラすぎず`;
 
-  return `英検${lv.label}の学習コンテンツの本文部分のみを書いてください。ターゲット: **${lv.target}**
-問題タイプ: ${typeLabel}
+const HOOK_PATTERNS = `1. 問いかけ型（「〜、英語で言えますか？」）
+2. 意外な事実型（「実は◯◯には△△の意味もある」）
+3. あるある失敗型（「〜と訳した人、要注意」）
+4. ビフォーアフター型（「これを知る前と後で長文の読み方が変わる」）
+5. 共感型（「単語帳、3日で飽きた人へ」）
+6. 直球クイズ型（前置きなしでいきなり問題文から始める）
+7. ミニストーリー型（短い情景・会話の1文から入る）
+8. 手順型（「◯◯は3ステップで解ける」※実在する解き方のみ）`;
 
-【役割】
-あなたはSNSマーケティングと英語教育の専門家です。
-以下の本文のみを出力してください。受験日・URL・ハッシュタグはシステムが自動付与するので含めないでください。
+const FORMAT_DESCRIPTIONS = {
+  quiz_reply: 'クイズ＋答えはリプ欄（本文はリンクなしの4択クイズ。正解・解説とアプリリンクはリプライに分離してエンゲージメントを稼ぐ）',
+  value: '価値提供（リンクなしのTips投稿。リーチとフォロー獲得が目的）',
+  promo: 'アプリ訴求（本文にApp Storeリンクを含む宣伝投稿。週1回の枠）',
+};
 
-【難易度・使用語彙の厳守事項】
-${lv.difficulty}
-上記レベルを必ず守り、それより難しい語彙・文法を使わないこと。
-
-${CONTENT_QUALITY_RULES}
-
-【本文の要件】
-- ${lv.hook}
-${extra ? `- ${extra}` : `- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ`}
-${varietyLine}
-- クイズ形式なら選択肢は①②の2択のみとし、正解と一言解説も同じ本文内に含める
-- 絵文字は1〜2個まで
-- **本文は${bodyLimit}文字以内**（厳守）
-
-【出力形式】
-本文テキストのみ。URL・ハッシュタグ・受験日カウントダウン・前置き・説明文は一切含めないこと。`;
-}
-
-// quiz_reply: 本文＝出題（正解を書かない）、リプ＝解答・解説。JSONで両方を生成させる
-function buildQuizReplyPrompt(questionType, level, bodyLimit, replyLimit, variety = '') {
-  const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
-  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-  const varietyLine = variety ? `- 今回のテーマ・切り口：「${variety}」で出題してください（毎回違う内容にするため）` : '';
-
-  return `英検${lv.label}の${typeLabel}クイズをX（Twitter）用に作成してください。ターゲット: **${lv.target}**
-
-【役割】
-あなたはSNSマーケティングと英語教育の専門家です。
-「問題ポスト」と「解答リプライ」の2つを作成します。フォロワーがリプ欄で答えたくなる構成にしてください。
-
-【難易度・使用語彙の厳守事項】
-${lv.difficulty}
-上記レベルを必ず守り、それより難しい語彙・文法を使わないこと。
-
-${CONTENT_QUALITY_RULES}
-
-【問題ポスト（post）の要件】
+function buildFormatRequirements(format, lv, extra) {
+  const extraBlock = extra ? `\n【問題タイプ固有の指示】\n${extra}\n` : '';
+  if (format === 'quiz_reply') {
+    return `${extraBlock}【問題ポスト（post）の要件】
 - ${lv.hook}
 - 選択肢は①〜④の4択（3択でも可）
 - **正解・解説は絶対に書かない**（「答えはリプ欄👇」で締める）
-${varietyLine}
 - 絵文字は1〜2個まで
-- ${bodyLimit}文字以内（厳守）
 
 【解答リプライ（reply）の要件】
 - 1行目で正解を明示（例：「正解は②！」）
 - なぜその答えになるか＋覚え方や関連知識を簡潔に解説
-- 絵文字は1個まで
-- ${replyLimit}文字以内（厳守）
-- URL・ハッシュタグは書かない（システムが自動付与）
-
-【出力形式】
-次のJSONだけを出力してください。前後に説明文・コードブロック記号を付けないこと。
-{"post": "問題ポスト本文", "reply": "解答リプライ本文"}`;
+- 絵文字は1個まで`;
+  }
+  return `${extraBlock}【投稿本文（post）の要件】
+- ${lv.hook}
+- Tipsまたは例文を1つだけ。読者が今日から実践できる具体性を持たせる
+- クイズ形式にする場合は①②の2択までとし、正解と一言解説も本文内に含める
+- 絵文字は1〜2個まで
+- replyはnull`;
 }
 
-// Extract {post, reply} from a model response that should be JSON
-function parseQuizJson(text) {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  try {
-    const obj = JSON.parse(match[0]);
-    if (typeof obj.post === 'string' && typeof obj.reply === 'string') {
-      return { post: obj.post.trim(), reply: obj.reply.trim() };
-    }
-  } catch { /* fall through */ }
-  return null;
+// prompt-onlyモード用: 外部AIに1回貼るだけで「そのままXに投稿できる完成形」を出力させる一括プロンプト
+function buildEikenSinglePrompt(task, fixed) {
+  const prefixRule = fixed.prefix
+    ? `- postの先頭に次の固定文をそのまま置く: "${fixed.prefix}"`
+    : '- カウントダウンの固定文はなし（付けない）';
+  const replyRule = task.format === 'quiz_reply'
+    ? `- replyの末尾に次の固定文をそのまま置く: "${fixed.replySuffix}"`
+    : '- replyはnull';
+
+  return `あなたはマーケター・コピーライター・品質レビュアーの3役を1人でこなし、X（@optimalrnai）の英検${task.levelLabel}「${task.typeLabel}」投稿を完成させます。
+
+${task.playbook}
+
+【今回の投稿枠】
+フォーマット: ${task.formatDesc}
+ターゲット: ${task.target}
+
+【難易度・使用語彙の厳守事項】
+${task.difficulty}
+
+${task.qualityRules}
+
+${task.formatRequirements}
+
+【最近の投稿（題材・フックの型・言い回しを絶対に被らせない）】
+${task.recentPosts?.length ? task.recentPosts.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n') : '（過去投稿なし）'}
+
+【フックの型（最近の投稿で使われていないものを選ぶ）】
+${task.hookPatterns}
+
+【参考テーマ候補】${task.varietyHint || 'なし'}（採用は任意。より刺さる題材があれば優先）
+
+【完成形の組み立てルール（固定文は一字一句このまま出力に含めること）】
+${prefixRule}
+- postの末尾に次の固定文をそのまま置く: "${fixed.suffix}"
+${replyRule}
+- 固定文を除いた本文部分は、postが${task.bodyLimit}文字以内、replyが${task.replyLimit}文字以内
+
+【出力形式】
+そのままXに貼れる完成形を、次のJSONだけで出力（前後に説明文・コードブロック記号を付けない）：
+${task.format === 'quiz_reply'
+  ? '{"post": "投稿欄に貼る完成テキスト", "reply": "リプ欄に貼る完成テキスト"}'
+  : '{"post": "投稿欄に貼る完成テキスト", "reply": null}'}`;
 }
 
 // GET /api/eiken/exam-info
@@ -438,57 +446,46 @@ router.post('/generate', async (req, res) => {
     const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
     const { prefix } = buildPrefix();
     const { suffix, cost: suffixCost } = buildSuffix(lv, level, format);
-    const prefixCost = prefix.length;
-    const bodyLimit = 280 - prefixCost - suffixCost - 2; // 2 for safety margin
-
-    const systemPrompt = 'あなたはSNSマーケティングと英語教育の専門家です。';
-    const variety = pickVariety(questionType, level);
+    const bodyLimit = 280 - prefix.length - suffixCost - 2; // 2 for safety margin
 
     // 解答リプにはCTAリンクを付ける（本文をリンクなしに保ちつつ、正解を見に来た人に届く）
     const ctaText = buildCtaText(level);
     const replySuffix = ctaText ? `\n\n${ctaText}` : '';
     const replyLimit = 280 - calcXCharCount(replySuffix) - 2;
 
-    const userPrompt = format === 'quiz_reply'
-      ? buildQuizReplyPrompt(questionType, level, bodyLimit, replyLimit, variety)
-      : buildEikenPrompt(questionType, level, bodyLimit, variety);
+    const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
+    const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replaceAll('{level}', lv.label);
+    const recentPosts = db.prepare(
+      `SELECT post_text FROM sns_posts WHERE app_type = 'eiken' ORDER BY created_at DESC LIMIT 8`
+    ).all().map(r => r.post_text);
 
+    const task = {
+      format,
+      formatDesc: FORMAT_DESCRIPTIONS[format],
+      levelLabel: lv.label,
+      typeLabel,
+      target: lv.target,
+      difficulty: lv.difficulty,
+      qualityRules: CONTENT_QUALITY_RULES,
+      playbook: EIKEN_PLAYBOOK,
+      hookPatterns: HOOK_PATTERNS,
+      formatRequirements: buildFormatRequirements(format, lv, extra),
+      bodyLimit,
+      replyLimit,
+      recentPosts,
+      varietyHint: pickVariety(questionType, level),
+    };
+
+    // prompt-onlyモード: 外部AIに貼るだけで完成形（固定文込み）が出る一括プロンプトを提示
     const promptInfo = [{
-      label: `英検${lv.label} ${questionType} 投稿生成プロンプト（${format}）`,
-      system: systemPrompt,
-      user: format === 'quiz_reply'
-        ? userPrompt
-        : `${userPrompt}\n\n【出力形式】\n本文のみを出力してください（前後の固定文 "${prefix}" と "${suffix}" はシステム側で付与します）。本文は ${bodyLimit} 文字以内厳守。`,
+      label: `英検${lv.label} ${typeLabel} 一括生成プロンプト（${format}・完成形出力）`,
+      system: 'あなたはSNSマーケティングと英語教育の専門家チームです。',
+      user: buildEikenSinglePrompt(task, { prefix, suffix, replySuffix }),
     }];
 
     const generated = await tryClaudeOrEmitPrompt(
       promptInfo,
-      async () => {
-        if (format === 'quiz_reply') {
-          for (let attempt = 0; attempt < 3; attempt++) {
-            const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
-            const prompt = buildQuizReplyPrompt(questionType, level, limitForAttempt, replyLimit, variety);
-            const raw = await generateTextFull(systemPrompt, prompt, { maxTokens: 700, temperature: 1.0 });
-            const parsed = parseQuizJson(raw);
-            if (parsed && parsed.post.length <= bodyLimit && parsed.reply.length <= replyLimit) return parsed;
-            if (parsed && attempt === 2) {
-              parsed.post = parsed.post.slice(0, bodyLimit).trimEnd();
-              parsed.reply = parsed.reply.slice(0, replyLimit).trimEnd();
-              return parsed;
-            }
-          }
-          throw new Error('クイズ生成のJSONパースに失敗しました。もう一度お試しください。');
-        }
-        let body = '';
-        for (let attempt = 0; attempt < 3; attempt++) {
-          const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
-          const prompt = buildEikenPrompt(questionType, level, limitForAttempt, variety);
-          body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 400, temperature: 1.0 })).trim();
-          if (body.length <= bodyLimit) break;
-        }
-        if (body.length > bodyLimit) body = body.slice(0, bodyLimit).trimEnd();
-        return body;
-      },
+      async () => orchestrateEikenPost(task, (msg) => sendEvent('agent_message', msg)),
       sendEvent,
       prompt_only,
     );
@@ -498,13 +495,24 @@ router.post('/generate', async (req, res) => {
       return;
     }
 
-    const body = typeof generated === 'string' ? generated : generated.post;
-    const replyText = typeof generated === 'string' ? null : `${generated.reply}${replySuffix}`;
-    const postText = `${prefix}${body}${suffix}`;
+    const postText = `${prefix}${generated.post}${suffix}`;
+    const replyText = generated.reply ? `${generated.reply}${replySuffix}` : null;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
       postId, 'eiken', postText, JSON.stringify({ questionType, level, format, ...(replyText ? { reply_text: replyText } : {}) }), 'draft'
     );
+
+    // エージェントの協議ログを保存（投稿詳細画面で参照可能）
+    if (generated.conversation?.length) {
+      const convId = uuidv4();
+      db.prepare(`INSERT INTO agent_conversations (id, post_id) VALUES (?, ?)`).run(convId, postId);
+      const insertMsg = db.prepare(
+        `INSERT INTO agent_messages (id, conversation_id, agent_role, agent_name, round, content) VALUES (?, ?, ?, ?, ?, ?)`
+      );
+      for (const msg of generated.conversation) {
+        insertMsg.run(uuidv4(), convId, msg.agent, msg.name || msg.agent, msg.round, msg.content);
+      }
+    }
 
     sendEvent('final_post', { post_id: postId, post_text: postText, reply_text: replyText });
     sendEvent('done', {});
@@ -515,29 +523,19 @@ router.post('/generate', async (req, res) => {
   }
 });
 
-// POST /api/eiken/save-manual - Save manually-generated post text
+// POST /api/eiken/save-manual - Save externally-generated post text (stored verbatim)
+// 一括生成プロンプトは固定文込みの完成形を出力させるため、ここでは何も付与しない
 router.post('/save-manual', (req, res) => {
   const { questionType, level = '2', body_text } = req.body;
   const format = POST_FORMATS.includes(req.body.format) ? req.body.format : defaultFormat(questionType);
   if (!body_text?.trim()) return res.status(400).json({ error: 'body_text is required' });
-  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-  const { prefix } = buildPrefix();
-  const { suffix } = buildSuffix(lv, level, format);
   const postId = uuidv4();
 
-  // quiz_reply の外部AI出力は {"post": "...", "reply": "..."} のJSONでも受け付ける
-  let body = body_text.trim();
-  let replyText = null;
-  if (format === 'quiz_reply') {
-    const parsed = parseQuizJson(body);
-    if (parsed) {
-      body = parsed.post;
-      const ctaText = buildCtaText(level);
-      replyText = ctaText ? `${parsed.reply}\n\n${ctaText}` : parsed.reply;
-    }
-  }
+  // {"post": "...", "reply": "..."} のJSON、またはプレーンテキストを受け付ける
+  const parsed = parseEikenPostJson(body_text);
+  const postText = parsed ? parsed.post : body_text.trim();
+  const replyText = parsed?.reply || null;
 
-  const postText = `${prefix}${body}${suffix}`;
   db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
     postId, 'eiken', postText, JSON.stringify({ questionType, level, format, manual: true, ...(replyText ? { reply_text: replyText } : {}) }), 'draft'
   );
@@ -592,14 +590,25 @@ router.post('/generate-script', async (req, res) => {
 
 台本のみを出力してください。前後に説明文を入れないでください。`;
 
+  const systemPrompt = 'あなたはTikTok・Instagram Reelsの動画制作と英語教育の専門家です。高校生に刺さる短尺動画の台本を作成します。';
+  const promptInfo = [{
+    label: `英検${lv.label} ${typeLabel} 動画台本プロンプト`,
+    system: systemPrompt,
+    user: prompt,
+  }];
+
+  // APIキーなし運用: プロンプトのみモード、またはAPIが使えない場合はプロンプトを返して外部AIで実行してもらう
+  if (req.body.prompt_only) {
+    return res.json({ fallback: { reason: 'prompt_only', prompts: promptInfo } });
+  }
+
   try {
-    const script = await generateTextFull(
-      'あなたはTikTok・Instagram Reelsの動画制作と英語教育の専門家です。高校生に刺さる短尺動画の台本を作成します。',
-      prompt,
-      { maxTokens: 1000 }
-    );
+    const script = await generateTextFull(systemPrompt, prompt, { maxTokens: 1000 });
     res.json({ script: script.trim() });
   } catch (err) {
+    if (isClaudeCreditError(err)) {
+      return res.json({ fallback: { reason: 'api_error', message: err.message, prompts: promptInfo } });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -694,7 +703,7 @@ router.post('/generate-university-post', async (req, res) => {
     const bodyLimit = 280 - hashtags.length - 2;
 
     const systemPrompt = 'あなたはSNSマーケティングと大学受験の専門家です。';
-    const userPrompt = `大学受験で英検を活用できる情報をX（旧Twitter）に投稿する本文を書いてください。
+    const userPrompt = `大学受験で英検を活用できる情報を、そのままX（旧Twitter）に投稿できる完成形で書いてください。
 
 【大学情報】
 大学名: ${university}
@@ -710,11 +719,13 @@ router.post('/generate-university-post', async (req, res) => {
 - 英語試験が免除・不要である点を強調
 - 記載された事実のみを使い、誇張・断定（「必ず受かる」等）をしない
 - 絵文字は2〜3個
-- 本文は${bodyLimit}文字以内（ハッシュタグはシステムが付与するので含めない）
-- 本文のみ出力。ハッシュタグ・URLは含めない`;
+- 本文は${bodyLimit}文字以内
+- 末尾に次のハッシュタグを一字一句このまま置く: "${hashtags}"
+- URLは含めない
+- 投稿テキストのみを出力（前後に説明文を付けない）`;
 
     const promptInfo = [{
-      label: `${university} 大学受験X投稿プロンプト`,
+      label: `${university} 大学受験X投稿プロンプト（完成形出力）`,
       system: systemPrompt,
       user: userPrompt,
     }];
@@ -723,7 +734,7 @@ router.post('/generate-university-post', async (req, res) => {
       promptInfo,
       async () => {
         const body = (await generateTextFull(systemPrompt, userPrompt, { maxTokens: 300, temperature: 1.0 })).trim();
-        return body.length > bodyLimit ? body.slice(0, bodyLimit).trimEnd() : body;
+        return body;
       },
       sendEvent,
       prompt_only,
@@ -734,7 +745,8 @@ router.post('/generate-university-post', async (req, res) => {
       return;
     }
 
-    const postText = `${generated}\n${hashtags}`;
+    // 完成形出力（末尾ハッシュタグ込み）。念のため欠けていた場合のみ付与する
+    const postText = generated.includes(hashtags) ? generated : `${generated}\n${hashtags}`;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
       postId, 'eiken', postText, JSON.stringify({ university, level, type: 'university' }), 'draft'

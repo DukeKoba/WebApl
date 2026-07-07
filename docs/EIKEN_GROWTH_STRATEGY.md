@@ -140,8 +140,13 @@ X→ストアの帰属は正確には取れないため、**promo投稿・プロ
 
 ## 6. 実装済み変更ファイル一覧
 
-- `server/src/routes/eiken.js` — 投稿フォーマット3種（quiz_reply/value/promo）、2026年度試験日程の自動更新、カウントダウン60日窓、品質ルール、ハッシュタグ削減、PUT/publishのリプ対応
+- `server/src/routes/eiken.js` — 投稿フォーマット3種（quiz_reply/value/promo）、2026年度試験日程の自動更新、カウントダウン60日窓、品質ルール、ハッシュタグ削減、PUT/publishのリプ対応。**生成はエージェントチーム方式**（下記）に全面移行し、直近8投稿を渡して題材・フックの被りを禁止。プロンプトのみモードは「固定文込みの完成形」を出力させる一括プロンプトを提示し、外部AIの出力をそのままXに貼れる
+- `server/src/services/agentOrchestrator.js` — **英検専用エージェントチーム `orchestrateEikenPost`**: マーケター（ブリーフ策定・フックの型ローテーション）→コピーライター（初稿JSON）→コンサルタント（品質チェック＆最終版）→文字数超過時のみ短縮ラウンド。協議ログはDBに保存
 - `server/src/services/xService.js` — スレッド（リプライ）投稿対応
-- `server/src/services/agentOrchestrator.js` — 英検コピーライターに品質ルール追加
-- `client/src/pages/eiken/EikenHome.jsx` — フォーマット選択UI、解答リプのプレビュー・編集、試験カウントダウン修正、編集が投稿に反映されないバグ修正、**週間投稿カレンダーに基づく「今日の推奨投稿」ワンクリック設定**
+- `server/src/services/claudeFallback.js` — APIキー未設定エラーもプロンプト提示フォールバックの対象に
+- `client/src/pages/eiken/EikenHome.jsx` — フォーマット選択UI、試験カウントダウン修正、週間投稿カレンダー「今日の推奨投稿」、**「①投稿欄に貼る／②リプ欄に貼る」の2ブロック・ワンクリックコピーUI**、エージェント協議のリアルタイム表示、自動スレッド投稿ボタン
+- `client/src/components/shared/AiModeToggle.jsx` — 同一タブ内でAI実行/プロンプトのみ切替が反映されないバグを修正。**デフォルトを「プロンプトのみ」に変更**（APIクレジットを消費しない運用が基本）
+
+### APIキーなし運用（プロンプトのみモード）
+Claude APIのクレジットがなくても全機能が使える。デフォルトの「プロンプトのみ」モードでは、生成ボタンを押すと完成済みプロンプトが表示され、ワンクリックでClaude.ai / ChatGPT / Geminiがプロンプト入力済みの状態で開く。外部AIの出力（完成形）を貼り戻せば、X投稿・解答リプ・動画台本・大学受験投稿のすべてがそのまま使える。APIキー設定済みでもクレジット切れ・認証エラー時は自動でプロンプト方式にフォールバックする。
 - `client/src/pages/eiken/EikenHistory.jsx` — 解答リプの履歴表示

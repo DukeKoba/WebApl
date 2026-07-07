@@ -8,8 +8,8 @@
 
 export function isClaudeCreditError(err) {
   const msg = String(err?.message || err || '');
-  // Claude API error patterns we treat as "no credit / auth fail"
-  return /credit_balance_too_low|credit.*balance.*too.*low|balance.*too.*low|too.*low.*credit|insufficient_quota|insufficient.*balance|insufficient.*credit|authentication_error|invalid[\s_-]*api[\s_-]*key|api[\s_-]*key.*invalid|rate[\s_-]*limit|429\b|401\b|402\b/i.test(msg);
+  // Claude API error patterns we treat as "no credit / auth fail / key missing"
+  return /credit_balance_too_low|credit.*balance.*too.*low|balance.*too.*low|too.*low.*credit|insufficient_quota|insufficient.*balance|insufficient.*credit|authentication_error|invalid[\s_-]*api[\s_-]*key|api[\s_-]*key.*invalid|could\s*not\s*resolve\s*authentication|apiKey\s*or\s*authToken|rate[\s_-]*limit|429\b|401\b|402\b/i.test(msg);
 }
 
 /**
