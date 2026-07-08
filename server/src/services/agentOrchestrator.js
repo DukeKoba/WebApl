@@ -333,19 +333,88 @@ function extractFinalPostText(finalAgentResponse) {
  * 呼び出し側（routes/eiken.js）が組み立てる。
  */
 
-// Extract {post, reply} JSON from an agent response (reply is optional)
-export function parseEikenPostJson(text) {
-  const match = String(text || '').match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  try {
-    const obj = JSON.parse(match[0]);
-    if (typeof obj.post === 'string' && obj.post.trim()) {
-      return {
-        post: obj.post.trim(),
-        reply: typeof obj.reply === 'string' && obj.reply.trim() ? obj.reply.trim() : null,
-      };
+// JSON文字列内の生の改行・タブをエスケープする（外部AIは改行入りの不正なJSONを返しがち）
+function repairJsonControlChars(jsonLike) {
+  let out = '';
+  let inString = false;
+  let escaped = false;
+  for (const ch of jsonLike) {
+    if (inString) {
+      if (escaped) {
+        out += ch;
+        escaped = false;
+        continue;
+      }
+      if (ch === '\\') {
+        out += ch;
+        escaped = true;
+        continue;
+      }
+      if (ch === '"') inString = false;
+      if (ch === '\n') { out += '\\n'; continue; }
+      if (ch === '\r') { continue; }
+      if (ch === '\t') { out += '\\t'; continue; }
+      out += ch;
+      continue;
     }
-  } catch { /* fall through */ }
+    if (ch === '"') inString = true;
+    out += ch;
+  }
+  return out;
+}
+
+// スマートクォート（“ ” ’ など。外部AIやiOSのコピーで混入する）をASCIIに正規化
+function normalizeSmartQuotes(s) {
+  return s.replace(/[“”„″]/g, '"').replace(/[‘’′]/g, "'");
+}
+
+// 【投稿欄】/【リプ欄】区切りテキストのパース。外部AI向けの推奨形式
+// （JSONと違いエスケープ・引用符の問題が起きない）
+export function parseEikenMarkedText(text) {
+  const t = String(text || '').replace(/```/g, '').trim();
+  const m = t.match(/【投稿(?:欄)?】\s*([\s\S]*?)\s*【リプ(?:欄|ライ)?】\s*([\s\S]*)/);
+  if (!m) return null;
+  const post = m[1].trim();
+  const reply = m[2].trim();
+  if (!post) return null;
+  return { post, reply: reply || null };
+}
+
+// Extract {post, reply} JSON from an agent/external-AI response (reply is optional).
+// コードフェンス・前後の説明文・文字列内の生改行・スマートクォートなど、外部AIの揺れを許容する
+export function parseEikenPostJson(text) {
+  const cleaned = String(text || '')
+    .replace(/```(?:json)?/gi, '')
+    .trim();
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+
+  const candidates = [
+    match[0],
+    repairJsonControlChars(match[0]),
+    repairJsonControlChars(normalizeSmartQuotes(match[0])),
+  ];
+  for (const candidate of candidates) {
+    try {
+      const obj = JSON.parse(candidate);
+      if (typeof obj.post === 'string' && obj.post.trim()) {
+        return {
+          post: obj.post.replace(/\\n/g, '\n').trim(),
+          reply: typeof obj.reply === 'string' && obj.reply.trim() ? obj.reply.replace(/\\n/g, '\n').trim() : null,
+        };
+      }
+      return null; // JSONだが post が無い → 呼び出し側でプレーンテキスト扱い
+    } catch { /* try next candidate */ }
+  }
+
+  // 最終手段: "post"/"reply" の値を正規表現で直接抜き出す（改行入り不正JSON対策）
+  const q = '["“”]'; // 引用符はスマートクォートも許容
+  const rx = new RegExp(`${q}post${q}\\s*:\\s*${q}([\\s\\S]*?)${q}\\s*,\\s*${q}reply${q}\\s*:\\s*(?:null|${q}([\\s\\S]*?)${q})\\s*\\}`);
+  const m = cleaned.match(rx);
+  if (m) {
+    const unesc = (s) => s.replace(/\\n/g, '\n').replace(/\\"/g, '"').trim();
+    return { post: unesc(m[1]), reply: m[2] ? unesc(m[2]) : null };
+  }
   return null;
 }
 
