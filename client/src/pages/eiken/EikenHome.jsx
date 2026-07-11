@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check, CalendarClock, GraduationCap, BadgeCheck, MapPin, Trophy, ChevronDown, ChevronUp } from 'lucide-react';
+import { BookOpen, Sparkles, History, ArrowLeft, Twitter, Video, Copy, Check, CalendarClock, GraduationCap, BadgeCheck, MapPin, Trophy, ChevronDown, ChevronUp, Image as ImageIcon, Download } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
+import PostCard from '../../components/shared/PostCard';
 import AgentDiscussion from '../../components/shared/AgentDiscussion';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
@@ -634,6 +635,9 @@ export default function EikenHome() {
   const [error, setError] = useState('');
   const [fallbackPrompt, setFallbackPrompt] = useState(null);
   const [agentMessages, setAgentMessages] = useState([]);
+  const [attachImage, setAttachImage] = useState(true);
+  const postCardRef = useRef(null);
+  const replyCardRef = useRef(null);
 
   const handleSelectQuestionType = (value) => {
     setQuestionType(value);
@@ -754,7 +758,13 @@ export default function EikenHome() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ post_text: postText, reply_text: replyText || null }),
       });
-      const res = await authFetch(`/eiken/posts/${id}/publish`, { method: 'POST' });
+      const image = attachImage ? postCardRef.current?.getDataURL() : null;
+      const reply_image = attachImage && replyText ? replyCardRef.current?.getDataURL() : null;
+      const res = await authFetch(`/eiken/posts/${id}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image, reply_image }),
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       if (data.reply_error) setError(`本文は投稿されましたが、解答リプの投稿に失敗しました: ${data.reply_error}`);
@@ -779,6 +789,21 @@ export default function EikenHome() {
     setTab('x');
     setQuestionType(slot.questionType);
     setFormat(slot.format);
+  };
+
+  // 添付カード用のラベル
+  const cardTag = `英検${levelLabel}${QUESTION_TYPES.find(q => q.value === questionType)?.label
+    ? ' ' + QUESTION_TYPES.find(q => q.value === questionType).label.replace(/^[^\p{L}\p{N}]+/u, '')
+    : ''}${format === 'quiz_reply' ? 'クイズ' : ''}`;
+  const cardAppLabel = APP_LINKS[level]?.label || 'AI英検Pass';
+
+  const downloadCard = (ref, filename) => {
+    const url = ref.current?.getDataURL();
+    if (!url) return;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
   };
 
   return (
@@ -1071,6 +1096,52 @@ export default function EikenHome() {
                     rows={5}
                   />
                 )}
+
+                {/* 添付カード画像（本文から自動生成・投稿に一緒に添付） */}
+                <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-gradient-to-r from-emerald-600 to-green-700">
+                    <span className="text-white font-semibold text-sm flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4" />添付する画像カード
+                    </span>
+                    <label className="flex items-center gap-1.5 text-xs text-white/90 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={attachImage}
+                        onChange={e => setAttachImage(e.target.checked)}
+                        className="accent-white w-3.5 h-3.5"
+                      />
+                      投稿に添付する
+                    </label>
+                  </div>
+                  <div className="p-3 space-y-3">
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-gray-400">① 投稿欄の画像</p>
+                      <PostCard ref={postCardRef} text={postText} tag={cardTag} kind="post" appLabel={cardAppLabel} />
+                      <button
+                        onClick={() => downloadCard(postCardRef, 'eiken-post-card.png')}
+                        className="w-full py-2 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center gap-1.5"
+                      >
+                        <Download className="w-3.5 h-3.5" />この画像をダウンロード
+                      </button>
+                    </div>
+                    {replyText && (
+                      <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                        <p className="text-xs text-gray-400">② リプ欄の画像（解答カード）</p>
+                        <PostCard ref={replyCardRef} text={replyText} tag={`${cardTag}｜解答`} kind="reply" appLabel={cardAppLabel} />
+                        <button
+                          onClick={() => downloadCard(replyCardRef, 'eiken-reply-card.png')}
+                          className="w-full py-2 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center gap-1.5"
+                        >
+                          <Download className="w-3.5 h-3.5" />この画像をダウンロード
+                        </button>
+                      </div>
+                    )}
+                    <p className="text-[11px] text-gray-400 leading-relaxed">
+                      手動で投稿する場合は、テキストを貼ったあとこの画像を添付してください。「Xに自動投稿」では自動で添付されます。
+                    </p>
+                  </div>
+                </div>
+
                 {postId && status !== 'posted' && (
                   <button
                     onClick={() => handlePublish(postId)}
@@ -1080,7 +1151,7 @@ export default function EikenHome() {
                     {isPublishing ? (
                       <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />投稿中...</>
                     ) : (
-                      <><Twitter className="w-4 h-4" />{replyText ? 'Xに自動投稿（①→②をスレッドで投稿）' : 'Xに自動投稿'}</>
+                      <><Twitter className="w-4 h-4" />{replyText ? `Xに自動投稿（①→②をスレッド${attachImage ? '＋画像' : ''}）` : `Xに自動投稿${attachImage ? '（画像付き）' : ''}`}</>
                     )}
                   </button>
                 )}

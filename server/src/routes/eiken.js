@@ -383,13 +383,18 @@ const FORMAT_DESCRIPTIONS = {
   promo: 'アプリ訴求（本文にApp Storeリンクを含む宣伝投稿。週1回の枠）',
 };
 
+// 投稿にはクイズ/Tipsカード画像を自動生成して添付する。カードが綺麗に組めるよう本文を構造化させる
+const CARD_LAYOUT_RULE = `【カード画像用の構造（この投稿には内容を要約したカード画像が自動生成され一緒に投稿されます。カードが綺麗に組めるよう次の構造を守ること）】`;
+
 function buildFormatRequirements(format, lv, extra) {
   const extraBlock = extra ? `\n【問題タイプ固有の指示】\n${extra}\n` : '';
   if (format === 'quiz_reply') {
-    return `${extraBlock}【問題ポスト（post）の要件】
-- ${lv.hook}
-- 選択肢は①〜④の4択（3択でも可）
-- **正解・解説は絶対に書かない**（「答えはリプ欄👇」で締める）
+    return `${extraBlock}${CARD_LAYOUT_RULE}
+- 1行目: パンチのある短い見出し（フック）を1行だけ。20文字以内
+- 2行目以降に、空所を1つだけ含む英文の問題文（空所は ( ) で表す。空所は必ず1つ）
+- 選択肢は①〜④の4択。**必ず1行に1つずつ改行して並べる**（例: 「①rose」で改行「②raised」…）。1行に詰め込まない
+- 最後に「答えはリプ欄👇」で締める
+- **正解・解説は絶対に書かない**
 - 絵文字は1〜2個まで
 
 【解答リプライ（reply）の要件】
@@ -397,13 +402,14 @@ function buildFormatRequirements(format, lv, extra) {
 - なぜその答えになるか＋覚え方や関連知識を簡潔に解説
 - 絵文字は1個まで`;
   }
-  return `${extraBlock}【投稿本文（post）の要件】
+  return `${extraBlock}${CARD_LAYOUT_RULE}
+- 1行目: パンチのある短い見出し（フック）を1行だけ。20文字以内
+- 2行目以降: 本文（下記の要件を満たす）
 - ${lv.hook}
 - Tipsまたは例文を1つだけ。読者が今日から実践できる具体性を持たせる
 - **一般論・精神論だけの内容は禁止**（「毎日コツコツ」「スキマ時間を活用しよう」「集中できる環境を作ろう」のような、誰でも言える内容で終わらせない）
 - 次のいずれかを必ず含める: ①名前のある具体的テクニック ②数値（分数・回数・日数・語数） ③3ステップ以内の手順 ④実際の英文例1つ
 - 「今日、机に座ったら最初に何をすればいいか」が明確に分かる粒度まで具体化する
-- クイズ形式にする場合は①②の2択までとし、正解と一言解説も本文内に含める
 - 絵文字は1〜2個まで
 - replyはnull`;
 }
@@ -705,12 +711,15 @@ router.put('/posts/:id', (req, res) => {
 });
 
 // POST /api/eiken/posts/:id/publish
+// body.image / body.reply_image: クライアントで生成したカード画像（data URL）。省略可
 router.post('/posts/:id/publish', async (req, res) => {
   const post = db.prepare(`SELECT * FROM sns_posts WHERE id = ? AND app_type = 'eiken'`).get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
 
+  const { image, reply_image } = req.body || {};
+
   try {
-    const result = await postTweet(post.post_text);
+    const result = await postTweet(post.post_text, { image });
     db.prepare(
       `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP WHERE id = ?`
     ).run(result.id, post.id);
@@ -721,7 +730,7 @@ router.post('/posts/:id/publish', async (req, res) => {
     let replyError = null;
     if (metadata.reply_text) {
       try {
-        const replyResult = await postTweet(metadata.reply_text, { replyToId: result.id });
+        const replyResult = await postTweet(metadata.reply_text, { replyToId: result.id, image: reply_image });
         replyTweetId = replyResult.id;
       } catch (err) {
         replyError = err.message;
