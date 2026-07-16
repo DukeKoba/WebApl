@@ -100,12 +100,25 @@ X（Twitter）投稿のネタになりそうなトピックを3〜5件、箇条�
   }
 }
 
-export async function generateAgentDxPost(contentType, label, extraContext, systemPrompt) {
+// 投稿の「型」: フック → 事実 → 現場への翻訳 → ハッシュタグ。
+// Xの文字数は加重計算（全角=2単位・URL=23単位・上限280単位）のため、本文は全角135字以内に収める。
+const POST_FORMAT_RULES = `【投稿の型】（この構造・順序を厳守）
+- 1行目: 数字か意外性のあるフック（例:「火災保険、また値上げです。今度は平均◯%」）
+- 2〜3行目: 事実の要約。出典に書かれていることだけを書く。推測で数字や制度名を補わない
+- 次の行: 「▼代理店の現場では」に続けて、実務への影響・やるべきことを1つだけ
+- 末尾: ハッシュタグ1〜2個（#保険代理店 を基本に）
+
+【文字数・体裁】
+- 本文はURL・ハッシュタグ込みで全角135文字以内（Xでは全角1字=2単位、上限280単位。URLは長さに関わらず23単位）
+- 絵文字は0〜1個まで
+- 最後の行に出典を「SOURCE_URL: https://...」形式で記載（出典が実在する場合のみ）`;
+
+export async function generateAgentDxPost(contentType, label, extraContext, systemPrompt, { sourceUrl = null, sourceText = null, ctaUrl = null } = {}) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth() + 1;
   const todayStr = `${y}-${String(m).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const recentTag = `${y}年${m}月 OR ${y}年${m === 1 ? 12 : m - 1}月 最新 速報`;
+  const recentTag = `${y}年${m}月 OR ${y}年${m === 1 ? 12 : m - 1}月 最新`;
 
   const queries = {
     ins_news:      `保険業界 ニュース 経営 提携 新戦略 ${recentTag}`,
@@ -117,45 +130,131 @@ export async function generateAgentDxPost(contentType, label, extraContext, syst
     consumer_trend:`保険 消費者 加入動向 意識調査 ニーズ ${recentTag}`,
     global_ins:    `海外保険業界 InsurTech グローバル 規制 ${recentTag}`,
   };
-  const query = queries[contentType] || `保険代理店 ${label} 最新 ${recentTag}`;
 
-  const userMessage = `今日は ${todayStr} です。
+  const isConversionType = ['efficiency_tips', 'app_demo', 'law_check'].includes(contentType);
+
+  let userMessage;
+  let tools;
+
+  if (isConversionType) {
+    // 転換系（受注につなげる投稿）: Web検索不要。業務知識ベースで生成し、CTAリンクを組み込む
+    tools = undefined;
+    userMessage = `今日は ${todayStr} です。
+
+【テーマ】${label}
+【背景・素材】${extraContext}
+${sourceText ? `\n【追加の素材・メモ（これを最優先の材料にする）】\n${sourceText}\n` : ''}
+保険代理店向けの実務に役立つX（Twitter）投稿を1件作成してください。
+ニュースの紹介ではなく、「読んだ代理店がそのまま実行できる具体的な内容」にしてください。
+
+【投稿の型】（この構造・順序を厳守）
+- 1行目: 業務の痛みの提示（例:「申込書の転記、1件12分かかっていませんか」）
+- 中盤: 解決策・手順・チェック観点を具体的に（数字を入れる）
+- 末尾近く: 行動を促す一言${ctaUrl ? '＋リンク' : ''}
+- 末尾: ハッシュタグ1〜2個（#保険代理店 を基本に）
+
+【文字数・体裁】
+- 本文はURL・ハッシュタグ込みで全角130文字以内（全角1字=2単位、上限280単位。URLは23単位）
+- 絵文字は0〜1個まで
+${ctaUrl ? `- 本文中のリンクには必ずこのURLを使う: ${ctaUrl}` : '- リンクは入れない'}
+
+【出力形式】
+投稿文のみを出力してください。前後に説明文を入れないでください。SOURCE_URL行は不要です。`;
+  } else if (sourceUrl) {
+    // 出典URL指定モード: 貼られた記事だけを根拠に生成（誤報防止の本命モード）
+    tools = [{ type: 'web_fetch_20260209', name: 'web_fetch', max_uses: 3 }];
+    userMessage = `今日は ${todayStr} です。
 
 【テーマ】${label}
 【背景】${extraContext}
 
-保険業界ニュース記者として、以下の手順でX（Twitter）投稿を1件作成してください：
+以下の記事URLの内容を web_fetch で取得し、その記事「だけ」を根拠にX（Twitter）投稿を1件作成してください。
+記事URL: ${sourceUrl}
+${sourceText ? `\n【運営者のメモ・補足（内容の解釈に使ってよい）】\n${sourceText}\n` : ''}
+【厳守】
+- 記事に書かれていない事実・数字・制度名を書かない
+- 記事が取得できない、または保険代理店に関係が薄い場合は「NO_POST: 理由」とだけ出力する
 
-1. 「${query}」でWebを検索し、直近3ヶ月以内の最新ニュース・情報を探す
-2. 最もインパクトが大きく代理店担当者が知るべき記事を1件選ぶ
-3. そのニュースを元に、以下の要件でX投稿を執筆する
-
-【投稿要件】
-- 280文字以内（ハッシュタグ含む）
-- ニュースの核心を端的に伝え、代理店実務への影響・注目ポイントを一言添える
-- 具体的な数字・社名・制度名など事実を盛り込む
-- 絵文字を効果的に使用
-- ハッシュタグ2〜3個（末尾）
-- 最後の行にソースURL（形式: SOURCE_URL: https://...）
+${POST_FORMAT_RULES}
+- SOURCE_URL行には必ず ${sourceUrl} を記載する
 
 【出力形式】
 投稿文とSOURCE_URLのみ出力してください。前後に説明文を入れないでください。`;
+  } else if (sourceText) {
+    // テキスト貼り付けモード: 貼られた本文だけを根拠に生成（ツール不要）
+    tools = undefined;
+    userMessage = `今日は ${todayStr} です。
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1200,
-    system: systemPrompt,
-    tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
-    messages: [{ role: 'user', content: userMessage }],
-  });
+【テーマ】${label}
+【背景】${extraContext}
+
+以下に貼り付けた記事・情報「だけ」を根拠に、保険代理店向けのX（Twitter）投稿を1件作成してください。
+
+【貼り付けられた記事・情報】
+${sourceText}
+
+【厳守】
+- 貼り付けられた内容に書かれていない事実・数字・制度名を書かない
+- 内容が保険代理店に関係が薄い場合は「NO_POST: 理由」とだけ出力する
+
+${POST_FORMAT_RULES}
+- 貼り付け内容に出典URLが含まれていればSOURCE_URL行に記載、なければSOURCE_URL行は省略する
+
+【出力形式】
+投稿文とSOURCE_URL（あれば）のみ出力してください。前後に説明文を入れないでください。`;
+  } else {
+    // Web検索モード: 出典なしでは書かせない（検索結果に忠実に）
+    const query = queries[contentType] || `保険代理店 ${label} 最新 ${recentTag}`;
+    tools = [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }];
+    userMessage = `今日は ${todayStr} です。
+
+【テーマ】${label}
+【背景】${extraContext}
+
+以下の手順でX（Twitter）投稿を1件作成してください：
+
+1. 「${query}」でWebを検索し、直近3ヶ月以内の最新ニュース・情報を探す
+2. 最もインパクトが大きく代理店担当者が知るべき記事を1件選ぶ
+3. その記事に書かれている事実「だけ」を使って投稿を執筆する
+
+【厳守】
+- 検索結果に書かれていない事実・数字・制度名を書かない（記憶からの補完は禁止）
+- 直近3ヶ月以内の記事が見つからない場合は「NO_POST: 直近の記事が見つかりません」とだけ出力する
+
+${POST_FORMAT_RULES}
+- SOURCE_URL行には実際に参照した記事のURLを記載する
+
+【出力形式】
+投稿文とSOURCE_URLのみ出力してください。前後に説明文を入れないでください。`;
+  }
+
+  let messages = [{ role: 'user', content: userMessage }];
+  let response;
+  // サーバーサイドツールの反復上限で pause_turn が返ることがあるため、最大3回まで継続する
+  for (let attempt = 0; attempt < 3; attempt++) {
+    response = await client.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 4096,
+      system: systemPrompt,
+      ...(tools ? { tools } : {}),
+      messages,
+    });
+    if (response.stop_reason !== 'pause_turn') break;
+    messages = [...messages, { role: 'assistant', content: response.content }];
+  }
 
   const text = response.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
   if (!text) throw new Error('Claude からテキスト応答が返りませんでした');
 
+  const noPostMatch = text.match(/NO_POST:\s*(.*)/);
+  if (noPostMatch) {
+    throw new Error(`投稿を生成できませんでした: ${noPostMatch[1] || '根拠となる記事が見つかりません'}`);
+  }
+
   const urlMatch = text.match(/SOURCE_URL:\s*(https?:\/\/\S+)/);
-  const sourceUrl = urlMatch ? urlMatch[1] : null;
+  const extractedSourceUrl = urlMatch ? urlMatch[1] : (sourceUrl || null);
   const postText = text.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
-  return { postText, sourceUrl };
+  return { postText, sourceUrl: extractedSourceUrl };
 }
 
 export async function searchRamenTypeReviews(ramenType, location) {

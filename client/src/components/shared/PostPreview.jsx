@@ -9,10 +9,17 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
   const t = isX
     ? { header: 'X (Twitter) プレビュー', posted: '投稿済み', postText: '投稿文', copyTitle: 'コピー', copied: 'コピーしました！', copyBtn: 'テキストをコピー', placeholder: '投稿文が生成されるとここに表示されます...', overLimit: 'Xの文字数制限を超えています', posting: '投稿中...', publish: 'Xに自動投稿', hint: '' }
     : { header: 'Instagram preview', posted: 'Posted', postText: 'Caption', copyTitle: 'Copy', copied: 'Copied!', copyBtn: 'Copy caption', placeholder: 'Your caption will appear here once generated...', overLimit: 'Caption exceeds Instagram limit', posting: '', publish: '', hint: 'Copy the caption, then paste it into a new Instagram post in the app.' };
+  // Xの加重文字数: URLは一律23単位、全角(CJK・かな・絵文字等)は2単位、半角は1単位。上限280単位
   const calcXLength = (t) => {
     if (!t) return 0;
-    const urlRegex = /https?:\/\/\S+/g;
-    return t.replace(urlRegex, 'x'.repeat(23)).length;
+    const URL_SENTINEL = '\u0000';
+    const stripped = t.replace(/https?:\/\/\S+/g, URL_SENTINEL);
+    let units = 0;
+    for (const ch of stripped) {
+      if (ch === URL_SENTINEL) units += 23;
+      else units += ch.codePointAt(0) > 0x10ff ? 2 : 1;
+    }
+    return units;
   };
   const charCount = isX ? calcXLength(text) : (text?.length || 0);
   const overLimit = charCount > charLimit;
