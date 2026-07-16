@@ -22,7 +22,7 @@ function buildLaunchPrompt(p) {
  *
  * Props:
  *  - prompts: [{ system?: string, user: string, label?: string }]
- *  - reason: 'prompt_only' | 'api_error'
+ *  - reason: 'prompt_only' | 'api_error' | 'no_api_key'
  *  - errorMessage?: string
  *  - placeholder?: string  paste 欄の placeholder
  *  - saveLabel?: string    保存ボタンのラベル
@@ -71,7 +71,11 @@ export default function PromptFallbackPanel({
           )}
           <div>
             <p className="font-semibold mb-1">
-              {reason === 'api_error' ? 'AI APIが利用できないためプロンプト方式に切替' : 'プロンプトのみモード'}
+              {reason === 'api_error'
+                ? 'AI APIが利用できないためプロンプト方式に切替'
+                : reason === 'no_api_key'
+                  ? 'APIキー未設定のためプロンプト方式で動作中（無料で使えます）'
+                  : 'プロンプトのみモード'}
             </p>
             <p className="leading-relaxed">
               下のボタンを押すと、プロンプトが自動入力された状態で外部AIが新規タブで開きます。

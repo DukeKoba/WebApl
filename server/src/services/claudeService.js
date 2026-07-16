@@ -1,7 +1,21 @@
 import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 
-const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+// APIキー未設定でもサーバーを起動できるよう、クライアントは初回利用時に生成する。
+// キーの有無は claudeFallback.hasClaudeKey() が判定し、未設定時はプロンプト方式に切り替わる。
+let clientInstance = null;
+function getClient() {
+  if (!clientInstance) {
+    clientInstance = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY,
+    });
+  }
+  return clientInstance;
+}
+
+// 旧 claude-sonnet-4-20250514 は2026年6月に廃止予定のため claude-sonnet-5 に移行。
+// Sonnet 5 は thinking がデフォルトONになるため、従来挙動を保つ箇所では明示的に無効化する。
+const DEFAULT_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-5';
 
 export async function searchAiNews(contentType, label) {
   // Recency window: today, last 30 days, current year (computed at call time)
@@ -35,10 +49,11 @@ export async function searchAiNews(contentType, label) {
   const todayStr = `${y}-${String(m).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   try {
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const response = await getClient().messages.create({
+      model: DEFAULT_MODEL,
+      thinking: { type: 'disabled' },
       max_tokens: 2500,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+      tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }],
       messages: [{
         role: 'user',
         content: `今日は ${todayStr} です。「${query}」で最新ニュース・公募情報・事例をWeb検索してください。
@@ -232,7 +247,7 @@ ${POST_FORMAT_RULES}
   let response;
   // サーバーサイドツールの反復上限で pause_turn が返ることがあるため、最大3回まで継続する
   for (let attempt = 0; attempt < 3; attempt++) {
-    response = await client.messages.create({
+    response = await getClient().messages.create({
       model: 'claude-opus-4-8',
       max_tokens: 4096,
       system: systemPrompt,
@@ -262,10 +277,11 @@ export async function searchRamenTypeReviews(ramenType, location) {
   try {
     const locationPart = location ? ` ${location}` : '';
     const query = `${ramenType}ラーメン${locationPart} 口コミ 特徴 おすすめ`;
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const response = await getClient().messages.create({
+      model: DEFAULT_MODEL,
+      thinking: { type: 'disabled' },
       max_tokens: 2048,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      tools: [{ type: 'web_search_20260209', name: 'web_search' }],
       messages: [{
         role: 'user',
         content: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索してください。以下を日本語でまとめてください：
@@ -350,10 +366,11 @@ export async function searchRestaurantReviews(restaurantName, location, ramenTyp
     const focusNote = ramenName
       ? `特に「${ramenName}」というメニューに関する口コミ・評価を重点的に調べてください。`
       : ramenType ? `特に「${ramenType}」スタイルのラーメンに関する記述を優先して拾ってください。` : '';
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    const response = await getClient().messages.create({
+      model: DEFAULT_MODEL,
+      thinking: { type: 'disabled' },
       max_tokens: 2048,
-      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      tools: [{ type: 'web_search_20260209', name: 'web_search' }],
       messages: [{
         role: 'user',
         content: `「${query}」について食べログ・Googleマップ・Rettyなどで口コミを検索してください。${focusNote}以下を日本語でまとめてください：
@@ -375,8 +392,9 @@ export async function searchRestaurantReviews(restaurantName, location, ramenTyp
 
 
 export async function generateText(systemPrompt, userMessage, options = {}) {
-  const stream = await client.messages.stream({
-    model: 'claude-sonnet-4-20250514',
+  const stream = await getClient().messages.stream({
+    model: DEFAULT_MODEL,
+      thinking: { type: 'disabled' },
     max_tokens: options.maxTokens || 1024,
     system: systemPrompt,
     messages: [{ role: 'user', content: userMessage }],
@@ -385,10 +403,10 @@ export async function generateText(systemPrompt, userMessage, options = {}) {
 }
 
 export async function generateTextFull(systemPrompt, userMessage, options = {}) {
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+  const response = await getClient().messages.create({
+    model: DEFAULT_MODEL,
+      thinking: { type: 'disabled' },
     max_tokens: options.maxTokens || 1024,
-    temperature: options.temperature ?? 1.0,
     system: systemPrompt,
     messages: [{ role: 'user', content: userMessage }],
   });
@@ -402,8 +420,9 @@ export async function analyzeRamenImage(imagePath) {
   const mimeTypes = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' };
   const mimeType = mimeTypes[ext] || 'image/jpeg';
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-20250514',
+  const response = await getClient().messages.create({
+    model: DEFAULT_MODEL,
+      thinking: { type: 'disabled' },
     max_tokens: 1024,
     messages: [{
       role: 'user',
