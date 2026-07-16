@@ -264,7 +264,7 @@ router.post('/generate', async (req, res) => {
         for (let attempt = 0; attempt < 3; attempt++) {
           const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
           const prompt = buildItPassPrompt(contentType, limitForAttempt, variety);
-          body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 500, temperature: 1.0 })).trim();
+          body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 500 })).trim();
           if (body.length <= bodyLimit) break;
         }
         if (body.length > bodyLimit) body = body.slice(0, bodyLimit).trimEnd();

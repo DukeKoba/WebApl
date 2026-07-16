@@ -5,7 +5,7 @@ import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 
-const CONTENT_TYPES = [
+const NEWS_TYPES = [
   { value: 'ins_news', label: '保険業界ニュース' },
   { value: 'law_reform', label: '法改正・規制動向' },
   { value: 'new_products', label: '新商品・金融商品' },
@@ -16,8 +16,18 @@ const CONTENT_TYPES = [
   { value: 'global_ins', label: 'グローバル・海外動向' },
 ];
 
+const CONVERSION_TYPES = [
+  { value: 'efficiency_tips', label: '業務効率化Tips' },
+  { value: 'app_demo', label: 'アプリ実演・制作実況' },
+  { value: 'law_check', label: '業法対応チェック' },
+];
+
+const CONVERSION_VALUES = CONVERSION_TYPES.map(t => t.value);
+
 export default function AgentDxHome() {
   const [contentType, setContentType] = useState('ins_news');
+  const [sourceUrl, setSourceUrl] = useState('');
+  const [sourceText, setSourceText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [postText, setPostText] = useState('');
@@ -26,6 +36,8 @@ export default function AgentDxHome() {
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
   const [fallbackPrompt, setFallbackPrompt] = useState(null);
+
+  const isConversionType = CONVERSION_VALUES.includes(contentType);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -40,7 +52,11 @@ export default function AgentDxHome() {
       const res = await authFetch('/agentdx/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentType }),
+        body: JSON.stringify({
+          contentType,
+          sourceUrl: isConversionType ? undefined : (sourceUrl.trim() || undefined),
+          sourceText: sourceText.trim() || undefined,
+        }),
       });
 
       const reader = res.body.getReader();
@@ -150,8 +166,9 @@ export default function AgentDxHome() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 leading-relaxed">
             <strong className="text-gray-700">投稿戦略：</strong>
-            保険業界の最新ニュース・法改正・新商品情報などをいち早く発信し、
-            代理店経営者・担当者のフォロー獲得とCocreoブランド認知向上を目指します。
+            ニュースは「いち早く」ではなく「現場への影響が一番わかりやすい形」に翻訳して毎日発信（集客）。
+            業務Tips・アプリ実演・業法チェックの投稿でプロフィール→固定ポスト→アプリへの導線を作り、
+            無料ツール経由の相談・受注につなげます。
           </p>
         </div>
 
@@ -161,10 +178,12 @@ export default function AgentDxHome() {
             投稿を生成する
           </h2>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">コンテンツタイプ</label>
+          <div className="mb-3">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ニュース系 <span className="font-normal text-gray-400">（集客・フォロー獲得）</span>
+            </label>
             <div className="grid grid-cols-3 gap-2">
-              {CONTENT_TYPES.map(ct => (
+              {NEWS_TYPES.map(ct => (
                 <button
                   key={ct.value}
                   onClick={() => setContentType(ct.value)}
@@ -178,6 +197,64 @@ export default function AgentDxHome() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              転換系 <span className="font-normal text-gray-400">（アプリ流入・受注につなげる）</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {CONVERSION_TYPES.map(ct => (
+                <button
+                  key={ct.value}
+                  onClick={() => setContentType(ct.value)}
+                  className={`py-2 px-2 rounded-lg text-xs font-medium transition-colors text-center ${
+                    contentType === ct.value
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  {ct.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {!isConversionType && (
+            <div className="mb-4 space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                出典記事のURL <span className="font-normal text-gray-400">（推奨）</span>
+              </label>
+              <input
+                type="url"
+                value={sourceUrl}
+                onChange={e => setSourceUrl(e.target.value)}
+                placeholder="https://... 業界紙・保険会社リリース等の記事URL"
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              />
+              <p className="text-xs text-gray-400 leading-relaxed">
+                URLを入れると、その記事だけを根拠に投稿を作成します（誤報防止のため推奨）。
+                空欄の場合はWeb検索で直近3ヶ月のニュースを探します。
+              </p>
+            </div>
+          )}
+
+          <div className="mb-4 space-y-2">
+            <label className="block text-sm font-medium text-gray-700">
+              {isConversionType ? '素材・メモ' : '記事本文の貼り付け'}{' '}
+              <span className="font-normal text-gray-400">（任意）</span>
+            </label>
+            <textarea
+              value={sourceText}
+              onChange={e => setSourceText(e.target.value)}
+              rows={3}
+              placeholder={
+                isConversionType
+                  ? '例: 今週デモした内容、削減できた時間の実測値、投稿に入れたい数字など'
+                  : '記事の本文やポイントを貼り付けると、その内容だけを根拠に作成します'
+              }
+              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
           </div>
 
           {error && (

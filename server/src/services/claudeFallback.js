@@ -6,6 +6,11 @@
  * - tryClaudeOrEmitPrompt: wrapper for SSE routes
  */
 
+/** APIキーが設定されているか（ANTHROPIC_API_KEY / CLAUDE_API_KEY のどちらでも可） */
+export function hasClaudeKey() {
+  return Boolean(process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY);
+}
+
 export function isClaudeCreditError(err) {
   const msg = String(err?.message || err || '');
   // Claude API error patterns we treat as "no credit / auth fail / key missing"
@@ -28,6 +33,12 @@ export async function tryClaudeOrEmitPrompt(promptInfo, apiCall, sendEvent, prom
 
   if (promptOnly) {
     sendEvent('fallback_prompt', { reason: 'prompt_only', prompts });
+    return null;
+  }
+
+  // APIキー未設定なら呼び出しを試みず、即プロンプト方式に切り替える
+  if (!hasClaudeKey()) {
+    sendEvent('fallback_prompt', { reason: 'no_api_key', prompts });
     return null;
   }
 

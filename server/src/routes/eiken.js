@@ -787,7 +787,7 @@ router.post('/generate-university-post', async (req, res) => {
     const generated = await tryClaudeOrEmitPrompt(
       promptInfo,
       async () => {
-        const body = (await generateTextFull(systemPrompt, userPrompt, { maxTokens: 300, temperature: 1.0 })).trim();
+        const body = (await generateTextFull(systemPrompt, userPrompt, { maxTokens: 300 })).trim();
         return body;
       },
       sendEvent,

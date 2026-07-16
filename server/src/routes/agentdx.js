@@ -8,6 +8,7 @@ import { postTweet } from '../services/xService.js';
 const router = express.Router();
 
 const CONTENT_TYPE_LABELS = {
+  // ニュース系（集客）
   ins_news:      '保険業界ニュース',
   law_reform:    '法改正・規制動向',
   new_products:  '新商品・金融商品',
@@ -16,6 +17,10 @@ const CONTENT_TYPE_LABELS = {
   agency_ops:    '代理店経営・運営',
   consumer_trend:'顧客・消費者動向',
   global_ins:    'グローバル・海外動向',
+  // 転換系（受注につなげる投稿）
+  efficiency_tips:'業務効率化Tips',
+  app_demo:       'アプリ実演・制作実況',
+  law_check:      '業法対応チェック',
 };
 
 const CONTENT_TYPE_CONTEXT = {
@@ -27,15 +32,82 @@ const CONTENT_TYPE_CONTEXT = {
   agency_ops:    `保険代理店の経営・運営に直結する情報。手数料体系の変更・乗合申請・登録要件・監査対応・人材確保など代理店経営者が気になる最新トピックを伝える。`,
   consumer_trend:`顧客・消費者の保険に対する意識・行動変化。加入動機・解約理由・比較サイト利用実態・SNSでの口コミ傾向など、代理店の営業戦略に活きる消費者インサイトを発信する。`,
   global_ins:    `海外の保険業界・InsurTechの最新動向。欧米アジアの規制変化・グローバル大手の戦略・国際的なInsurTechトレンドで国内市場への示唆を発信する。`,
+  efficiency_tips:`保険代理店の定型業務（申込書・告知書の転記、満期更改の管理、意向把握記録、保全業務、手数料計算など）をAI・デジタルツールで効率化する具体的な手順やコツ。「自動車の設計書作成は1件30〜60分」「満期更改は月50〜200件」といった業務実態を踏まえ、削減できる時間を数字で示す。`,
+  app_demo:       `Cocreoが開発する保険代理店向けAIツール（申込書AI読取・転記コスト計算・業務自動化）の実演紹介。デモ動画やBefore/After画像を添付する前提で、「手入力なら12分の作業がAIなら38秒」のように効果を数字で見せる。売り込み口調にせず「作ってみた・試せます」のトーンで。`,
+  law_check:      `2026年施行の保険業法改正への対応チェック。意向把握の記録・乗合比較推奨の理由書面・高齢者募集ルール・体制整備義務など、代理店が自社の対応状況を確認すべき観点を1投稿1論点で問いかける。法的助言ではなく「確認のきっかけ」を提供するトーンで。`,
 };
 
-const AGENTDX_SYSTEM_PROMPT = 'あなたは保険業界専門のニュース記者・編集者です。最新の業界ニュース・法改正・新商品情報をWebで調査し、保険代理店の経営者・担当者に向けて分かりやすく編集・発信します。事実に基づいた具体的な情報を伝えることを最優先にします。';
+// 転換系投稿に入れるCTAリンク。/insurance LP・計算機が公開されたらパスを差し替える
+const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || 'https://webapl-ycgb.onrender.com';
+const CTA_PATHS = {
+  efficiency_tips: '/cocreo',
+  app_demo:        '/cocreo',
+  law_check:       '/cocreo',
+};
 
-function buildFallbackPrompt(contentType, label, extraContext) {
+function buildCtaUrl(contentType) {
+  const path = CTA_PATHS[contentType];
+  if (!path) return null;
+  return `${PUBLIC_SITE_URL}${path}?utm_source=x&utm_medium=social&utm_content=${contentType}`;
+}
+
+const AGENTDX_SYSTEM_PROMPT = 'あなたは保険代理店の業務を深く理解する編集者です。業界ニュースを「いち早く」ではなく「現場への影響が一番わかりやすい形」に翻訳して発信し、代理店の実務に役立つ具体的な情報を届けます。出典に書かれた事実だけを使い、推測や記憶で情報を補わないことを最優先にします。読者は保険代理店の経営者・募集人・事務担当者です。';
+
+function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = null, sourceText = null, ctaUrl = null } = {}) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth() + 1;
   const recentTag = `${y}年${m}月`;
+
+  const isConversionType = ['efficiency_tips', 'app_demo', 'law_check'].includes(contentType);
+
+  const formatRules = `## 投稿の型（この構造・順序を厳守）
+- 1行目: 数字か意外性のあるフック
+- 2〜3行目: 事実の要約（出典に書かれていることだけ。推測で補わない）
+- 次の行: 「▼代理店の現場では」+ 実務への影響・やるべきこと1つ
+- 末尾: ハッシュタグ1〜2個（#保険代理店 を基本に）
+
+## 文字数・体裁
+- 本文はURL・ハッシュタグ込みで全角135文字以内（Xは全角1字=2単位・上限280単位・URLは23単位）
+- 絵文字は0〜1個
+- 最後の行に「SOURCE_URL: https://...」形式で出典を記載`;
+
+  if (isConversionType) {
+    return `あなたは保険代理店の業務を深く理解する編集者です。
+
+## テーマ
+${label}（${extraContext}）
+${sourceText ? `\n## 素材・メモ\n${sourceText}\n` : ''}
+## 投稿要件
+- 保険代理店が「そのまま実行できる」実務的な内容にする（ニュース紹介ではない）
+- 1行目は業務の痛みの提示、中盤に具体的な解決策・手順（数字を入れる）
+- 本文はURL・ハッシュタグ込みで全角130文字以内（Xは全角1字=2単位・上限280単位・URLは23単位）
+${ctaUrl ? `- 本文中に必ずこのリンクを入れる: ${ctaUrl}` : '- リンクは入れない'}
+- 末尾にハッシュタグ1〜2個（#保険代理店 を基本に）
+
+## 出力形式
+投稿文のみを出力してください。前後に説明文は不要です。`;
+  }
+
+  if (sourceUrl || sourceText) {
+    return `あなたは保険代理店の業務を深く理解する編集者です。
+
+## 根拠にする記事
+${sourceUrl ? `URL: ${sourceUrl}（この記事の内容を確認してください）` : ''}
+${sourceText ? `\n${sourceText}` : ''}
+
+## 手順
+上記の記事「だけ」を根拠に、保険代理店向けのX投稿を1件作成してください。
+記事に書かれていない事実・数字・制度名は書かないでください。
+
+## テーマ
+${label}（${extraContext}）
+
+${formatRules}
+
+## 出力形式
+投稿文とSOURCE_URLのみ出力してください。前後に説明文は不要です。`;
+  }
 
   const queries = {
     ins_news:      `保険業界 ニュース 経営 提携 ${recentTag}`,
@@ -49,31 +121,33 @@ function buildFallbackPrompt(contentType, label, extraContext) {
   };
   const query = queries[contentType] || `保険代理店 ${label} 最新 ${recentTag}`;
 
-  return `あなたは保険業界専門のニュース記者・編集者です。
+  return `あなたは保険代理店の業務を深く理解する編集者です。
 
 ## 手順
 
 1. **Web検索**: 「${query}」で検索し、直近3ヶ月以内の最新ニュースを3〜5件ピックアップしてください
 2. **記事選定**: 保険代理店の担当者が最も注目すべき記事を1件選ぶ
-3. **X投稿を執筆**: 以下の要件で投稿文を1件作成する
+3. **X投稿を執筆**: 検索結果に書かれている事実「だけ」を使って投稿文を1件作成する
 
 ## テーマ
 ${label}（${extraContext}）
 
-## 投稿要件
-- 280文字以内（ハッシュタグ含む）
-- ニュースの核心を端的に伝え、代理店実務への影響・注目ポイントを一言添える
-- 具体的な数字・社名・制度名など事実を盛り込む
-- 絵文字を効果的に使用
-- ハッシュタグ2〜3個（末尾）
-- 最後の行にソースURL
+${formatRules}
 
 ## 出力形式
-投稿文のみを出力してください。前後に説明文は不要です。`;
+投稿文とSOURCE_URLのみ出力してください。前後に説明文は不要です。`;
 }
 
 router.post('/generate', async (req, res) => {
-  const { contentType = 'ins_news' } = req.body;
+  const { contentType = 'ins_news', sourceUrl: rawSourceUrl, sourceText: rawSourceText } = req.body;
+
+  // 出典URLはhttp(s)のみ許可。テキストは長すぎる貼り付けを切り詰める
+  const sourceUrl = typeof rawSourceUrl === 'string' && /^https?:\/\/\S+$/.test(rawSourceUrl.trim())
+    ? rawSourceUrl.trim()
+    : null;
+  const sourceText = typeof rawSourceText === 'string' && rawSourceText.trim()
+    ? rawSourceText.trim().slice(0, 8000)
+    : null;
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -88,18 +162,24 @@ router.post('/generate', async (req, res) => {
     const postId = uuidv4();
     const label = CONTENT_TYPE_LABELS[contentType] || contentType;
     const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
+    const ctaUrl = buildCtaUrl(contentType);
+    const sourceOptions = { sourceUrl, sourceText, ctaUrl };
 
-    sendEvent('status', { message: `${label}の最新情報を調査・編集中...` });
+    sendEvent('status', {
+      message: sourceUrl
+        ? '指定された記事を読み込んで編集中...'
+        : `${label}の投稿を作成中...`,
+    });
 
     const promptInfo = {
-      label: `${label} ニュース投稿プロンプト`,
+      label: `${label} 投稿プロンプト`,
       system: AGENTDX_SYSTEM_PROMPT,
-      user: buildFallbackPrompt(contentType, label, extraContext),
+      user: buildFallbackPrompt(contentType, label, extraContext, sourceOptions),
     };
 
     const result = await tryClaudeOrEmitPrompt(
       promptInfo,
-      () => generateAgentDxPost(contentType, label, extraContext, AGENTDX_SYSTEM_PROMPT),
+      () => generateAgentDxPost(contentType, label, extraContext, AGENTDX_SYSTEM_PROMPT, sourceOptions),
       sendEvent,
     );
 
@@ -109,10 +189,14 @@ router.post('/generate', async (req, res) => {
     }
 
     let postText = result.postText;
-    if (result.sourceUrl) postText = `${postText}\n${result.sourceUrl}`;
+    if (result.sourceUrl && !postText.includes(result.sourceUrl)) {
+      postText = `${postText}\n${result.sourceUrl}`;
+    }
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'agentdx', postText, JSON.stringify({ contentType, sourceUrl: result.sourceUrl }), 'draft'
+      postId, 'agentdx', postText,
+      JSON.stringify({ contentType, sourceUrl: result.sourceUrl, groundedOn: sourceUrl ? 'url' : (sourceText ? 'text' : 'search') }),
+      'draft'
     );
 
     sendEvent('final_post', { post_id: postId, post_text: postText });
