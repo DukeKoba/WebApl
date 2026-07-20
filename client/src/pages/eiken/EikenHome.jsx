@@ -7,6 +7,7 @@ import AgentDiscussion from '../../components/shared/AgentDiscussion';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 import { authFetch } from '../../utils/api';
+import { xWeightedLength } from '../../utils/xText';
 
 const QUESTION_TYPES = [
   { value: 'vocabulary', label: '語彙' },
@@ -50,11 +51,8 @@ const APP_LINKS = {
   },
 };
 
-// X counts every URL as exactly 23 chars regardless of length
-function calcXLength(t) {
-  if (!t) return 0;
-  return t.replace(/https?:\/\/\S+/g, 'x'.repeat(23)).length;
-}
+// X の加重文字数（日本語・絵文字=2、URL=23）。認証なしで投稿できる上限は加重280
+const calcXLength = xWeightedLength;
 
 // そのままXに貼れるテキストブロック（投稿欄用・リプ欄用に分けてワンクリックコピー）
 function CopyBlock({ step, title, hint, text, onChange, rows = 6 }) {
