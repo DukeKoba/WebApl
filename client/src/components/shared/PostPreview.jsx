@@ -47,10 +47,10 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
         )}
       </div>
 
-      {/* Image preview (Instagram only) */}
-      {!isX && imageUrl && (
-        <div className="aspect-square bg-gray-100 overflow-hidden">
-          <img src={imageUrl} alt="ramen" className="w-full h-full object-cover" />
+      {/* Attached image preview */}
+      {imageUrl && (
+        <div className={`${isX ? 'aspect-video' : 'aspect-square'} bg-gray-100 overflow-hidden`}>
+          <img src={imageUrl} alt={isX ? 'X投稿添付' : 'ramen'} className="w-full h-full object-cover" />
         </div>
       )}
 

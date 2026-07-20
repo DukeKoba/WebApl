@@ -4,6 +4,9 @@ import { Building2, Sparkles, History, ArrowLeft } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import { authFetch } from '../../utils/api';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
+import AgentDxStrategyPanel from './AgentDxStrategyPanel';
+import AgentDxImageStudio from './AgentDxImageStudio';
+import XRetweetFinder from './XRetweetFinder';
 
 const NEWS_TYPES = [
   { value: 'ins_news', label: '保険業界ニュース' },
@@ -14,19 +17,20 @@ const NEWS_TYPES = [
   { value: 'agency_ops', label: '代理店経営・運営' },
   { value: 'consumer_trend', label: '顧客・消費者動向' },
   { value: 'global_ins', label: 'グローバル・海外動向' },
+  { value: 'trend_watch', label: '代理店DXトレンド' },
 ];
 
 const CONVERSION_TYPES = [
   { value: 'efficiency_tips', label: '業務効率化Tips' },
   { value: 'app_demo', label: 'アプリ実演・制作実況' },
   { value: 'law_check', label: '業法対応チェック' },
+  { value: 'case_story', label: '業務改善ミニ事例' },
 ];
 
 const CONVERSION_VALUES = CONVERSION_TYPES.map(t => t.value);
 
 export default function AgentDxHome() {
   const [contentType, setContentType] = useState('ins_news');
-  const [sourceUrl, setSourceUrl] = useState('');
   const [sourceText, setSourceText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -36,8 +40,31 @@ export default function AgentDxHome() {
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
   const [fallbackPrompt, setFallbackPrompt] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
+  const [isSavingPinned, setIsSavingPinned] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const isConversionType = CONVERSION_VALUES.includes(contentType);
+  const isOriginalPost = isConversionType || contentType === 'pinned_app';
+
+  const generateDefaultImage = async (id, text, accent = 'emerald') => {
+    setIsGeneratingImage(true);
+    try {
+      const headline = String(text || '').split('\n').find(line => line.trim()) || '代理店業務を、もっとシンプルに。';
+      const res = await authFetch(`/agentdx/posts/${id}/image/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headline, accent, kicker: 'AIで、代理店の現場を前へ。' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '投稿画像を生成できませんでした。');
+      setImageUrl(`${data.image_url}?v=${Date.now()}`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -47,6 +74,7 @@ export default function AgentDxHome() {
     setError('');
     setStatusMessage('');
     setFallbackPrompt(null);
+    setImageUrl('');
 
     try {
       const res = await authFetch('/agentdx/generate', {
@@ -54,7 +82,6 @@ export default function AgentDxHome() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contentType,
-          sourceUrl: isConversionType ? undefined : (sourceUrl.trim() || undefined),
           sourceText: sourceText.trim() || undefined,
         }),
       });
@@ -82,6 +109,7 @@ export default function AgentDxHome() {
                 setPostText(data.post_text);
                 setPostId(data.post_id);
                 setStatusMessage('');
+                if (isConversionType) void generateDefaultImage(data.post_id, data.post_text);
               } else if (event === 'status') {
                 setStatusMessage(data.message);
               } else if (event === 'fallback_prompt') {
@@ -114,9 +142,35 @@ export default function AgentDxHome() {
         setPostText(data.post_text);
         setPostId(data.post_id);
         setFallbackPrompt(null);
+        if (isConversionType) void generateDefaultImage(data.post_id, data.post_text);
       }
     } catch (e) {
       setError(e.message);
+    }
+  };
+
+  const handleCreatePinned = async (text) => {
+    setIsSavingPinned(true);
+    setError('');
+    try {
+      const res = await authFetch('/agentdx/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType: 'pinned_app', post_text: text }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '固定ポスト案を保存できませんでした。');
+      setContentType('pinned_app');
+      setPostText(data.post_text);
+      setPostId(data.post_id);
+      setImageUrl('');
+      setFallbackPrompt(null);
+      setStatus('draft');
+      void generateDefaultImage(data.post_id, data.post_text, 'violet');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSavingPinned(false);
     }
   };
 
@@ -148,7 +202,10 @@ export default function AgentDxHome() {
             <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
               <Building2 className="w-4 h-4 text-white" />
             </div>
-            <h1 className="font-bold text-lg text-gray-900">保険ニュース X投稿</h1>
+            <div className="leading-tight">
+              <h1 className="font-bold text-lg text-gray-900">Cocreo 代理店DX X投稿</h1>
+              <p className="text-[11px] text-gray-500">価値提供から業務改善相談・受注へ</p>
+            </div>
           </div>
           <div className="ml-auto">
             <Link
@@ -162,12 +219,17 @@ export default function AgentDxHome() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4 lg:p-6 space-y-4">
+      <div className="max-w-4xl mx-auto p-4 lg:p-6 space-y-4">
+        <AgentDxStrategyPanel
+          onSelectContentType={setContentType}
+          onCreatePinned={handleCreatePinned}
+          isSavingPinned={isSavingPinned}
+        />
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 leading-relaxed">
             <strong className="text-gray-700">投稿戦略：</strong>
-            ニュースは「いち早く」ではなく「現場への影響が一番わかりやすい形」に翻訳して毎日発信（集客）。
-            業務Tips・アプリ実演・業法チェックの投稿でプロフィール→固定ポスト→アプリへの導線を作り、
+            ニュースは元投稿を確認してリポストし、一次発信への導線を保ちます。
+            業務Tips・アプリ実演・業法チェックはオリジナル画像付きで発信し、プロフィール→固定ポスト→アプリへの導線を作り、
             無料ツール経由の相談・受注につなげます。
           </p>
         </div>
@@ -175,7 +237,7 @@ export default function AgentDxHome() {
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-500" />
-            投稿を生成する
+            ニュース候補／オリジナル投稿を選ぶ
           </h2>
 
           <div className="mb-3">
@@ -220,67 +282,26 @@ export default function AgentDxHome() {
             </div>
           </div>
 
-          {!isConversionType && (
-            <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                出典記事のURL <span className="font-normal text-gray-400">（推奨）</span>
-              </label>
-              <input
-                type="url"
-                value={sourceUrl}
-                onChange={e => setSourceUrl(e.target.value)}
-                placeholder="https://... 業界紙・保険会社リリース等の記事URL"
-                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-              />
-              <p className="text-xs text-gray-400 leading-relaxed">
-                URLを入れると、その記事だけを根拠に投稿を作成します（誤報防止のため推奨）。
-                空欄の場合はWeb検索で直近3ヶ月のニュースを探します。
-              </p>
-            </div>
-          )}
-
-          <div className="mb-4 space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              {isConversionType ? '素材・メモ' : '記事本文の貼り付け'}{' '}
-              <span className="font-normal text-gray-400">（任意）</span>
-            </label>
-            <textarea
-              value={sourceText}
-              onChange={e => setSourceText(e.target.value)}
-              rows={3}
-              placeholder={
-                isConversionType
-                  ? '例: 今週デモした内容、削減できた時間の実測値、投稿に入れたい数字など'
-                  : '記事の本文やポイントを貼り付けると、その内容だけを根拠に作成します'
-              }
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            />
-          </div>
-
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
               {error}
             </div>
           )}
 
-          <button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            {isGenerating ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                {statusMessage || 'ニュースを調査・編集中...'}
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                生成する
-              </>
-            )}
-          </button>
+          {isConversionType && (
+            <>
+              <div className="mb-4 space-y-2">
+                <label className="block text-sm font-medium text-gray-700">素材・メモ <span className="font-normal text-gray-400">（任意）</span></label>
+                <textarea value={sourceText} onChange={e => setSourceText(e.target.value)} rows={3} placeholder="例: 今週デモした内容、削減できた時間の実測値、投稿に入れたい数字など" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+              </div>
+              <button onClick={handleGenerate} disabled={isGenerating || isGeneratingImage} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                {isGenerating || isGeneratingImage ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{isGeneratingImage ? '投稿画像を生成中...' : (statusMessage || '投稿を生成中...')}</> : <><Sparkles className="w-4 h-4" />投稿文＋画像を生成する</>}
+              </button>
+            </>
+          )}
         </div>
+
+        {!isOriginalPost && <XRetweetFinder contentType={contentType} onError={setError} />}
 
         {fallbackPrompt && (
           <PromptFallbackPanel
@@ -293,6 +314,14 @@ export default function AgentDxHome() {
           />
         )}
 
+        <AgentDxImageStudio
+          postId={postId}
+          postText={postText}
+          imageUrl={imageUrl}
+          onImageSet={setImageUrl}
+          onError={setError}
+        />
+
         <PostPreview
           platform="x"
           text={postText}
@@ -301,6 +330,7 @@ export default function AgentDxHome() {
           onPublish={handlePublish}
           isPublishing={isPublishing}
           status={status}
+          imageUrl={imageUrl}
         />
       </div>
     </div>

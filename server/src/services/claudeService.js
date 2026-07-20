@@ -144,9 +144,10 @@ export async function generateAgentDxPost(contentType, label, extraContext, syst
     agency_ops:    `保険代理店 手数料 乗合 登録要件 経営 ${recentTag}`,
     consumer_trend:`保険 消費者 加入動向 意識調査 ニーズ ${recentTag}`,
     global_ins:    `海外保険業界 InsurTech グローバル 規制 ${recentTag}`,
+    trend_watch:   `site:fsa.go.jp 保険代理店 業務品質 情報管理 AI ${recentTag}`,
   };
 
-  const isConversionType = ['efficiency_tips', 'app_demo', 'law_check'].includes(contentType);
+  const isConversionType = ['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'pinned_app'].includes(contentType);
 
   let userMessage;
   let tools;
