@@ -215,7 +215,7 @@ function Landing({ onStart, agency }) {
       </button>
 
       <p className="text-center text-sm text-stone-400">
-        提供: Cocreo（コクレオ）{!agency && <> ・ <a href="/cocreo" className="underline">保険代理店の方へ</a></>}
+        提供: Cocreo（コクレオ）{!agency && <> ・ <a href="https://cocreo.jp" target="_blank" rel="noopener noreferrer" className="underline">保険代理店の方へ</a></>}
       </p>
     </div>
   );
@@ -316,7 +316,7 @@ function Share({ agency, sheet, onEdit, onClear }) {
         このツールは Cocreo が無料で提供しています。
         {agency
           ? <> 協力: {agency}。</>
-          : <> <strong className="text-stone-700">保険代理店の方へ</strong>: お客様サービスとしてこのツールを使いませんか？ <a href="/cocreo" className="text-emerald-700 underline">詳しく見る</a></>}
+          : <> <strong className="text-stone-700">保険代理店の方へ</strong>: お客様サービスとしてこのツールを使いませんか？ <a href="https://cocreo.jp" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline">詳しく見る</a></>}
       </div>
     </div>
   );
