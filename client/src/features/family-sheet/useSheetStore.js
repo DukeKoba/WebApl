@@ -66,10 +66,15 @@ export function useSheetStore() {
     setSheet(emptySheet());
   }, []);
 
+  // 引き継ぎ(代理店→契約者/端末間)。取り込んだ下書きで丸ごと置き換える。
+  const replaceAll = useCallback((next) => {
+    setSheet({ ...emptySheet(), ...next, schemaVersion: SCHEMA_VERSION, updatedAt: new Date().toISOString() });
+  }, []);
+
   const setPersist = useCallback((on) => {
     persist.current = on;
     if (!on) { try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ } }
   }, []);
 
-  return { sheet, setSheet, update, addPolicies, clearAll, setPersist, hydratedExisting };
+  return { sheet, setSheet, update, addPolicies, clearAll, replaceAll, setPersist, hydratedExisting };
 }

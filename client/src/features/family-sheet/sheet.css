@@ -68,34 +68,57 @@
   line-height: 1.9;
 }
 
-.fs-policy-card {
-  border: 1.5px solid #d6d3d1;
-  border-radius: 8px;
-  margin-bottom: 14px;
-  overflow: hidden;
+/* 保険一覧表(複数契約をスキャンしやすく) */
+.fs-h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #44403c;
+  margin: 16px 0 6px;
 }
-.fs-policy-head {
-  background: #f0fdf4;
-  border-bottom: 1.5px solid #d6d3d1;
-  padding: 8px 12px;
-  font-weight: 800;
+.fs-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
 }
-.fs-policy-table { width: 100%; border-collapse: collapse; }
-.fs-policy-table th,
-.fs-policy-table td {
-  text-align: left;
+.fs-list-table th,
+.fs-list-table td {
+  border: 1px solid #d6d3d1;
+  padding: 7px 8px;
+  font-size: 13px;
   vertical-align: top;
-  padding: 6px 12px;
-  border-bottom: 1px solid #f0efee;
-  font-size: 14px;
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
-.fs-policy-table th {
-  width: 96px;
-  color: #57534e;
-  font-weight: 600;
-  white-space: nowrap;
+.fs-list-table thead th {
+  background: #065f46;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12.5px;
 }
-.fs-emph { font-size: 17px; font-weight: 700; }
+.fs-list-table tbody tr:nth-child(even) td { background: #fafaf9; }
+.fs-col-no  { width: 7%;  text-align: center; }
+.fs-col-ins { width: 22%; }
+.fs-col-cov { width: 24%; }
+.fs-col-num { width: 16%; }
+.fs-col-ben { width: 15%; }
+.fs-col-tel { width: 16%; }
+.fs-ins-name { display: block; font-weight: 700; }
+.fs-ins-prod { display: block; font-size: 11.5px; color: #57534e; }
+.fs-ins-cat  { display: inline-block; margin-top: 2px; font-size: 11px; color: #065f46; background: #ecfdf5; padding: 0 5px; border-radius: 4px; }
+.fs-emph { font-weight: 700; }
+
+.fs-notes { list-style: none; padding: 0; margin: 0; }
+.fs-notes li {
+  border: 1px solid #e7e5e4;
+  border-left: 3px solid #065f46;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+}
+.fs-note-no { font-weight: 700; color: #065f46; margin-right: 4px; }
+.fs-note-items { color: #44403c; margin-top: 2px; }
 
 .fs-contact-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
 .fs-contact-table th,
@@ -150,9 +173,13 @@
     page-break-after: always;
   }
   .fs-page:last-child { page-break-after: auto; }
-  .fs-policy-card { break-inside: avoid; }
+  .fs-list-table tr, .fs-notes li { break-inside: avoid; }
+  .fs-list-table thead { display: table-header-group; } /* 改ページ後もヘッダ再表示 */
   .fs-title { font-size: 20pt; }
-  .fs-h2 { font-size: 15pt; }
-  .fs-steps, .fs-msg-body, .fs-policy-table th, .fs-policy-table td { font-size: 11.5pt; }
-  .fs-contact-emph { font-size: 14pt; }
+  .fs-h2 { font-size: 14pt; }
+  .fs-steps, .fs-msg-body { font-size: 11pt; }
+  .fs-list-table th, .fs-list-table td { font-size: 10.5pt; }
+  .fs-contact-emph { font-size: 13pt; }
+  /* 印刷時は色を確実に出す */
+  .fs-list-table thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

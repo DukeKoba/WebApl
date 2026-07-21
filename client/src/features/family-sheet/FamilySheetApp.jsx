@@ -1,34 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { Lock, Camera, Pencil, ArrowLeft, Printer, FileDown, Trash2, X, Building2 } from 'lucide-react';
+import { Lock, Camera, Pencil, ArrowLeft, Printer, FileDown, Trash2, X, Building2, Upload } from 'lucide-react';
 import { useSheetStore } from './useSheetStore';
 import Sheet from './Sheet';
 import AiPaste from './steps/AiPaste';
+import OcrUpload from './steps/OcrUpload';
 import PolicyList from './steps/PolicyList';
 import PolicyEditor from './steps/PolicyEditor';
 import Extra from './steps/Extra';
+import { HandoffExport, HandoffImport } from './steps/Handoff';
 import { emptyPolicy } from './schema';
 import './sheet.css';
 
 // 保険の家族共有シート — 公開ツール(ログイン不要)。
-// ステップ式ウィザード1コンテナで9画面分を吸収(1人開発・画面数最小方針)。
-const STEPS = { lp: 0, start: 1, ai: 2, manual: 3, list: 4, extra: 5, preview: 6, share: 7 };
+// ステップ式ウィザード1コンテナで画面数を最小に(1人開発方針)。
+const STEPS = { lp: 0, start: 1, ai: 2, manual: 3, list: 4, extra: 5, preview: 6, share: 7, ocr: 8, import: 9 };
+// ヘッダー戻るボタンの遷移先(各ステップの親)
+const BACK = { start: 'lp', ai: 'start', ocr: 'start', manual: 'start', list: 'start', extra: 'list', preview: 'extra', share: 'preview', import: 'start' };
 
 export default function FamilySheetApp() {
   const store = useSheetStore();
-  const { sheet, update, addPolicies, clearAll } = store;
+  const { sheet, update, addPolicies, clearAll, replaceAll } = store;
   const [step, setStep] = useState(store.hydratedExisting ? STEPS.list : STEPS.lp);
   const [warnings, setWarnings] = useState([]);
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(false); // 運営APIキーの有無(経路C 可否)
 
-  // 代理店ホワイトレーベル: ?agent= で紹介元を表示(データは代理店に渡らない)
+  // 代理店ホワイトレーベル: ?agent= で紹介元を表示し、担当者連絡先が未入力なら初期値に。
   const [agency, setAgency] = useState('');
   useEffect(() => {
     const p = new URLSearchParams(window.location.search).get('agent');
-    if (p) setAgency(p.slice(0, 40));
+    if (p) {
+      const name = p.slice(0, 60);
+      setAgency(name);
+      if (!store.sheet.agencyContact) store.update({ agencyContact: name });
+    }
+    // OCR(経路C)が使えるかをサーバーに確認。使えなければ経路B(貼り付け)にフォールバック。
+    let alive = true;
+    fetch('/api/family-sheet/config')
+      .then((r) => r.json())
+      .then((d) => { if (alive) setAiEnabled(!!d.aiEnabled); })
+      .catch(() => {});
+    return () => { alive = false; };
   }, []);
 
   const go = (s) => { setStep(s); window.scrollTo(0, 0); };
+  const goBack = () => {
+    const key = Object.keys(STEPS).find((k) => STEPS[k] === step);
+    go(STEPS[BACK[key] ?? 'lp']);
+  };
 
   const savePolicy = (p) => {
     const exists = sheet.policies.some((x) => x.id === p.id);
@@ -48,7 +68,7 @@ export default function FamilySheetApp() {
       <header className="sticky top-0 z-30 border-b border-amber-100 bg-amber-50/90 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
           {step !== STEPS.lp && (
-            <button onClick={() => go(Math.max(STEPS.lp, step - 1))} className="text-stone-400 hover:text-stone-600">
+            <button onClick={goBack} className="text-stone-400 hover:text-stone-600">
               <ArrowLeft className="w-5 h-5" />
             </button>
           )}
@@ -70,9 +90,28 @@ export default function FamilySheetApp() {
         )}
 
         {step === STEPS.lp && <Landing onStart={() => go(STEPS.start)} agency={agency} />}
-        {step === STEPS.start && <StartChoice onAi={() => go(STEPS.ai)} onManual={() => go(STEPS.manual)} />}
+        {step === STEPS.start && (
+          <StartChoice
+            onAi={() => go(aiEnabled ? STEPS.ocr : STEPS.ai)}
+            onManual={() => go(STEPS.manual)}
+            onImport={() => go(STEPS.import)}
+          />
+        )}
+        {step === STEPS.ocr && (
+          <OcrUpload
+            onExtracted={onExtracted}
+            onBack={() => go(STEPS.start)}
+            onManual={(m) => go(m === 'paste' ? STEPS.ai : STEPS.manual)}
+          />
+        )}
         {step === STEPS.ai && (
           <AiPaste onExtracted={onExtracted} onBack={() => go(STEPS.start)} onManual={() => go(STEPS.manual)} />
+        )}
+        {step === STEPS.import && (
+          <HandoffImport
+            onImport={(s) => { replaceAll(s); setWarnings([]); go(STEPS.list); }}
+            onCancel={() => go(STEPS.start)}
+          />
         )}
         {step === STEPS.manual && (
           <div className="space-y-4">
@@ -103,6 +142,7 @@ export default function FamilySheetApp() {
         {step === STEPS.share && (
           <Share
             agency={agency}
+            sheet={sheet}
             onEdit={() => go(STEPS.preview)}
             onClear={() => setConfirmClear(true)}
           />
@@ -181,7 +221,7 @@ function Landing({ onStart, agency }) {
 }
 
 /* ---------- 入力方法の選択 ---------- */
-function StartChoice({ onAi, onManual }) {
+function StartChoice({ onAi, onManual, onImport }) {
   return (
     <div className="space-y-5">
       <h2 className="text-2xl font-bold text-stone-900">保険の情報を<br />どのように入れますか？</h2>
@@ -189,7 +229,7 @@ function StartChoice({ onAi, onManual }) {
         <div className="flex items-center gap-2 text-lg font-bold text-emerald-900">
           <Camera className="w-6 h-6" />証券の写真で読み取る（おすすめ）
         </div>
-        <p className="mt-1 text-stone-600">保険証券や、保険会社マイページの画面写真から、無料AIで読み取ります。</p>
+        <p className="mt-1 text-stone-600">保険証券や、保険会社マイページの画面写真から、AIで読み取ります。</p>
       </button>
       <button onClick={onManual} className="w-full rounded-xl border-2 border-stone-200 bg-white p-5 text-left hover:bg-stone-50">
         <div className="flex items-center gap-2 text-lg font-bold text-stone-800">
@@ -200,6 +240,9 @@ function StartChoice({ onAi, onManual }) {
       <p className="text-sm text-stone-500">
         💡 証券が見つからない場合も、保険会社名と連絡先だけでシートは作れます。
       </p>
+      <button onClick={onImport} className="flex w-full items-center justify-center gap-1.5 text-emerald-700 underline">
+        <Upload className="w-4 h-4" />代理店に作ってもらった下書きを読み込む
+      </button>
     </div>
   );
 }
@@ -227,21 +270,23 @@ function Preview({ onEdit, onShare }) {
 }
 
 /* ---------- 共有・印刷 ---------- */
-function Share({ agency, onEdit, onClear }) {
+function Share({ agency, sheet, onEdit, onClear }) {
   return (
     <div className="space-y-5">
       <h2 className="text-2xl font-bold text-stone-900">シートを家族に渡しましょう</h2>
       <div className="grid gap-3">
         <button onClick={() => window.print()} className="flex items-center justify-center gap-2 rounded-lg bg-emerald-700 py-4 text-lg font-semibold text-white hover:bg-emerald-800">
-          <Printer className="w-5 h-5" />印刷する
+          <FileDown className="w-5 h-5" />PDFで保存する（おすすめ）
         </button>
         <button onClick={() => window.print()} className="flex items-center justify-center gap-2 rounded-lg border border-stone-300 py-4 text-lg font-semibold text-stone-700 hover:bg-stone-50">
-          <FileDown className="w-5 h-5" />PDFで保存する
+          <Printer className="w-5 h-5" />印刷する
         </button>
         <p className="text-sm text-stone-500">
-          「PDFで保存」は、印刷画面で送信先を「PDFに保存」にすると保存できます。コンビニ印刷にも使えます。
+          「PDFで保存」は、印刷画面で送信先（プリンター）を「PDFに保存」に変えると、A4のPDFファイルになります。家族に送ったり、家に保管しておけます。コンビニ印刷にも使えます。
         </p>
       </div>
+
+      <HandoffExport sheet={sheet} note="別の端末に移したいときや、あとで続きを直したいときは、下書きをファイルに保存できます（この端末に残す以外の控えになります）。" />
 
       <div className="rounded-xl bg-white p-4 border border-amber-100 space-y-2 text-stone-700">
         <div className="font-semibold text-stone-500">渡し方のヒント</div>

@@ -108,3 +108,51 @@ function str(v) {
 export function policySummary(p) {
   return [p.insurerName, p.productName].filter(Boolean).join(' ') || '(未入力の保険)';
 }
+
+// ===== 引き継ぎ(代理店→契約者/端末間)用の下書きファイル =====
+// サーバーを介さず、ファイル/コードとして手渡しできる形にする(プライバシー維持)。
+const HANDOFF_MAGIC = 'cocreo.family-sheet';
+
+export function serializeSheet(sheet) {
+  return JSON.stringify({
+    _type: HANDOFF_MAGIC,
+    schemaVersion: SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    sheet: {
+      owner: sheet.owner || { name: '' },
+      policies: Array.isArray(sheet.policies) ? sheet.policies : [],
+      contacts: Array.isArray(sheet.contacts) ? sheet.contacts : [],
+      agencyContact: sheet.agencyContact || '',
+      message: sheet.message || '',
+      createdAt: sheet.createdAt || '',
+    },
+  }, null, 2);
+}
+
+// 取り込み。ファイル全体、または sheet 部分だけの緩い形も受け付ける。
+export function parseSheetHandoff(text) {
+  let raw;
+  try {
+    raw = JSON.parse(String(text).trim());
+  } catch {
+    return { ok: false, error: 'ファイルの中身を読み取れませんでした（JSON形式ではありません）。' };
+  }
+  const body = raw && raw._type === HANDOFF_MAGIC ? raw.sheet : raw;
+  if (!body || typeof body !== 'object' || !Array.isArray(body.policies)) {
+    return { ok: false, error: 'これは家族共有シートの引き継ぎファイルではないようです。' };
+  }
+  const base = emptySheet();
+  return {
+    ok: true,
+    sheet: {
+      ...base,
+      owner: body.owner && typeof body.owner === 'object' ? { name: str(body.owner.name) } : base.owner,
+      policies: body.policies.map((p) => ({ ...emptyPolicy(), ...p, id: p?.id || crypto.randomUUID() })),
+      contacts: (Array.isArray(body.contacts) ? body.contacts : [])
+        .map((c) => ({ ...emptyContact(), ...c, id: c?.id || crypto.randomUUID() })),
+      agencyContact: str(body.agencyContact),
+      message: str(body.message),
+      createdAt: str(body.createdAt),
+    },
+  };
+}

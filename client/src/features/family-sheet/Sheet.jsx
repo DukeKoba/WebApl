@@ -1,9 +1,9 @@
 import React from 'react';
 import { policySummary } from './schema';
 
-// 家族共有シート本体(A4縦2枚)。画面プレビューと印刷で共用。
-// 46号帳票デザイン: 1枚目=メッセージ+請求手順チェックリスト、2枚目=保険一覧+連絡先+メモ欄。
-// 高齢の家族が緊急時に辿れることを最優先(大きめ文字・1契約1カード・台詞つき手順)。
+// 家族共有シート(A4縦・PDF保管前提)。複数契約を「一覧表」で見やすく。
+// 1枚目=表紙メッセージ+もしものときにやること+困ったら連絡
+// 2枚目=保険一覧表(スキャンしやすい表)+各保険の補足+緊急連絡先+メモ欄
 
 function fmtDate(iso) {
   const d = iso ? new Date(iso) : new Date();
@@ -15,10 +15,25 @@ export default function Sheet({ sheet }) {
   const created = fmtDate(sheet.createdAt || sheet.updatedAt);
   const contacts = (sheet.contacts || []).filter((c) => c.name || c.phone);
   const firstContact = contacts[0];
+  const policies = sheet.policies || [];
+
+  // 補足(満期・保険料・保管場所・メモ)がある契約だけ、番号つきで下にまとめる
+  const notes = policies
+    .map((p, i) => ({
+      no: i + 1,
+      name: policySummary(p),
+      items: [
+        p.maturity && `満期・期間: ${p.maturity}`,
+        p.premium && `保険料: ${p.premium}`,
+        p.location && `証券の保管場所: ${p.location}`,
+        p.memo && `メモ: ${p.memo}`,
+      ].filter(Boolean),
+    }))
+    .filter((n) => n.items.length > 0);
 
   return (
     <div className="fs-sheet-root">
-      {/* ============ 1枚目: 表紙メッセージ + もしものときにやること ============ */}
+      {/* ============ 1枚目 ============ */}
       <section className="fs-page">
         <h1 className="fs-title">わたしの保険のこと ― 家族のためのシート</h1>
 
@@ -68,34 +83,59 @@ export default function Sheet({ sheet }) {
           )}
         </div>
 
-        <p className="fs-foot">作成日: {created}　作成: 保険の家族共有シート</p>
+        <p className="fs-foot">作成日: {created}　作成: 保険の家族共有シート　(1/2)</p>
       </section>
 
-      {/* ============ 2枚目: 保険の一覧 + 連絡先 + メモ ============ */}
+      {/* ============ 2枚目: 保険一覧表 ============ */}
       <section className="fs-page">
-        <h2 className="fs-h2">■ 加入している保険の一覧({created} 現在)</h2>
+        <h2 className="fs-h2">■ 加入している保険の一覧({created} 現在・全{policies.length}件)</h2>
 
-        {sheet.policies.length === 0 && (
+        {policies.length === 0 ? (
           <p className="fs-note">(保険が登録されていません)</p>
+        ) : (
+          <table className="fs-list-table">
+            <thead>
+              <tr>
+                <th className="fs-col-no">No</th>
+                <th className="fs-col-ins">保険会社 / 種類</th>
+                <th className="fs-col-cov">保障の内容</th>
+                <th className="fs-col-num">証券番号</th>
+                <th className="fs-col-ben">受取人</th>
+                <th className="fs-col-tel">連絡先</th>
+              </tr>
+            </thead>
+            <tbody>
+              {policies.map((p, i) => (
+                <tr key={p.id}>
+                  <td className="fs-col-no">{i + 1}</td>
+                  <td className="fs-col-ins">
+                    <span className="fs-ins-name">{p.insurerName || '―'}</span>
+                    {p.productName && <span className="fs-ins-prod">{p.productName}</span>}
+                    {p.category && <span className="fs-ins-cat">{p.category}</span>}
+                  </td>
+                  <td className="fs-col-cov">{p.amount || '―'}</td>
+                  <td className="fs-col-num">{p.policyNumber || '―'}</td>
+                  <td className="fs-col-ben">{p.beneficiary || '―'}</td>
+                  <td className="fs-col-tel fs-emph">{p.phone || '―'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
 
-        {sheet.policies.map((p, i) => (
-          <div className="fs-policy-card" key={p.id}>
-            <div className="fs-policy-head">保険 {i + 1}　{policySummary(p)}</div>
-            <table className="fs-policy-table"><tbody>
-              <Row label="保険会社" value={p.insurerName} />
-              <Row label="電話番号" value={p.phone} emph />
-              <Row label="保険の種類" value={p.category} />
-              <Row label="証券番号" value={p.policyNumber} />
-              <Row label="保障の内容" value={p.amount} />
-              <Row label="受取人" value={p.beneficiary} />
-              <Row label="満期・期間" value={p.maturity} />
-              <Row label="保険料" value={p.premium} />
-              <Row label="証券の場所" value={p.location} />
-              <Row label="メモ" value={p.memo} />
-            </tbody></table>
-          </div>
-        ))}
+        {notes.length > 0 && (
+          <>
+            <h3 className="fs-h3">各保険の補足</h3>
+            <ul className="fs-notes">
+              {notes.map((n) => (
+                <li key={n.no}>
+                  <span className="fs-note-no">No.{n.no}</span> {n.name}
+                  <div className="fs-note-items">{n.items.join('　/　')}</div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
         {contacts.length > 0 && (
           <>
@@ -119,14 +159,5 @@ export default function Sheet({ sheet }) {
         <p className="fs-foot">作成日: {created}　(2/2)</p>
       </section>
     </div>
-  );
-}
-
-function Row({ label, value, emph }) {
-  return (
-    <tr>
-      <th>{label}</th>
-      <td className={emph ? 'fs-emph' : ''}>{value?.trim() || '―'}</td>
-    </tr>
   );
 }
