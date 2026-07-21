@@ -25,6 +25,7 @@ import OptimaLrnLanding from './pages/optimalrn/OptimaLrnLanding';
 import CocreoLanding from './pages/cocreo/CocreoLanding';
 import SubsidyGenerator from './pages/cocreo/SubsidyGenerator';
 import CocreoConsulting from './pages/cocreo/CocreoConsulting';
+import FamilySheetApp from './features/family-sheet/FamilySheetApp';
 import { useApp } from './contexts/AppContext';
 
 function ShiftSyncApp() {
@@ -62,6 +63,15 @@ function ShiftSyncApp() {
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem('auth_token') || '');
+
+  // 公開ツール(ログイン不要)。認証ゲートより前に処理する。
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/family-sheet')) {
+    return (
+      <Routes>
+        <Route path="/family-sheet/*" element={<FamilySheetApp />} />
+      </Routes>
+    );
+  }
 
   if (!token) {
     return <LoginScreen onLogin={setToken} />;
