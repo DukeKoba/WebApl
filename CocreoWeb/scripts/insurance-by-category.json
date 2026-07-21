@@ -1,0 +1,1487 @@
+{
+  "meta": {
+    "description": "主要保険会社のパンフレット・契約概要URL一覧（商品種類別）",
+    "collected_at": "2026-06-02",
+    "note": "PDFのURLは各社の改訂により変更される場合があります。定期的な更新が必要です。",
+    "taxonomy": "生命保険系9分類 + 損害保険系5分類 = 計14カテゴリ"
+  },
+  "companies": {
+    "nissay":      { "name": "日本生命保険",       "type": "生命保険", "website": "https://www.nissay.co.jp" },
+    "meijiyasuda": { "name": "明治安田生命保険",   "type": "生命保険", "website": "https://www.meijiyasuda.co.jp" },
+    "sumitomolife":{ "name": "住友生命保険",       "type": "生命保険", "website": "https://www.sumitomolife.co.jp" },
+    "tokiomarine": { "name": "東京海上日動火災保険","type": "損害保険", "website": "https://www.tokiomarine-nichido.co.jp" },
+    "sompo":       { "name": "損害保険ジャパン",   "type": "損害保険", "website": "https://www.sompo-japan.co.jp" },
+    "ms_ins":      { "name": "三井住友海上火災保険","type": "損害保険", "website": "https://www.ms-ins.com" },
+    "daiichilife": { "name": "第一生命保険",       "type": "生命保険", "website": "https://www.dai-ichi-life.co.jp" },
+    "kanpo":       { "name": "かんぽ生命保険",     "type": "生命保険", "website": "https://www.jp-life.japanpost.jp" },
+    "aflac":       { "name": "アフラック生命保険", "type": "生命保険", "website": "https://www.aflac.co.jp" },
+    "metlife":     { "name": "メットライフ生命保険","type": "生命保険", "website": "https://www.metlife.co.jp" },
+    "prudential":  { "name": "プルデンシャル生命保険","type": "生命保険","website": "https://www.prudential.co.jp" },
+    "sonylife":    { "name": "ソニー生命保険",     "type": "生命保険", "website": "https://www.sonylife.co.jp" }
+  },
+  "categories": [
+    {
+      "id": "iryo",
+      "name": "医療保険",
+      "description": "病気・ケガによる入院・手術・通院を保障。公的医療保険の自己負担分を補完する。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "メディカルスタイル F",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=39",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "メディカルスタイル F Jr.",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=40",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "ずっとよりそう終身医療保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=71",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "かんたん告知終身医療保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=66",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト。引受緩和型。"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "タヨレル（郵便局向け医療保険）",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/postal/tayoreru-you-p/tayoreru-you-p.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/postal/tayoreru-you-p/tayoreru-you-p.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年11月版",
+          "notes": "契約概要／注意喚起情報兼商品パンフレット（郵便局窓販）"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "総合医療一時金保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/ichijikin_iryo.html",
+          "notes": "資料請求フォーム経由（直接PDF公開なし）"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "先進医療保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/senshin_iryo.html",
+          "notes": "資料請求フォーム経由（直接PDF公開なし）"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "女性特定治療保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/josei_tokutei_chiryo.html",
+          "notes": "資料請求フォーム経由（直接PDF公開なし）"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "生活習慣病重症化予防応援保険 じぶんケア",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/seikatsu_shukan.html",
+          "notes": "資料請求フォーム経由（直接PDF公開なし）"
+        },
+        {
+          "company_id": "aflac",
+          "company_name": "アフラック",
+          "product_name": "組立型総合医療保険〔2025〕（銀行窓販）",
+          "pamphlet_url": "https://www.bank.aflac.co.jp/static/bank/pdf/bank_iryo_pamph_2602.pdf",
+          "keiyaku_gaiyou_url": "https://www.bank.aflac.co.jp/bank/pdf/bank_iryo_summary_t_2409.pdf",
+          "juyou_jikou_url": null,
+          "version": "パンフ：2026年2月版 / 契約概要：2024年9月版",
+          "pamphlet_index_url": "https://www.aflac.co.jp/pamph.html"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "マイ フレキシィ（医療終身保険）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": "https://www.metlife.co.jp/content/dam/metlifecom/jp/corp/pdf/yakkan/provision/f5wl/f5wl_20251202.pdf",
+          "juyou_jikou_url": "https://www.metlife.co.jp/content/dam/metlifecom/jp/corp/pdf/yakkan/provision/f5wl/f5wl_20251202.pdf",
+          "version": "2025年12月2日以降",
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/f5wl/"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "マイ フレキシィ ゴールド",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/sif5wl/"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "マイディアレスト（持病のある方向け医療保険）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": "https://www.metlife.co.jp/content/dam/metlifecom/jp/corp/pdf/yakkan/provision/mib/mib_20251202.pdf",
+          "juyou_jikou_url": "https://www.metlife.co.jp/content/dam/metlifecom/jp/corp/pdf/yakkan/provision/mib/mib_20251202.pdf",
+          "version": "2024年7月1日以降",
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/mib/",
+          "notes": "引受緩和型（通信販売）"
+        },
+        {
+          "company_id": "prudential",
+          "company_name": "プルデンシャル生命",
+          "product_name": "疾病・医療保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.prudential.co.jp/insurance/lineup/medical/",
+          "pamphlet_index_url": "https://www.prudential.co.jp/insurance/lineup/pamphlet/",
+          "notes": "パンフレットは申込日入力で検索（直接PDF公開なし）"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "新メディフィットA〈エース〉",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/ME31.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sonylife.co.jp/examine/lineup/list/medical/"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "新メディフィット リターン",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/ME34.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "新メディフィットRe〈リリーフ〉（引受緩和型）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/ME32.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "cancer",
+      "name": "がん保険",
+      "description": "悪性新生物（がん）の診断・治療・入院・手術を重点的に保障する。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "しっかりそなえるがん終身保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=68",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "aflac",
+          "company_name": "アフラック",
+          "product_name": "あなたによりそうがん保険 ミライト（銀行窓販）",
+          "pamphlet_url": "https://www.bank.aflac.co.jp/bank/pdf/bank_cancer_pamph_2504.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2025年4月版"
+        },
+        {
+          "company_id": "aflac",
+          "company_name": "アフラック",
+          "product_name": "「生きる」を創るがん保険 WINGS（銀行窓販）",
+          "pamphlet_url": "https://www.bank.aflac.co.jp/bank/cancer/PDF/bank_cancer_pamph_230123.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2023年1月版",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "ガードネクスト（終身ガン保障保険）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": "https://www.metlife.co.jp/content/dam/metlifecom/jp/corp/pdf/yakkan/provision/cx2/cx2_20251202.pdf",
+          "juyou_jikou_url": "https://www.metlife.co.jp/content/dam/metlifecom/jp/corp/pdf/yakkan/provision/cx2/cx2_20251202.pdf",
+          "version": "2025年8月1日以降",
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/cx2/"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "がん保険（無配当）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA13.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "終身がん保険（08）（無配当）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA53.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "がん入院保険（無配当）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA55.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "tokutei_shikkan",
+      "name": "特定疾患保険",
+      "description": "がん以外の心疾患・脳卒中・生活習慣病など特定の疾病を集中的に保障する。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "循環器病 対策Pro",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=74",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "いまから認知症保険 MCIプラス",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=62",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        }
+      ]
+    },
+    {
+      "id": "kaigo",
+      "name": "介護保険",
+      "description": "要介護状態や認知症に備え、介護一時金・介護年金などを給付する。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "介護のささえ",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=34",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "そなえてふやす介護終身保険（外貨建）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=69",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "外貨建・介護特約付終身保険"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "ドル建介護終身（契約締結前交付書面）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/find/list/dolkaigoshushin/pdf/heads_up.pdf",
+          "keiyaku_gaiyou_url": "https://www.meijiyasuda.co.jp/find/list/dolkaigoshushin/pdf/heads_up.pdf",
+          "juyou_jikou_url": null,
+          "notes": "直接PDFリンク。外貨建終身保険＋介護保障。"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "3大疾病・介護・身体障害保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/sandai_kaigoshintai.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "3大疾病・介護・身体障害終身保険 とわサポート",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/sandai_kaigoshintai_syushin.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "認知症保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/ninchisyo.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "要支援・介護保険 要支援",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/yoshien_kaigo.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "prudential",
+          "company_name": "プルデンシャル生命",
+          "product_name": "介護保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.prudential.co.jp/insurance/lineup/kaigo/",
+          "pamphlet_index_url": "https://www.prudential.co.jp/insurance/lineup/pamphlet/",
+          "notes": "パンフレットは申込日入力で検索"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "5年ごと利差配当付終身介護保障保険",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA104.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sonylife.co.jp/examine/lineup/list/nursing/"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "終身介護保障保険（低解約返戻金型／無配当）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA104.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "shibo_teiki",
+      "name": "死亡保険〈定期〉",
+      "description": "一定期間内に死亡・高度障害になった場合に保険金を支払う掛け捨て型。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "個人定期保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=15",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "エンブレムユー・プレミアム（郵便局向け）",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/select/other/postal/pdf/emb_you.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "低解約返戻金型無配当定期保険（郵便局窓販）"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "定期保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/teiki.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "定期保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/teiki/index.html",
+          "product_page_url": "https://www.jp-life.japanpost.jp/products/clause/teiki/index.html",
+          "notes": "約款ページあり。パンフレットは郵便局窓口にて提供。"
+        },
+        {
+          "company_id": "prudential",
+          "company_name": "プルデンシャル生命",
+          "product_name": "定期保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.prudential.co.jp/insurance/lineup/teiki/",
+          "pamphlet_index_url": "https://www.prudential.co.jp/insurance/lineup/pamphlet/",
+          "notes": "パンフレットは申込日入力で検索"
+        }
+      ]
+    },
+    {
+      "id": "shibo_shushin",
+      "name": "死亡保険〈終身〉",
+      "description": "一生涯を通じた死亡・高度障害保障。解約返戻金あり。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "終身保険パイオニアE",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=12",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "祝金付シニアプラン",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=14",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "ドル建終身（契約締結前交付書面）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/find/list/dolshushin/pdf/heads_up.pdf",
+          "keiyaku_gaiyou_url": "https://www.meijiyasuda.co.jp/find/list/dolshushin/pdf/heads_up.pdf",
+          "juyou_jikou_url": null,
+          "notes": "直接PDFリンク。外貨建終身（窓販）。"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "つみたてドル建終身",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=52",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト。外貨建。"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "一時払終身保険（円貨建）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=77&class=1",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "一時払終身保険（米ドル建）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=76&class=1",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "終身保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/shushin.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "終身保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/syusin/index.html",
+          "product_page_url": "https://www.jp-life.japanpost.jp/products/syusin/index.html",
+          "notes": "約款ページあり。パンフレットは郵便局窓口にて提供。"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "一時払終身保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/itijibarai/index.html",
+          "notes": "約款ページあり。パンフレットは郵便局窓口にて提供。"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "引受基準緩和型終身保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/kanwa-syusin/index.html",
+          "notes": "告知緩和型。約款ページあり。"
+        },
+        {
+          "company_id": "prudential",
+          "company_name": "プルデンシャル生命",
+          "product_name": "終身保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.prudential.co.jp/insurance/lineup/syushin/",
+          "pamphlet_index_url": "https://www.prudential.co.jp/insurance/lineup/pamphlet/",
+          "notes": "パンフレットは申込日入力で検索"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "有期払込終身保険（無配当）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA01.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sonylife.co.jp/examine/lineup/list/whole/"
+        }
+      ]
+    },
+    {
+      "id": "nenkin",
+      "name": "個人年金保険",
+      "description": "老後の生活資金として、一定期間または終身にわたり年金を受け取る。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "長期運用年金",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=73",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "指数連動型個人年金保険 ステップジャンプ",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/step_jump/index.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "長寿支援保険（年金型）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/choju/index.html",
+          "notes": "約款ページあり。パンフレットは郵便局窓口にて提供。"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "SOVANI 変額個人年金保険（無告知型）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA107.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sonylife.co.jp/examine/lineup/list/pension/"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "SOVANI 一時払 変額個人年金保険（無告知型）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA108.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "レグルスIV（個人年金）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/mcfa09/",
+          "notes": "重要事項説明書ページあり"
+        }
+      ]
+    },
+    {
+      "id": "chochiku_en",
+      "name": "貯蓄型保険〈円建〉",
+      "description": "満期保険金・解約返戻金などで資産形成を目的とする円建ての保険。養老保険・学資保険等を含む。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "nissay",
+          "company_name": "日本生命",
+          "product_name": "夢のかたちプラス",
+          "pamphlet_url": "https://www.nissay.co.jp/kojin/shohin/madohan/yumenokatachiplus/pdf/yumenokatachiplus.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.nissay.co.jp/kojin/shohin/madohan/yumenokatachiplus/",
+          "notes": "契約概要は商品パンフレットに統合（窓販向け）"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "エブリバディ",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=70",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "一時払養老保険（円建）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=78&class=1",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "じぶんの積立",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=46&class=1",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "つみたて学資",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=45&class=1",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "学資保険。請求ページ経由のリダイレクト。"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "FC エラベル Life（三菱UFJ銀行向け）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/window/files/pdf/dbook25_apr_fc-eraberu-life_mutb.pdf",
+          "keiyaku_gaiyou_url": "https://www.meijiyasuda.co.jp/window/files/pdf/dbook25_apr_fc-eraberu-life_mutb.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年4月版",
+          "notes": "契約締結前交付書面兼商品パンフレット（銀行窓販）"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "養老保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=23",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "T-未来（Mizuho銀行向け）",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai_mizuho/tmiraimizuhoa3.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai_mizuho/tmiraimizuhoa3.pdf",
+          "juyou_jikou_url": null,
+          "notes": "銀行窓販向け。契約締結前交付書面。"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "T-未来",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai/ta3.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai/ta3.pdf",
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "養老保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/yoro.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "養老保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/yoro/index.html",
+          "notes": "約款ページあり。パンフレットは郵便局窓口にて提供。"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "引受基準緩和型養老保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/kanwa-yoro/index.html",
+          "notes": "告知緩和型。約款ページあり。"
+        },
+        {
+          "company_id": "aflac",
+          "company_name": "アフラック",
+          "product_name": "WAYS（死亡・貯蓄・介護の複合型）",
+          "pamphlet_url": "https://www.bank.aflac.co.jp/bank/pdf/bank_ways_pamph_t_2412.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2024年12月版",
+          "notes": "死亡・貯蓄・介護・障がい保障の一体型終身保険"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "ビー ウィズ ユープラスⅡ（円建）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/spiswl24/",
+          "notes": "円建一時払終身保険"
+        },
+        {
+          "company_id": "prudential",
+          "company_name": "プルデンシャル生命",
+          "product_name": "養老保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.prudential.co.jp/insurance/lineup/youro/",
+          "pamphlet_index_url": "https://www.prudential.co.jp/insurance/lineup/pamphlet/",
+          "notes": "パンフレットは申込日入力で検索"
+        }
+      ]
+    },
+    {
+      "id": "chochiku_gaika",
+      "name": "貯蓄型保険〈外貨建〉",
+      "description": "米ドル・豪ドルなど外貨で運用する積立・終身保険。為替変動リスクあり。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "nissay",
+          "company_name": "日本生命",
+          "product_name": "ロングドリームGOLD3",
+          "pamphlet_url": "https://www.nissay.co.jp/kojin/shohin/madohan/longdreamgold3/pdf/longdreamgold3.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.nissay.co.jp/kojin/shohin/madohan/longdreamgold3/",
+          "notes": "外貨建一時払終身保険（窓販向け）"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "一時払養老保険（米ドル建）",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=49&class=1",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "贈与がかんたん外貨建一時払終身",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=58",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト。贈与目的設計。"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "T-未来Global（金融機関向け）",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/fi/t_miraiglobal/t_miraiglobal.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/fi/t_miraiglobal/t_miraiglobal.pdf",
+          "juyou_jikou_url": null,
+          "notes": "外貨建変額保険（銀行窓販）。契約締結前交付書面兼パンフ。"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "ウェルスデザイン（外貨建一時払終身）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/wd/"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "サニーガーデンEX（外貨建終身）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/spwlwc/"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "ビー ウィズ ユープラスⅡ（米ドル建）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/spiswl16yu/"
+        },
+        {
+          "company_id": "prudential",
+          "company_name": "プルデンシャル生命",
+          "product_name": "外貨建保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.prudential.co.jp/insurance/lineup/gaika/",
+          "pamphlet_index_url": "https://www.prudential.co.jp/insurance/lineup/pamphlet/",
+          "notes": "パンフレットは申込日入力で検索"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "米ドル建終身保険（無配当）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA59.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sonylife.co.jp/examine/lineup/list/gaika/"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "指定通貨建積立利率更改型一時払終身保険（無告知型）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA116.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "kenko_zoshin",
+      "name": "健康増進型保険",
+      "description": "健康状態・行動（歩数・健診結果等）に応じて保険料や給付が変動する新型の保険。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "1UP SP Vitality（主力商品・総合）",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/mirailabo/vitalitymain_book.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sumitomolife.co.jp/lineup/mirailabo/smassh/",
+          "version": "2026年1月改訂版"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "1UP Vitality（金融機関向け）",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/fi/1upvitality/1upvitality.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/1upvitality/gaiyou.pdf",
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/1upvitality/index.html"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "1UP Vitality（直営店・代理店）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/shop/1upvitality/gaiyou.pdf",
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "sogo_hosho",
+      "name": "総合保障保険",
+      "description": "死亡・医療・介護など複数のリスクを一つの契約で保障する複合型保険。生損保一体型を含む。",
+      "insurance_type": "生命保険 / 損害保険",
+      "products": [
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "ベストスタイル",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=37",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "死亡＋医療保障の総合型"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "ベストスタイル Jr.",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=38",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "こども向け総合型"
+        },
+        {
+          "company_id": "sumitomolife",
+          "company_name": "住友生命",
+          "product_name": "フルハートJプラス",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/shop/fullheartjplus/gaiyou.pdf",
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "超保険（生損保一体型）",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_260101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_260101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2026年1月1日以降始期用",
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/sogo/cho-hoken/pamphlet/",
+          "notes": "生命保険＋損害保険一体型。パンフレット兼重要事項説明書。"
+        },
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "超保険（生損保一体型）",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_240101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_240101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2024年1月1日以降始期用",
+          "notes": "旧版・参照用"
+        }
+      ]
+    },
+    {
+      "id": "shuurou",
+      "name": "就労不能・所得保障保険",
+      "description": "病気・ケガ・障害・介護により働けなくなった場合の収入を補償する。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "3大疾病所得保障保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/sandai_shotokuhosho.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "介護・身体障害所得保障保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/kaigo_shintai_shotokuhosho.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "継続入院所得保障保険 心身サポート",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/keizokunyuin_shotokuhosho.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "「家族」所得保障保険 ジャスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/just_lineup/kazoku_shotokuhosho.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "prudential",
+          "company_name": "プルデンシャル生命",
+          "product_name": "就労不能状態収入保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.prudential.co.jp/insurance/lineup/shuurou/",
+          "pamphlet_index_url": "https://www.prudential.co.jp/insurance/lineup/pamphlet/",
+          "notes": "パンフレットは申込日入力で検索"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "ライフインベスト（変額終身・就労不能保障）",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/vl2/"
+        },
+        {
+          "company_id": "metlife",
+          "company_name": "メットライフ生命",
+          "product_name": "ライフインベスト ネクスト",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.metlife.co.jp/yakkan/provision/vlwl/"
+        }
+      ]
+    },
+    {
+      "id": "gakushi",
+      "name": "学資保険",
+      "description": "子どもの教育資金を積み立てながら、親の死亡時には以後の保険料が免除されて満期金が支払われる。",
+      "insurance_type": "生命保険",
+      "products": [
+        {
+          "company_id": "daiichilife",
+          "company_name": "第一生命",
+          "product_name": "こども学資保険 こども応援団 Mickey",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.dai-ichi-life.co.jp/examine/lineup/products/kodomo_mickey/index.html",
+          "notes": "資料請求フォーム経由"
+        },
+        {
+          "company_id": "kanpo",
+          "company_name": "かんぽ生命",
+          "product_name": "学資保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.jp-life.japanpost.jp/products/clause/gaksi/index.html",
+          "notes": "約款ページあり。パンフレットは郵便局窓口にて提供。資料請求: https://www.jp-life.japanpost.jp/request/top03.html"
+        },
+        {
+          "company_id": "sonylife",
+          "company_name": "ソニー生命",
+          "product_name": "学資保険（無配当）",
+          "pamphlet_url": "https://www.sonylife.co.jp/examine/lineup/list/pdf/OA62.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sonylife.co.jp/examine/lineup/list/educational/"
+        },
+        {
+          "company_id": "meijiyasuda",
+          "company_name": "明治安田生命",
+          "product_name": "つみたて学資",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=45&class=1",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        }
+      ]
+    },
+    {
+      "id": "jidosha",
+      "name": "自動車保険",
+      "description": "自動車事故による対人・対物賠償、車両損害、搭乗者傷害等を保障する。自賠責・任意保険を含む。",
+      "insurance_type": "損害保険",
+      "products": [
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "トータルアシスト自動車保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_260101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_260101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2026年1月1日以降始期用",
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/auto/pamphlet/",
+          "notes": "パンフレット兼重要事項説明書"
+        },
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "トータルアシスト自動車保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_220101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_220101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2022年1月1日以降始期用",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "ドライバー保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/driver_pamphlet_250101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/driver_pamphlet_250101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年1月1日以降始期用"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "THE クルマの保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2607.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2026年7月版",
+          "pamphlet_index_url": "https://www.sompo-japan.co.jp/kinsurance/contents1/",
+          "notes": "パンフレット兼重要事項等説明書"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "THE クルマの保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2601.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2601.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2026年1月版",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "THE クルマの保険 特約カタログ",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/tokuyaku2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年7月版"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "つながるドラレコ Driving!",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/driving/driving2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年7月版"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "バイク保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/bike/bike2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年7月版"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "ドライバー保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/driver/driver2601.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年1月版"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "自賠責保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/jibaiseki/jibaiseki.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK クルマの保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/car/car.pdf",
+          "version": "2026年1月1日以降始期用",
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/car/gk/notice.html"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK クルマの保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/20251231_gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/car/20251231_car.pdf",
+          "version": "2025年（2025年1月1日〜12月31日始期用）",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK クルマの保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/20241231_gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/car/20241231_car.pdf",
+          "version": "2024年（2024年1月1日〜12月31日始期用）",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK クルマの保険 別冊（主な特約のご説明）",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk_extra.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年1月1日以降始期用"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "見守るクルマの保険プレミアム",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk_mimamoru-dr-premium.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "テレマティクス型自動車保険"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "はじめての自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/hajimete.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年以降"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK クルマの保険・ドライバー保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk_driver.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "自賠責保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/jibaiseki.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "kasai",
+      "name": "火災保険",
+      "description": "住宅・家財の火災・風水害・盗難等の損害を補償する。地震保険とセット加入が一般的。",
+      "insurance_type": "損害保険",
+      "products": [
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "トータルアシスト住まいの保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_251001.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_251001.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年10月1日以降始期用",
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/live/pamphlet/",
+          "notes": "パンフレット兼重要事項説明書"
+        },
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "トータルアシスト住まいの保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_241001.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_241001.pdf",
+          "juyou_jikou_url": null,
+          "version": "2024年10月1日以降始期用",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "THE すまいの保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2509.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2509.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2025年9月版"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "THE すまいの保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2410.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2410.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2024年10月版",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "THE 家財の保険（賃貸住宅入居者専用）",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/kazai/kazai2509.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2025年9月版"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "マンション総合保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/mansion/mansion2410.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2024年10月版"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK すまいの保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/kasai/kasai.pdf",
+          "version": "パンフ：2024年10月以降 / 重要事項：2025年10月以降",
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/kasai/gk/notice.html"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK すまいの保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/20240930_gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/kasai/20250930_kasai.pdf",
+          "version": "2022年10月1日〜2024年9月30日始期用",
+          "notes": "旧版・参照用"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK すまいの保険グランド",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/gk-grand.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/kasai/gk-grand/notice.html"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "リビングFIT（賃貸住宅専用家財の火災保険）",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/living-fit.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/kasai/living-fit/notice.html"
+        }
+      ]
+    },
+    {
+      "id": "jishin",
+      "name": "地震保険",
+      "description": "地震・噴火・津波による建物・家財の損害を補償する。火災保険とセット加入が必須。",
+      "insurance_type": "損害保険",
+      "products": [
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "地震保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/earthquake/earthquake2210.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2022年10月版"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "地震保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/jishin.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "iryo_shogai",
+      "name": "医療・傷害保険〈損保系〉",
+      "description": "ケガ・病気による入院・手術・通院・所得損失を補償する損害保険系商品。",
+      "insurance_type": "損害保険",
+      "products": [
+        {
+          "company_id": "tokiomarine",
+          "company_name": "東京海上日動",
+          "product_name": "トータルアシストからだの保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/sick/pamphlet/",
+          "notes": "パンフレットページからダウンロード（版管理のため直接URLは要確認）"
+        },
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "THE カラダの保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/yakkan/karada2510.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/yakkan/karada2510.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2025年10月版",
+          "notes": "傷害所得総合保険。パンフレット兼重要事項等説明書。"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK ケガの保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kega/gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "GK ケガの保険シルバー",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kega/silver.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "シニア向け"
+        }
+      ]
+    },
+    {
+      "id": "ryoko_leisure",
+      "name": "旅行・レジャー保険",
+      "description": "国内外の旅行中のケガ・病気・賠償責任・携行品損害等を補償する。",
+      "insurance_type": "損害保険",
+      "products": [
+        {
+          "company_id": "sompo",
+          "company_name": "損保ジャパン",
+          "product_name": "国内旅行総合保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/leisure/kokunai/kokunai1910.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2019年10月版"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "海外旅行保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/travel/kairyo.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/travel/taimen.pdf",
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/travel/taimen/notice.html"
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "国内旅行傷害保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/travel/japan.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "company_id": "ms_ins",
+          "company_name": "三井住友海上",
+          "product_name": "ゴルファー保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/travel/golfer.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    }
+  ]
+}

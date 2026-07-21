@@ -1,0 +1,5259 @@
+{
+  "version": "2.14",
+  "children": [
+    {
+      "type": "frame",
+      "id": "D7KoR",
+      "x": 0,
+      "y": 460,
+      "name": "Cocreo Website Desktop",
+      "clip": true,
+      "width": 1440,
+      "height": 5654,
+      "fill": "$paper",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "e7A6C",
+          "x": 0,
+          "y": 0,
+          "name": "Header",
+          "width": 1440,
+          "height": 88,
+          "fill": "$paper",
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            72
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "MyKPQ",
+              "name": "Cocreo Brand",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zPJbL",
+                  "name": "Cocreo Logo Text",
+                  "fill": "$ink",
+                  "content": "Cocreo",
+                  "fontFamily": "$font",
+                  "fontSize": 30,
+                  "fontWeight": "700",
+                  "letterSpacing": -1.2
+                },
+                {
+                  "type": "ellipse",
+                  "id": "UVwRt",
+                  "name": "Cocreo Orange Mark",
+                  "fill": "$orange",
+                  "width": 22,
+                  "height": 22
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "APa3u",
+              "name": "Desktop Navigation",
+              "gap": 34,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "lFZrV",
+                  "name": "Nav 支援領域",
+                  "fill": "$muted",
+                  "content": "支援領域",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "HVvpM",
+                  "name": "Nav 選ばれる理由",
+                  "fill": "$muted",
+                  "content": "選ばれる理由",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "b5V6SC",
+                  "name": "Nav iOSアプリ",
+                  "fill": "$muted",
+                  "content": "iOSアプリ",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "rAlrq",
+                  "name": "Nav よくある質問",
+                  "fill": "$muted",
+                  "content": "よくある質問",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rMnrb",
+              "name": "Header Consultation Button",
+              "fill": "$ink",
+              "cornerRadius": 999,
+              "gap": 8,
+              "padding": [
+                14,
+                22
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "HmITQ",
+                  "name": "Header Consultation Label",
+                  "fill": "$paper",
+                  "content": "60分の無料相談  →",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Mvb0a",
+          "x": 0,
+          "y": 88,
+          "name": "Hero Section",
+          "width": 1440,
+          "height": 720,
+          "fill": "$cream",
+          "gap": 56,
+          "padding": [
+            72,
+            72,
+            64,
+            72
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "UB9aj",
+              "name": "Hero Copy",
+              "width": 640,
+              "layout": "vertical",
+              "gap": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "XHUo3",
+                  "name": "Specialist Badge",
+                  "fill": "$paper",
+                  "cornerRadius": 999,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 9,
+                  "padding": [
+                    10,
+                    15
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "P5u9B",
+                      "name": "Shield Icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "shield-check",
+                      "library": "lucide",
+                      "fill": "$green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "zSRiL",
+                      "name": "Specialist Badge Text",
+                      "fill": "$ink",
+                      "content": "保険代理店に特化した AI・DX伴走",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "s2CK3a",
+                  "name": "Hero Headline",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "「AIで何ができるか」で\n終わらせない。\n意向把握も、乗合の比較も、\n現場が回る仕組みへ。",
+                  "lineHeight": 1.3,
+                  "fontFamily": "$font",
+                  "fontSize": 42,
+                  "fontWeight": "700",
+                  "letterSpacing": -1.4
+                },
+                {
+                  "type": "text",
+                  "id": "v8oc2",
+                  "name": "Hero Description",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": 590,
+                  "content": "Cocreoは、保険代理店の経営課題を整理し、Web・業務アプリ・集客施策として実装する伴走パートナーです。提案書を渡して終わりにせず、自社のエンジニアが実際に手を動かして形にします。",
+                  "lineHeight": 1.8,
+                  "fontFamily": "$font",
+                  "fontSize": 17,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "IYvWO",
+                  "name": "Hero Actions",
+                  "gap": 12,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ucdzy",
+                      "name": "Primary Consultation Button",
+                      "fill": "$orange",
+                      "cornerRadius": 999,
+                      "gap": 10,
+                      "padding": [
+                        17,
+                        24
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nwOFc",
+                          "name": "Primary Consultation Label",
+                          "fill": "$paper",
+                          "content": "課題を無料で整理する",
+                          "fontFamily": "$font",
+                          "fontSize": 16,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "uUxjT",
+                          "name": "Primary Arrow",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "arrow-right",
+                          "library": "lucide",
+                          "fill": "$paper"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Mp2MN",
+                      "name": "Product Link Button",
+                      "fill": "$paper",
+                      "cornerRadius": 999,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "gap": 8,
+                      "padding": [
+                        16,
+                        22
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "FRYl8",
+                          "name": "Product Link Label",
+                          "fill": "$ink",
+                          "content": "実際のプロダクトを見る",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ctB87",
+                  "name": "Hero Trust Points",
+                  "gap": 20,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jA73Z",
+                      "name": "Trust Point 初回相談 60分無料",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "MsEXs",
+                          "name": "Trust Check",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "check",
+                          "library": "lucide",
+                          "fill": "$green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "H8VaMG",
+                          "name": "Trust Point Text",
+                          "fill": "$muted",
+                          "content": "初回相談 60分無料",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "EHL0L",
+                      "name": "Trust Point 24時間以内に初回返信",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "l71fXK",
+                          "name": "Trust Check",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "check",
+                          "library": "lucide",
+                          "fill": "$green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "toCGn",
+                          "name": "Trust Point Text",
+                          "fill": "$muted",
+                          "content": "24時間以内に初回返信",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "SZo8R",
+                      "name": "Trust Point オンライン・全国対応",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "LBLay",
+                          "name": "Trust Check",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "check",
+                          "library": "lucide",
+                          "fill": "$green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "I30l7r",
+                          "name": "Trust Point Text",
+                          "fill": "$muted",
+                          "content": "オンライン・全国対応",
+                          "fontFamily": "$font",
+                          "fontSize": 12,
+                          "fontWeight": "600"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YrvrE",
+              "name": "Hero Illustration Card",
+              "clip": true,
+              "width": "fill_container",
+              "height": 520,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "../public/cocreo-collaboration-hero.png",
+                "mode": "fill"
+              },
+              "cornerRadius": 32,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#14201D24",
+                "offset": {
+                  "x": 0,
+                  "y": 18
+                },
+                "blur": 40,
+                "spread": -12
+              },
+              "layout": "none",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "X87DdY",
+                  "x": 28,
+                  "y": 418,
+                  "name": "Illustration Caption",
+                  "width": 490,
+                  "height": 78,
+                  "fill": "#14201DEB",
+                  "cornerRadius": 18,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    14,
+                    18
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Gymmi",
+                      "name": "Illustration Caption Title",
+                      "fill": "$paper",
+                      "content": "一緒に考え、一緒につくる。",
+                      "fontFamily": "$font",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "J2SSDN",
+                      "name": "Illustration Caption Body",
+                      "fill": "#FFFFFFC7",
+                      "content": "現場の言葉から始まる、Cocreoの伴走スタイル",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Jsdas",
+          "x": 0,
+          "y": 808,
+          "name": "Proof Strip",
+          "width": 1440,
+          "height": 160,
+          "fill": "$paper",
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            32,
+            72
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "GkIBo",
+              "name": "Proof Metric 保険代理店",
+              "width": 260,
+              "layout": "vertical",
+              "gap": 7,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NgWMN",
+                  "name": "Proof Value",
+                  "fill": "$orange",
+                  "content": "保険代理店",
+                  "fontFamily": "$font",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "UodrH",
+                  "name": "Proof Label",
+                  "fill": "$muted",
+                  "content": "業界を絞った支援",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Pa1Qw",
+              "name": "Proof Metric Web・業務・集客を横断",
+              "width": 260,
+              "layout": "vertical",
+              "gap": 7,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "lt4Ur",
+                  "name": "Proof Value",
+                  "fill": "$orange",
+                  "content": "戦略 × 実装",
+                  "fontFamily": "$font",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "eBm5v",
+                  "name": "Proof Label",
+                  "fill": "$muted",
+                  "content": "一気通貫で担当",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "h2SXY9",
+              "name": "Proof Metric オンラインで伴走可能",
+              "width": 260,
+              "layout": "vertical",
+              "gap": 7,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "y2CQn",
+                  "name": "Proof Value",
+                  "fill": "$orange",
+                  "content": "小さく試す",
+                  "fontFamily": "$font",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "eGS2g",
+                  "name": "Proof Label",
+                  "fill": "$muted",
+                  "content": "初期リスクを抑える",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OKQhB",
+              "name": "Proof Metric 提案書だけで終わらない",
+              "width": 260,
+              "layout": "vertical",
+              "gap": 7,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "lToMG",
+                  "name": "Proof Value",
+                  "fill": "$orange",
+                  "content": "App Store",
+                  "fontFamily": "$font",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "MbkAV",
+                  "name": "Proof Label",
+                  "fill": "$muted",
+                  "content": "iOSアプリを公開・運用",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "XfHWR",
+          "x": 0,
+          "y": 968,
+          "name": "Services Section",
+          "width": 1440,
+          "fill": "$paper",
+          "layout": "vertical",
+          "gap": 52,
+          "padding": [
+            96,
+            72
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "NX045",
+              "name": "Services Header",
+              "width": 760,
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "IJosK",
+                  "name": "Services Eyebrow",
+                  "fill": "$orange",
+                  "content": "支援領域",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.8
+                },
+                {
+                  "type": "text",
+                  "id": "dTqbL",
+                  "name": "Services Title",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "ツールではなく、\n経営課題から始める。",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font",
+                  "fontSize": 38,
+                  "fontWeight": "700",
+                  "letterSpacing": -1.2
+                },
+                {
+                  "type": "text",
+                  "id": "q9nkp",
+                  "name": "Services Lead",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "「AIで何ができるか」ではなく、「何が経営を止めているか」から整理します。必要な手段だけを組み合わせます。",
+                  "lineHeight": 1.8,
+                  "fontFamily": "$font",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ZIfQD",
+              "name": "Service Columns",
+              "width": "fill_container",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "cn0HL",
+                  "name": "Service Web・ブランド設計",
+                  "width": "fill_container",
+                  "height": 310,
+                  "fill": "$paper",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "left": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    30,
+                    34
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "jUz78",
+                      "name": "Service Icon Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "J98gpd",
+                          "name": "Service Icon Circle",
+                          "width": 52,
+                          "height": 52,
+                          "fill": "$orangeSoft",
+                          "cornerRadius": 18,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "LpVod",
+                              "name": "Service Icon",
+                              "width": 24,
+                              "height": 24,
+                              "icon": "layout-template",
+                              "library": "lucide",
+                              "fill": "$orange"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "xkMij",
+                          "name": "Service Number",
+                          "fill": "$muted",
+                          "content": "01",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "E7swU",
+                      "name": "Service Title",
+                      "fill": "$ink",
+                      "content": "信頼をつくるWebサイト",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "u4l1x",
+                      "name": "Service Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "代理店の強みや対応方針を整理し、相談前の不安を減らす情報設計へ。問い合わせにつながる営業基盤として設計します。",
+                      "lineHeight": 1.75,
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "pxsch",
+                      "name": "Service Detail Link",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gMzed",
+                          "name": "Service Detail Label",
+                          "fill": "$ink",
+                          "content": "詳しく見る",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "M9OufX",
+                          "name": "Service Arrow",
+                          "width": 15,
+                          "height": 15,
+                          "icon": "arrow-up-right",
+                          "library": "lucide",
+                          "fill": "$orange"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Nmx4z",
+                  "name": "Service 業務アプリ・DX",
+                  "width": "fill_container",
+                  "height": 310,
+                  "fill": "$paper",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "left": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    30,
+                    34
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "O0y4bN",
+                      "name": "Service Icon Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "RvyTc",
+                          "name": "Service Icon Circle",
+                          "width": 52,
+                          "height": 52,
+                          "fill": "$orangeSoft",
+                          "cornerRadius": 18,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "eErzA",
+                              "name": "Service Icon",
+                              "width": 24,
+                              "height": 24,
+                              "icon": "blocks",
+                              "library": "lucide",
+                              "fill": "$orange"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "JucfK",
+                          "name": "Service Number",
+                          "fill": "$muted",
+                          "content": "02",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "NT2OZ",
+                      "name": "Service Title",
+                      "fill": "$ink",
+                      "content": "現場で使われる業務アプリ",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "hWpuv",
+                      "name": "Service Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "意向把握書、乗合先商品の比較推奨、事故受付の初動記録など、時間がかかる業務を小さな試作から仕組みにします。",
+                      "lineHeight": 1.75,
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FhqIv",
+                      "name": "Service Detail Link",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "AvGVd",
+                          "name": "Service Detail Label",
+                          "fill": "$ink",
+                          "content": "詳しく見る",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "INNjw",
+                          "name": "Service Arrow",
+                          "width": 15,
+                          "height": 15,
+                          "icon": "arrow-up-right",
+                          "library": "lucide",
+                          "fill": "$orange"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SXy0p",
+                  "name": "Service 集客・改善伴走",
+                  "width": "fill_container",
+                  "height": 310,
+                  "fill": "$paper",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "left": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 18,
+                  "padding": [
+                    30,
+                    34
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "PJBMK",
+                      "name": "Service Icon Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Rrlp4",
+                          "name": "Service Icon Circle",
+                          "width": 52,
+                          "height": 52,
+                          "fill": "$orangeSoft",
+                          "cornerRadius": 18,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "T3RWta",
+                              "name": "Service Icon",
+                              "width": 24,
+                              "height": 24,
+                              "icon": "chart-bar",
+                              "library": "lucide",
+                              "fill": "$orange"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "kuCoU",
+                          "name": "Service Number",
+                          "fill": "$muted",
+                          "content": "03",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "TbQ8g",
+                      "name": "Service Title",
+                      "fill": "$ink",
+                      "content": "続けられる集客・発信",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "sxi1S",
+                      "name": "Service Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Web、記事、メール、SNSを一つの顧客導線として設計。下書きと運用ルールを整え、数値を見ながら改善します。",
+                      "lineHeight": 1.75,
+                      "fontFamily": "$font",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "vxri6",
+                      "name": "Service Detail Link",
+                      "gap": 7,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "pbZhV",
+                          "name": "Service Detail Label",
+                          "fill": "$ink",
+                          "content": "詳しく見る",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "aGbnA",
+                          "name": "Service Arrow",
+                          "width": 15,
+                          "height": 15,
+                          "icon": "arrow-up-right",
+                          "library": "lucide",
+                          "fill": "$orange"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ljxGn",
+          "x": 0,
+          "y": 1730,
+          "name": "Difference Section",
+          "width": 1440,
+          "fill": "$ink",
+          "gap": 80,
+          "padding": [
+            100,
+            72
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "z479r",
+              "name": "Difference Copy",
+              "width": 520,
+              "layout": "vertical",
+              "gap": 22,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "r5liX",
+                  "name": "Difference Eyebrow",
+                  "fill": "#FF9A70",
+                  "content": "選ばれる理由",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.8
+                },
+                {
+                  "type": "text",
+                  "id": "VfWfM",
+                  "name": "Difference Title",
+                  "fill": "$paper",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "コンサルの視点と、\n開発会社の実行力を、一つに。",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font",
+                  "fontSize": 38,
+                  "fontWeight": "700",
+                  "letterSpacing": -1.2
+                },
+                {
+                  "type": "text",
+                  "id": "f8WiC",
+                  "name": "Difference Body",
+                  "fill": "#FFFFFFB8",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "提案書を渡して終わりでも、決められたものを作るだけでもありません。経営と現場の間に入り、成果が出るまで同じ目線で改善します。",
+                  "lineHeight": 1.9,
+                  "fontFamily": "$font",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Ca5km",
+              "name": "Difference Comparison Panel",
+              "clip": true,
+              "width": "fill_container",
+              "fill": "#FFFFFF0D",
+              "cornerRadius": 28,
+              "stroke": "#FFFFFF24",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ulOJe",
+                  "name": "Difference Row 課題整理",
+                  "width": "fill_container",
+                  "height": 124,
+                  "stroke": "#FFFFFF1F",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 20,
+                  "padding": [
+                    24,
+                    28
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "nGNJO",
+                      "name": "Difference Icon Wrap",
+                      "width": 46,
+                      "height": 46,
+                      "fill": "#F05A2433",
+                      "cornerRadius": 15,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "cYaz0",
+                          "name": "Difference Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "target",
+                          "library": "lucide",
+                          "fill": "#FF9A70"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hRamS",
+                      "name": "Difference Labels",
+                      "width": 110,
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "t1uEc",
+                          "name": "Difference Label",
+                          "fill": "$paper",
+                          "content": "相談の起点",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "WCZWo",
+                      "name": "Common Approach",
+                      "fill": "#FFFFFF70",
+                      "textGrowth": "fixed-width",
+                      "width": 160,
+                      "content": "経営戦略／決まった要件",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "dxl2w",
+                      "name": "Comparison Arrow",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "#FFFFFF70"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gkHrR",
+                      "name": "Cocreo Approach",
+                      "fill": "$paper",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "現場の困りごと",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "br3uC",
+                  "name": "Difference Row 実装",
+                  "width": "fill_container",
+                  "height": 124,
+                  "stroke": "#FFFFFF1F",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 20,
+                  "padding": [
+                    24,
+                    28
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "l8EDUQ",
+                      "name": "Difference Icon Wrap",
+                      "width": 46,
+                      "height": 46,
+                      "fill": "#F05A2433",
+                      "cornerRadius": 15,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "PuxM0",
+                          "name": "Difference Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "code",
+                          "library": "lucide",
+                          "fill": "#FF9A70"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VYwPZ",
+                      "name": "Difference Labels",
+                      "width": 110,
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "JrXmo",
+                          "name": "Difference Label",
+                          "fill": "$paper",
+                          "content": "主な成果物",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "ORXAe",
+                      "name": "Common Approach",
+                      "fill": "#FFFFFF70",
+                      "textGrowth": "fixed-width",
+                      "width": 160,
+                      "content": "提案書／システム",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "yLbWr",
+                      "name": "Comparison Arrow",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "#FFFFFF70"
+                    },
+                    {
+                      "type": "text",
+                      "id": "J77nOR",
+                      "name": "Cocreo Approach",
+                      "fill": "$paper",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "使われる業務の仕組み",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dkT74",
+                  "name": "Difference Row 公開後",
+                  "width": "fill_container",
+                  "height": 124,
+                  "stroke": "#FFFFFF1F",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 20,
+                  "padding": [
+                    24,
+                    28
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "AOlTh",
+                      "name": "Difference Icon Wrap",
+                      "width": 46,
+                      "height": 46,
+                      "fill": "#F05A2433",
+                      "cornerRadius": 15,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "LCUlk",
+                          "name": "Difference Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "refresh-cw",
+                          "library": "lucide",
+                          "fill": "#FF9A70"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Bjf4w",
+                      "name": "Difference Labels",
+                      "width": 110,
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "s3m2L",
+                          "name": "Difference Label",
+                          "fill": "$paper",
+                          "content": "実装後",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "rY5Xa",
+                      "name": "Common Approach",
+                      "fill": "#FFFFFF70",
+                      "textGrowth": "fixed-width",
+                      "width": 160,
+                      "content": "別途支援／保守中心",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "FH2dc",
+                      "name": "Comparison Arrow",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "#FFFFFF70"
+                    },
+                    {
+                      "type": "text",
+                      "id": "QJHSm",
+                      "name": "Cocreo Approach",
+                      "fill": "$paper",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "計測・改善まで伴走",
+                      "lineHeight": 1.5,
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "FS8yH",
+                  "name": "Difference Row 進め方",
+                  "width": "fill_container",
+                  "height": 124,
+                  "gap": 20,
+                  "padding": [
+                    20,
+                    28
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "SEVro",
+                      "name": "Difference Row 4 Icon Wrap",
+                      "width": 46,
+                      "height": 46,
+                      "fill": "#F05A2433",
+                      "cornerRadius": 15,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "nhER8",
+                          "name": "Difference Row 4 Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "route",
+                          "library": "lucide",
+                          "fill": "#FF9A70"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "qyts7",
+                      "name": "Difference Row 4 Labels",
+                      "width": 110,
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rNrRG",
+                          "name": "Difference Row 4 Label",
+                          "fill": "$paper",
+                          "content": "進め方",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "B2Qv5",
+                      "name": "Difference Row 4 Common",
+                      "fill": "#FFFFFF70",
+                      "textGrowth": "fixed-width",
+                      "width": 160,
+                      "content": "調査・要件定義から",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "S7BiO",
+                      "name": "Difference Row 4 Arrow",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "#FFFFFF70"
+                    },
+                    {
+                      "type": "text",
+                      "id": "KuAG0",
+                      "name": "Difference Row 4 Cocreo",
+                      "fill": "$paper",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "小さく試して共に育てる",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "nJkwC",
+          "x": 0,
+          "y": 2426,
+          "name": "Cocreo Agent DX Featured",
+          "width": 1440,
+          "height": 420,
+          "fill": "$paper",
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 70,
+          "padding": [
+            72,
+            88
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "cOuMg",
+              "name": "OptimaLrn Copy",
+              "width": 630,
+              "layout": "vertical",
+              "gap": 18,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "d40iCp",
+                  "name": "OptimaLrn Badge",
+                  "fill": "$orangeSoft",
+                  "cornerRadius": 999,
+                  "gap": 8,
+                  "padding": [
+                    9,
+                    13
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Pe8Bd",
+                      "name": "OptimaLrn Sparkle",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "smartphone",
+                      "library": "lucide",
+                      "fill": "$orange"
+                    },
+                    {
+                      "type": "text",
+                      "id": "VOmap",
+                      "name": "OptimaLrn Badge Text",
+                      "fill": "$orange",
+                      "content": "自社開発・保険代理店向け",
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "YEyDe",
+                  "name": "OptimaLrn Title",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Cocreo代理店DX",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font",
+                  "fontSize": 36,
+                  "fontWeight": "700",
+                  "letterSpacing": -1
+                },
+                {
+                  "type": "text",
+                  "id": "OohmE",
+                  "name": "OptimaLrn Body",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "保険代理店の毎日の情報収集と業務改善を、無料・ログイン不要で支援するiOSアプリです。企画から開発、リリース後の運用改善まで一気通貫で手がけています。",
+                  "lineHeight": 1.8,
+                  "fontFamily": "$font",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ADIDG",
+              "name": "Cocreo Agent DX App Icon",
+              "width": 260,
+              "height": 260,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "../public/cocreo-agent-dx-icon.png",
+                "mode": "fit"
+              },
+              "cornerRadius": 54,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#6750A440",
+                "offset": {
+                  "x": 0,
+                  "y": 16
+                },
+                "blur": 32,
+                "spread": -10
+              },
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 36,
+              "justifyContent": "center",
+              "alignItems": "center"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "KNPHW",
+          "x": 0,
+          "y": 2846,
+          "name": "iOS Apps Section",
+          "width": 1440,
+          "fill": "$cream",
+          "layout": "vertical",
+          "gap": 48,
+          "padding": [
+            100,
+            72
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "K3uI22",
+              "name": "iOS Apps Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "end",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Rmw4s",
+                  "name": "iOS Apps Title Group",
+                  "width": 760,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ogzAM",
+                      "name": "iOS Apps Eyebrow",
+                      "fill": "$orange",
+                      "content": "LEARNING APP BRAND",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700",
+                      "letterSpacing": 1.8
+                    },
+                    {
+                      "type": "text",
+                      "id": "v3jVQ7",
+                      "name": "iOS Apps Title",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "OptimaLrn —「努力を科学する」",
+                      "lineHeight": 1.38,
+                      "fontFamily": "$font",
+                      "fontSize": 36,
+                      "fontWeight": "700",
+                      "letterSpacing": -1.1
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "J5IhA",
+                  "name": "iOS Apps Note",
+                  "fill": "$muted",
+                  "content": "保険領域とは別事業の独立ブランド",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "A9FXR",
+              "name": "iOS Apps Grid",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 18,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "M3vzRp",
+                  "name": "App Row 1",
+                  "width": "fill_container",
+                  "height": 190,
+                  "gap": 18,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cWuHA",
+                      "name": "App Card AI英検準1級 Pass",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": 24,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#14201D1A",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 24,
+                        "spread": -12
+                      },
+                      "gap": 20,
+                      "padding": 22,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "LA2nz",
+                          "name": "App Icon AI英検準1級 Pass",
+                          "clip": true,
+                          "width": 96,
+                          "height": 96,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "../canva-export/assets/eiken-p1.jpg",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 22
+                        },
+                        {
+                          "type": "frame",
+                          "id": "LckRj",
+                          "name": "App Copy AI英検準1級 Pass",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 9,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Seu1s",
+                              "name": "App Name",
+                              "fill": "$ink",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "AI英検準1級 Pass",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Ds27a",
+                              "name": "App Description",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "英検準1級",
+                              "lineHeight": 1.55,
+                              "fontFamily": "$font",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "gwOL2",
+                              "name": "App Store Link",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "FKoJz",
+                                  "name": "Apple Icon",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "apple",
+                                  "library": "lucide",
+                                  "fill": "$ink"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "bRH5a",
+                                  "name": "App Store Label",
+                                  "fill": "$ink",
+                                  "content": "App Storeで見る",
+                                  "fontFamily": "$font",
+                                  "fontSize": 12,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Rd5mS",
+                      "name": "App Card AI英検2級 Pass",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": 24,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#14201D1A",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 24,
+                        "spread": -12
+                      },
+                      "gap": 20,
+                      "padding": 22,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "K5Sur",
+                          "name": "App Icon AI英検2級 Pass",
+                          "clip": true,
+                          "width": 96,
+                          "height": 96,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "../canva-export/assets/eiken-2.jpg",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 22
+                        },
+                        {
+                          "type": "frame",
+                          "id": "L19X57",
+                          "name": "App Copy AI英検2級 Pass",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 9,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "OVYLN",
+                              "name": "App Name",
+                              "fill": "$ink",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "AI英検2級 Pass",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "u09mMY",
+                              "name": "App Description",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "英検2級",
+                              "lineHeight": 1.55,
+                              "fontFamily": "$font",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "L1yNy",
+                              "name": "App Store Link",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "vn3hX",
+                                  "name": "Apple Icon",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "apple",
+                                  "library": "lucide",
+                                  "fill": "$ink"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "G3WSJz",
+                                  "name": "App Store Label",
+                                  "fill": "$ink",
+                                  "content": "App Storeで見る",
+                                  "fontFamily": "$font",
+                                  "fontSize": 12,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IkKiq",
+                      "name": "App Card ITパスポート - AI Pass",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "$paper",
+                      "cornerRadius": 24,
+                      "stroke": "$line",
+                      "strokeWidth": 1,
+                      "effect": {
+                        "type": "shadow",
+                        "shadowType": "outer",
+                        "color": "#14201D1A",
+                        "offset": {
+                          "x": 0,
+                          "y": 10
+                        },
+                        "blur": 24,
+                        "spread": -12
+                      },
+                      "gap": 20,
+                      "padding": 22,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "jFfK3",
+                          "name": "App Icon ITパスポート - AI Pass",
+                          "clip": true,
+                          "width": 96,
+                          "height": 96,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "../canva-export/assets/it-pass.jpg",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 22
+                        },
+                        {
+                          "type": "frame",
+                          "id": "YKZoV",
+                          "name": "App Copy ITパスポート - AI Pass",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 9,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "s4iVQx",
+                              "name": "App Name",
+                              "fill": "$ink",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "ITパスポート - AI Pass",
+                              "lineHeight": 1.45,
+                              "fontFamily": "$font",
+                              "fontSize": 16,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "text",
+                              "id": "P4yTyT",
+                              "name": "App Description",
+                              "fill": "$muted",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "ITパスポート",
+                              "lineHeight": 1.55,
+                              "fontFamily": "$font",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "UJU6k",
+                              "name": "App Store Link",
+                              "gap": 6,
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "Ugqbq",
+                                  "name": "Apple Icon",
+                                  "width": 14,
+                                  "height": 14,
+                                  "icon": "apple",
+                                  "library": "lucide",
+                                  "fill": "$ink"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "c3ZCeG",
+                                  "name": "App Store Label",
+                                  "fill": "$ink",
+                                  "content": "App Storeで見る",
+                                  "fontFamily": "$font",
+                                  "fontSize": 12,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "hSaMb",
+          "x": 0,
+          "y": 3368,
+          "name": "Process Section",
+          "width": 1440,
+          "fill": "$paper",
+          "layout": "vertical",
+          "gap": 54,
+          "padding": [
+            100,
+            72
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "WBwBh",
+              "name": "Process Header",
+              "width": 720,
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "P38hy",
+                  "name": "Process Eyebrow",
+                  "fill": "$green",
+                  "content": "ご相談から実装まで",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.8
+                },
+                {
+                  "type": "text",
+                  "id": "mbxGd",
+                  "name": "Process Title",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "小さく確かめてから、決める。",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font",
+                  "fontSize": 38,
+                  "fontWeight": "700",
+                  "letterSpacing": -1.1
+                },
+                {
+                  "type": "text",
+                  "id": "n1FGk",
+                  "name": "Process Lead Latest",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "無料相談の目的は契約を急ぐことではなく、取り組む価値がある課題かを見極めることです。",
+                  "lineHeight": 1.8,
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "C01GzX",
+              "name": "Process Steps",
+              "width": "fill_container",
+              "height": 250,
+              "gap": 22,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "T6OsS",
+                  "name": "Process Step 無料相談",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$greenSoft",
+                  "cornerRadius": 20,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "padding": [
+                    26,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "MhvyL",
+                      "name": "Process Step Top",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rfvS6",
+                          "name": "Process Step Number",
+                          "fill": "$green",
+                          "content": "01",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "z1pCUn",
+                          "name": "Process Step Icon",
+                          "width": 24,
+                          "height": 24,
+                          "icon": "messages-square",
+                          "library": "lucide",
+                          "fill": "$green"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "y2CHnk",
+                      "name": "Process Step Title",
+                      "fill": "$ink",
+                      "content": "60分の無料相談",
+                      "fontFamily": "$font",
+                      "fontSize": 19,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "vKlNF",
+                      "name": "Process Step Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "現状、目標、制約を伺い、優先すべき課題を一緒に整理します。",
+                      "lineHeight": 1.7,
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "OqU43",
+                  "name": "Process Step 優先順位の設計",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$greenSoft",
+                  "cornerRadius": 20,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "padding": [
+                    26,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "GC3DI",
+                      "name": "Process Step Top",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ChIHA",
+                          "name": "Process Step Number",
+                          "fill": "$green",
+                          "content": "02",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "CqSk4",
+                          "name": "Process Step Icon",
+                          "width": 24,
+                          "height": 24,
+                          "icon": "list-checks",
+                          "library": "lucide",
+                          "fill": "$green"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "b4aNYq",
+                      "name": "Process Step Title",
+                      "fill": "$ink",
+                      "content": "初期提案・お試し",
+                      "fontFamily": "$font",
+                      "fontSize": 19,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "hIW9s",
+                      "name": "Process Step Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "成果指標、進め方、お試し制作の範囲、継続時の費用を明示します。",
+                      "lineHeight": 1.7,
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HhQVE",
+                  "name": "Process Step 実装・公開",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$greenSoft",
+                  "cornerRadius": 20,
+                  "layout": "vertical",
+                  "gap": 14,
+                  "padding": [
+                    26,
+                    24
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "wMvDS",
+                      "name": "Process Step Top",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WQREL",
+                          "name": "Process Step Number",
+                          "fill": "$green",
+                          "content": "03",
+                          "fontFamily": "$font",
+                          "fontSize": 13,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "aqEs8",
+                          "name": "Process Step Icon",
+                          "width": 24,
+                          "height": 24,
+                          "icon": "rocket",
+                          "library": "lucide",
+                          "fill": "$green"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "pbOYc",
+                      "name": "Process Step Title",
+                      "fill": "$ink",
+                      "content": "実装と運用",
+                      "fontFamily": "$font",
+                      "fontSize": 19,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "F3a8y",
+                      "name": "Process Step Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "合意した範囲から小さく始め、現場の反応を見ながら改善します。",
+                      "lineHeight": 1.7,
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "DusPa",
+          "x": 0,
+          "y": 3998,
+          "name": "FAQ Section",
+          "width": 1440,
+          "fill": "$cream",
+          "gap": 90,
+          "padding": [
+            100,
+            72
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "txteL",
+              "name": "FAQ Header",
+              "width": 390,
+              "layout": "vertical",
+              "gap": 18,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Lllxi",
+                  "name": "FAQ Eyebrow",
+                  "fill": "$orange",
+                  "content": "よくある質問",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.8
+                },
+                {
+                  "type": "text",
+                  "id": "Y4WtQg",
+                  "name": "FAQ Title",
+                  "fill": "$ink",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "相談前のよくある質問",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$font",
+                  "fontSize": 38,
+                  "fontWeight": "700",
+                  "letterSpacing": -1.1
+                },
+                {
+                  "type": "text",
+                  "id": "AhKxe",
+                  "name": "FAQ Lead",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "費用・要件・個人情報・法令対応など、初回相談でよくいただく質問です。",
+                  "lineHeight": 1.8,
+                  "fontFamily": "$font",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "l3By1",
+              "name": "FAQ List",
+              "width": "fill_container",
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "R2jExg",
+                  "name": "FAQ Item どの段階から相談できますか？",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 22,
+                  "padding": [
+                    26,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ZHIoS",
+                      "name": "FAQ Q Mark",
+                      "width": 38,
+                      "height": 38,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 13,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "faUpL",
+                          "name": "FAQ Q Letter",
+                          "fill": "$orange",
+                          "content": "Q",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FhjWW",
+                      "name": "FAQ Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "QtrqI",
+                          "name": "FAQ Question",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "どこまで無料ですか？",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$font",
+                          "fontSize": 17,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "D2TSz",
+                          "name": "FAQ Answer",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "初回60分の相談、課題の整理、取り組み方の初期提案までは無料です。実装・運用費用は内容に応じて事前に明示します。",
+                          "lineHeight": 1.8,
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "t46AGh",
+                  "name": "FAQ Item 小さな改善だけでも依頼できますか？",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 22,
+                  "padding": [
+                    26,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "UhnWF",
+                      "name": "FAQ Q Mark",
+                      "width": 38,
+                      "height": 38,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 13,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "L1QtQh",
+                          "name": "FAQ Q Letter",
+                          "fill": "$orange",
+                          "content": "Q",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "ML6gY",
+                      "name": "FAQ Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "rOrmC",
+                          "name": "FAQ Question",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "まだ要件が決まっていなくても相談できますか？",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$font",
+                          "fontSize": 17,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "r8JGTb",
+                          "name": "FAQ Answer",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "はい。何から手を付けるべきか分からない段階を想定しています。AIを使わない選択肢も含めて優先順位を決めます。",
+                          "lineHeight": 1.8,
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "q3nZaB",
+                  "name": "FAQ Item 全国から依頼できますか？",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 22,
+                  "padding": [
+                    26,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "ARTZv",
+                      "name": "FAQ Q Mark",
+                      "width": 38,
+                      "height": 38,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 13,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "M07KK",
+                          "name": "FAQ Q Letter",
+                          "fill": "$orange",
+                          "content": "Q",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "c2OPRv",
+                      "name": "FAQ Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ANrHr",
+                          "name": "FAQ Question",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "相談時に顧客情報は必要ですか？",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$font",
+                          "fontSize": 17,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cpopA",
+                          "name": "FAQ Answer",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "初回相談で顧客の個人情報は必要ありません。実装段階で扱う場合は、利用目的・権限・保存方法を個別に設計します。",
+                          "lineHeight": 1.8,
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zcssl",
+                  "name": "FAQ Item 費用はいつ決まりますか？",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 22,
+                  "padding": [
+                    26,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "plaXn",
+                      "name": "FAQ Q Mark",
+                      "width": 38,
+                      "height": 38,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 13,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "lxJKY",
+                          "name": "FAQ Q Letter",
+                          "fill": "$orange",
+                          "content": "Q",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PwMbR",
+                      "name": "FAQ Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Zi33l",
+                          "name": "FAQ Question",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "募集文書や法令への対応は任せられますか？",
+                          "lineHeight": 1.5,
+                          "fontFamily": "$font",
+                          "fontSize": 17,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "rjKkh",
+                          "name": "FAQ Answer",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "AIは下書き支援として使用し、公開前に各保険会社の考査（事前審査）を経ることを前提に設計します。",
+                          "lineHeight": 1.8,
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wnldv",
+                  "name": "FAQ Item 乗合代理店",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 22,
+                  "padding": [
+                    26,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RdBuY",
+                      "name": "FAQ 5 Q Mark",
+                      "width": 38,
+                      "height": 38,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 13,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "kutqp",
+                          "name": "FAQ 5 Q Letter",
+                          "fill": "$orange",
+                          "content": "Q",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Rhyoh",
+                      "name": "FAQ 5 Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TvGFp",
+                          "name": "FAQ 5 Question",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "乗合代理店です。比較推奨販売の理由説明について相談できますか？",
+                          "fontFamily": "$font",
+                          "fontSize": 17,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cz5ay",
+                          "name": "FAQ 5 Answer",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "はい。商品情報や手数料体系を整理し、理由説明資料の下書きを効率化する仕組みを設計します。最終判断は貴社の基準に沿って行う前提です。",
+                          "lineHeight": 1.8,
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "L1Jzk",
+                  "name": "FAQ Item 乗り換え",
+                  "width": "fill_container",
+                  "stroke": "$line",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "gap": 22,
+                  "padding": [
+                    26,
+                    0
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "S83nHn",
+                      "name": "FAQ 6 Q Mark",
+                      "width": 38,
+                      "height": 38,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 13,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "K1ehDO",
+                          "name": "FAQ 6 Q Letter",
+                          "fill": "$orange",
+                          "content": "Q",
+                          "fontFamily": "$font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hOFaj",
+                      "name": "FAQ 6 Text",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "o3oKe",
+                          "name": "FAQ 6 Question",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "今の制作会社やシステムから乗り換えても大丈夫ですか？",
+                          "fontFamily": "$font",
+                          "fontSize": 17,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "l8LtXx",
+                          "name": "FAQ 6 Answer",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "現状のドメイン・記事・顧客データを精査し、既存契約の解約時期に合わせた移行計画を提示します。",
+                          "lineHeight": 1.8,
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "qcUZG",
+          "x": 0,
+          "y": 4924,
+          "name": "Final CTA Section",
+          "width": 1440,
+          "height": 480,
+          "fill": "$orange",
+          "gap": 60,
+          "padding": [
+            72,
+            88
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "DgBT8",
+              "name": "Final CTA Copy",
+              "width": 730,
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "S5LjR",
+                  "name": "Final CTA Eyebrow",
+                  "fill": "#FFFFFFCC",
+                  "content": "FREE CONSULTATION",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 1.2
+                },
+                {
+                  "type": "text",
+                  "id": "qgsrT",
+                  "name": "Final CTA Title",
+                  "fill": "$paper",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "いまの課題を、\n60分で整理します。",
+                  "lineHeight": 1.35,
+                  "fontFamily": "$font",
+                  "fontSize": 44,
+                  "fontWeight": "700",
+                  "letterSpacing": -1.3
+                },
+                {
+                  "type": "text",
+                  "id": "fUFC2",
+                  "name": "Final CTA Body",
+                  "fill": "#FFFFFFD6",
+                  "textGrowth": "fixed-width",
+                  "width": 660,
+                  "content": "依頼内容が決まっていなくても大丈夫です。相談テーマを選び、分かる範囲でお聞かせください。",
+                  "lineHeight": 1.8,
+                  "fontFamily": "$font",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "zsOKE",
+                  "name": "Final Consultation Button",
+                  "fill": "$paper",
+                  "cornerRadius": 999,
+                  "gap": 10,
+                  "padding": [
+                    17,
+                    24
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "dv5Rq",
+                      "name": "Final Consultation Label",
+                      "fill": "$orange",
+                      "content": "入力内容をメールで送る",
+                      "fontFamily": "$font",
+                      "fontSize": 16,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "Y82d2",
+                      "name": "Final Consultation Arrow",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-right",
+                      "library": "lucide",
+                      "fill": "$orange"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BRcRN",
+              "name": "Final CTA Visual",
+              "clip": true,
+              "width": "fill_container",
+              "height": 310,
+              "fill": "#FFFFFF14",
+              "cornerRadius": 32,
+              "stroke": "#FFFFFF3D",
+              "strokeWidth": 1,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "EoA6a",
+                  "x": 104,
+                  "y": 54,
+                  "name": "CTA Large Circle",
+                  "fill": "#FFFFFF20",
+                  "width": 200,
+                  "height": 200
+                },
+                {
+                  "type": "ellipse",
+                  "id": "s9PMi",
+                  "x": 270,
+                  "y": 32,
+                  "name": "CTA Small Circle",
+                  "fill": "#FFFFFF33",
+                  "width": 76,
+                  "height": 76
+                },
+                {
+                  "type": "frame",
+                  "id": "JMODG",
+                  "x": 145,
+                  "y": 95,
+                  "name": "CTA Conversation Icon Wrap",
+                  "width": 120,
+                  "height": 120,
+                  "fill": "$paper",
+                  "cornerRadius": 40,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "S6z34H",
+                      "name": "CTA Conversation Icon",
+                      "width": 48,
+                      "height": 48,
+                      "icon": "messages-square",
+                      "library": "lucide",
+                      "fill": "$orange"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UV22l",
+          "x": 0,
+          "y": 5404,
+          "name": "Footer",
+          "width": 1440,
+          "height": 250,
+          "fill": "$ink",
+          "layout": "vertical",
+          "gap": 42,
+          "padding": [
+            52,
+            72
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "L86g3",
+              "name": "Footer Top",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "G2R17t",
+                  "name": "Footer Brand",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "c4d2Yg",
+                      "name": "Footer Logo",
+                      "gap": 9,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TyAEt",
+                          "name": "Footer Cocreo Wordmark",
+                          "fill": "$paper",
+                          "content": "Cocreo",
+                          "fontFamily": "$font",
+                          "fontSize": 28,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "TEHvK",
+                          "name": "Footer Orange Mark",
+                          "fill": "$orange",
+                          "width": 20,
+                          "height": 20
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "fmFfJ",
+                      "name": "Footer Brand Statement",
+                      "fill": "#FFFFFF99",
+                      "content": "保険代理店の経営課題を、現場で使われる仕組みへ。対話から実装、運用改善まで伴走します。",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "I6e8p",
+                  "name": "Footer Links",
+                  "gap": 30,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "r99ANw",
+                      "name": "Footer Link 支援領域",
+                      "fill": "#FFFFFFC7",
+                      "content": "支援領域",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "q46rN4",
+                      "name": "Footer Link iOSアプリ",
+                      "fill": "#FFFFFFC7",
+                      "content": "iOSアプリ",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ZZNVI",
+                      "name": "Footer Link OptimaLrn",
+                      "fill": "#FFFFFFC7",
+                      "content": "OptimaLrn",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wm6wd",
+                      "name": "Footer Link お問い合わせ",
+                      "fill": "#FFFFFFC7",
+                      "content": "お問い合わせ",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gPKeg",
+              "name": "Footer Bottom",
+              "width": "fill_container",
+              "stroke": "#FFFFFF1F",
+              "strokeWidth": {
+                "top": 1
+              },
+              "padding": [
+                18,
+                0,
+                0,
+                0
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GdBdm",
+                  "name": "Copyright",
+                  "fill": "#FFFFFF70",
+                  "content": "© 2026 Cocreo. All rights reserved.",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "yIoaA",
+                  "name": "Analytics Notice",
+                  "fill": "#FFFFFF70",
+                  "content": "Cocreo — Strategy to implementation.",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "x7gRH",
+      "x": 1560,
+      "y": 460,
+      "name": "Cocreo Website Mobile — Latest",
+      "clip": true,
+      "width": 390,
+      "height": 6882,
+      "fill": "$paper",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "iZyCJ",
+          "name": "Latest Mobile Header",
+          "width": 390,
+          "height": 72,
+          "fill": "$paper",
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "TWo4I",
+              "name": "Latest Mobile Brand",
+              "gap": 7,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "EjwrE",
+                  "name": "Latest Mobile Logo",
+                  "fill": "$ink",
+                  "content": "Cocreo",
+                  "fontFamily": "$font",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "ellipse",
+                  "id": "CYzyt",
+                  "name": "Latest Mobile Brand Mark",
+                  "fill": "$orange",
+                  "width": 17,
+                  "height": 17
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YF1O4",
+              "name": "Latest Mobile Menu",
+              "width": 42,
+              "height": 42,
+              "fill": "$cream",
+              "cornerRadius": 14,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "eVLi0",
+                  "name": "Latest Mobile Menu Icon",
+                  "width": 21,
+                  "height": 21,
+                  "icon": "menu",
+                  "library": "lucide",
+                  "fill": "$ink"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "x9ehv",
+          "name": "Latest Mobile Hero",
+          "width": 390,
+          "height": 760,
+          "fill": "$cream",
+          "layout": "vertical",
+          "gap": 22,
+          "padding": [
+            34,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "amqX7",
+              "name": "Latest Mobile Hero Badge",
+              "fill": "$paper",
+              "cornerRadius": 999,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 7,
+              "padding": [
+                8,
+                11
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "u6bmxA",
+                  "name": "Latest Mobile Badge Icon",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "shield-check",
+                  "library": "lucide",
+                  "fill": "$orange"
+                },
+                {
+                  "type": "text",
+                  "id": "lGzqY",
+                  "name": "Latest Mobile Badge Text",
+                  "fill": "$ink",
+                  "content": "保険代理店に特化した AI・DX伴走",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "rTiAz",
+              "name": "Latest Mobile Hero Headline",
+              "fill": "$ink",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "「AIで何ができるか」で\n終わらせない。\n意向把握も、乗合の比較も、\n現場が回る仕組みへ。",
+              "lineHeight": 1.34,
+              "fontFamily": "$font",
+              "fontSize": 31,
+              "fontWeight": "700",
+              "letterSpacing": -1
+            },
+            {
+              "type": "text",
+              "id": "Lk5kJ",
+              "name": "Latest Mobile Hero Body",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "経営課題を整理し、Web・業務アプリ・集客施策として実装。提案書だけで終わらせず、自社のエンジニアが形にします。",
+              "lineHeight": 1.7,
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "c7RUR",
+              "name": "Latest Mobile Hero CTA",
+              "width": "fill_container",
+              "height": 52,
+              "fill": "$orange",
+              "cornerRadius": 999,
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "D1kCvC",
+                  "name": "Latest Mobile Hero CTA Text",
+                  "fill": "$paper",
+                  "content": "課題を無料で整理する",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "icon",
+                  "id": "cLgD8",
+                  "name": "Latest Mobile Hero CTA Arrow",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "$paper"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VMJJk",
+              "name": "Latest Mobile Hero Image",
+              "clip": true,
+              "width": "fill_container",
+              "height": 220,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "../public/cocreo-collaboration-hero.png",
+                "mode": "fill"
+              },
+              "cornerRadius": 22
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UBGDh",
+          "name": "Latest Mobile Proof",
+          "width": 390,
+          "height": 220,
+          "fill": "$paper",
+          "stroke": "$line",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "padding": [
+            16,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "q3q67u",
+              "name": "Latest Mobile Proof Row 1",
+              "width": "fill_container",
+              "height": "fill_container",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MHetd",
+                  "name": "Latest Mobile Proof Cell 保険代理店",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "kJaN0",
+                      "name": "Latest Mobile Proof Value",
+                      "fill": "$orange",
+                      "content": "保険代理店",
+                      "fontFamily": "$font",
+                      "fontSize": 17,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "jfS1T",
+                      "name": "Latest Mobile Proof Label",
+                      "fill": "$muted",
+                      "content": "業界を絞った支援",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "h00BWB",
+                  "name": "Latest Mobile Proof Cell 戦略 × 実装",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "e6ps7",
+                      "name": "Latest Mobile Proof Value",
+                      "fill": "$orange",
+                      "content": "戦略 × 実装",
+                      "fontFamily": "$font",
+                      "fontSize": 17,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "H2FRhc",
+                      "name": "Latest Mobile Proof Label",
+                      "fill": "$muted",
+                      "content": "一気通貫で担当",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xd4qm",
+              "name": "Latest Mobile Proof Row 2",
+              "width": "fill_container",
+              "height": "fill_container",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "DQEcF",
+                  "name": "Latest Mobile Proof Cell 小さく試す",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lt3gi",
+                      "name": "Latest Mobile Proof Value",
+                      "fill": "$orange",
+                      "content": "小さく試す",
+                      "fontFamily": "$font",
+                      "fontSize": 17,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "zlAFH",
+                      "name": "Latest Mobile Proof Label",
+                      "fill": "$muted",
+                      "content": "初期リスクを抑える",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "J598f3",
+                  "name": "Latest Mobile Proof Cell App Store",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rTFXr",
+                      "name": "Latest Mobile Proof Value",
+                      "fill": "$orange",
+                      "content": "App Store",
+                      "fontFamily": "$font",
+                      "fontSize": 17,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "tdRhy",
+                      "name": "Latest Mobile Proof Label",
+                      "fill": "$muted",
+                      "content": "iOSアプリを公開・運用",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sCzdp",
+          "name": "Latest Mobile Services",
+          "width": 390,
+          "height": 1120,
+          "fill": "$paper",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            58,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "P52y6H",
+              "name": "Latest Mobile Services Eyebrow",
+              "fill": "$orange",
+              "content": "WHAT WE SOLVE",
+              "fontFamily": "$font",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 1.5
+            },
+            {
+              "type": "text",
+              "id": "F7vAVs",
+              "name": "Latest Mobile Services Title",
+              "fill": "$ink",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "ツールではなく、\n経営課題から始める。",
+              "lineHeight": 1.42,
+              "fontFamily": "$font",
+              "fontSize": 29,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "n1hiZP",
+              "name": "Latest Mobile Services Lead",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "「何が経営を止めているか」から整理し、必要な手段だけを組み合わせます。",
+              "lineHeight": 1.7,
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "oJEdL",
+              "name": "Latest Mobile Service List",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QtdoT",
+                  "name": "Latest Mobile Service 信頼をつくるWebサイト",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$cream",
+                  "cornerRadius": 20,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "KaOKO",
+                      "name": "Latest Mobile Service Icon Wrap",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 14,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "x51IR",
+                          "name": "Latest Mobile Service Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "pen-tool",
+                          "library": "lucide",
+                          "fill": "$orange"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "AJDUf",
+                      "name": "Latest Mobile Service Title",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "信頼をつくるWebサイト",
+                      "fontFamily": "$font",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gLJaG",
+                      "name": "Latest Mobile Service Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "代理店の強みや対応方針を整理し、問い合わせにつながる営業基盤へ。",
+                      "lineHeight": 1.65,
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "q3RL79",
+                  "name": "Latest Mobile Service 現場で使われる業務アプリ",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$cream",
+                  "cornerRadius": 20,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "gXGAC",
+                      "name": "Latest Mobile Service Icon Wrap",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 14,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "RtbBL",
+                          "name": "Latest Mobile Service Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "workflow",
+                          "library": "lucide",
+                          "fill": "$orange"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "oOHG0",
+                      "name": "Latest Mobile Service Title",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "現場で使われる業務アプリ",
+                      "fontFamily": "$font",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "OQRdp",
+                      "name": "Latest Mobile Service Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "意向把握や比較推奨など、時間がかかる業務を小さな試作から仕組みに。",
+                      "lineHeight": 1.65,
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "IJDg1",
+                  "name": "Latest Mobile Service 続けられる集客・発信",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$cream",
+                  "cornerRadius": 20,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xOBQ3",
+                      "name": "Latest Mobile Service Icon Wrap",
+                      "width": 44,
+                      "height": 44,
+                      "fill": "$orangeSoft",
+                      "cornerRadius": 14,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "W1r6Bm",
+                          "name": "Latest Mobile Service Icon",
+                          "width": 21,
+                          "height": 21,
+                          "icon": "trending-up",
+                          "library": "lucide",
+                          "fill": "$orange"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "ouRlP",
+                      "name": "Latest Mobile Service Title",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "続けられる集客・発信",
+                      "fontFamily": "$font",
+                      "fontSize": 18,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "TnRc4",
+                      "name": "Latest Mobile Service Body",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Web・記事・メール・SNSを一つの顧客導線として設計し、継続改善。",
+                      "lineHeight": 1.65,
+                      "fontFamily": "$font",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "uL7lh",
+          "name": "Latest Mobile Difference",
+          "width": 390,
+          "height": 900,
+          "fill": "$ink",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            58,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "KbWXW",
+              "name": "Latest Mobile Difference Eyebrow",
+              "fill": "#FF9A70",
+              "content": "DIFFERENCE",
+              "fontFamily": "$font",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 1.5
+            },
+            {
+              "type": "text",
+              "id": "EE57s",
+              "name": "Latest Mobile Difference Title",
+              "fill": "$paper",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "コンサルの視点と、\n開発会社の実行力を、\n一つに。",
+              "lineHeight": 1.4,
+              "fontFamily": "$font",
+              "fontSize": 29,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "E8zZR0",
+              "name": "Latest Mobile Difference Lead",
+              "fill": "#FFFFFFA6",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "経営と現場の間に入り、成果が出るまで同じ目線で改善します。",
+              "lineHeight": 1.75,
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "S21OUn",
+              "name": "Latest Mobile Difference List",
+              "clip": true,
+              "width": "fill_container",
+              "height": "fill_container",
+              "fill": "#FFFFFF0D",
+              "cornerRadius": 20,
+              "stroke": "#FFFFFF24",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "pgChf",
+                  "name": "Latest Mobile Difference Row 相談の起点",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "stroke": "#FFFFFF1F",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    17,
+                    18
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "IcHiT",
+                      "name": "Latest Mobile Difference Label",
+                      "fill": "#FFFFFF70",
+                      "content": "相談の起点",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Yy8H1",
+                      "name": "Latest Mobile Difference Value",
+                      "fill": "$paper",
+                      "content": "現場の困りごと",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "WK4oI",
+                  "name": "Latest Mobile Difference Row 主な成果物",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "stroke": "#FFFFFF1F",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    17,
+                    18
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FmyTf",
+                      "name": "Latest Mobile Difference Label",
+                      "fill": "#FFFFFF70",
+                      "content": "主な成果物",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pv8or",
+                      "name": "Latest Mobile Difference Value",
+                      "fill": "$paper",
+                      "content": "使われる業務の仕組み",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "lTKor",
+                  "name": "Latest Mobile Difference Row 実装後",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "stroke": "#FFFFFF1F",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    17,
+                    18
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BTAxL",
+                      "name": "Latest Mobile Difference Label",
+                      "fill": "#FFFFFF70",
+                      "content": "実装後",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "i9fJyA",
+                      "name": "Latest Mobile Difference Value",
+                      "fill": "$paper",
+                      "content": "計測・改善まで伴走",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "LSTBo",
+                  "name": "Latest Mobile Difference Row 進め方",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "stroke": "#FFFFFF1F",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    17,
+                    18
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "a2qvO",
+                      "name": "Latest Mobile Difference Label",
+                      "fill": "#FFFFFF70",
+                      "content": "進め方",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "mm4cp",
+                      "name": "Latest Mobile Difference Value",
+                      "fill": "$paper",
+                      "content": "小さく試して共に育てる",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YB0pO",
+          "name": "Latest Mobile Products",
+          "width": 390,
+          "height": 1200,
+          "fill": "$cream",
+          "layout": "vertical",
+          "gap": 22,
+          "padding": [
+            58,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "IETO4",
+              "name": "Latest Mobile Products Eyebrow",
+              "fill": "$orange",
+              "content": "PROVEN EXECUTION",
+              "fontFamily": "$font",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 1.5
+            },
+            {
+              "type": "text",
+              "id": "D8evdu",
+              "name": "Latest Mobile Products Title",
+              "fill": "$ink",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "提案するだけでなく、\n保険代理店向けアプリも\n自社開発。",
+              "lineHeight": 1.4,
+              "fontFamily": "$font",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "Krwkd",
+              "name": "Latest Mobile Cocreo Agent DX",
+              "width": "fill_container",
+              "height": 250,
+              "fill": "$paper",
+              "cornerRadius": 22,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 14,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "kOoCp",
+                  "name": "Latest Mobile Agent Top",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "n6FDju",
+                      "name": "Latest Mobile Agent Icon",
+                      "width": 78,
+                      "height": 78,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../public/cocreo-agent-dx-icon.png",
+                        "mode": "fit"
+                      },
+                      "cornerRadius": 18
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Frq34",
+                      "name": "Latest Mobile Agent Names",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 7,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cKRZG",
+                          "name": "Latest Mobile Agent Badge",
+                          "fill": "$orange",
+                          "content": "自社開発・公開準備中",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "fpjuG",
+                          "name": "Latest Mobile Agent Title",
+                          "fill": "$ink",
+                          "content": "Cocreo代理店DX",
+                          "fontFamily": "$font",
+                          "fontSize": 20,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "jfETA",
+                  "name": "Latest Mobile Agent Body",
+                  "fill": "$muted",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "保険代理店の毎日の情報収集と業務改善を、無料・ログイン不要で支援するiOSアプリです。",
+                  "lineHeight": 1.65,
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "FC0wq",
+              "name": "Latest Mobile OptimaLrn Brand",
+              "width": "fill_container",
+              "height": 120,
+              "fill": "$paper",
+              "cornerRadius": 20,
+              "stroke": "#DDD6F0",
+              "strokeWidth": 1,
+              "gap": 14,
+              "padding": 18,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "pKuCM",
+                  "name": "Latest Mobile Optima Icon",
+                  "width": 52,
+                  "height": 52,
+                  "fill": "$violet",
+                  "cornerRadius": 17,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "dAKZd",
+                      "name": "Latest Mobile Optima Apple",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "apple",
+                      "library": "lucide",
+                      "fill": "$paper"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "tRdXB",
+                  "name": "Latest Mobile Optima Copy",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 5,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "h9rAU",
+                      "name": "Latest Mobile Optima Eyebrow",
+                      "fill": "$orange",
+                      "content": "LEARNING APP BRAND",
+                      "fontFamily": "$font",
+                      "fontSize": 9,
+                      "fontWeight": "700",
+                      "letterSpacing": 1.2
+                    },
+                    {
+                      "type": "text",
+                      "id": "Ah9rZ",
+                      "name": "Latest Mobile Optima Title",
+                      "fill": "#2F2353",
+                      "content": "OptimaLrn",
+                      "fontFamily": "$font",
+                      "fontSize": 22,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "RcKY0",
+                      "name": "Latest Mobile Optima Body",
+                      "fill": "#5F5676",
+                      "content": "「努力を科学する」独立ブランド",
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "j7u1NW",
+              "name": "Latest Mobile Optima Apps",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ssbZK",
+                  "name": "Latest Mobile App AI英検準1級 Pass",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 18,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 15,
+                  "padding": 15,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "q4UU9",
+                      "name": "Latest Mobile App Icon AI英検準1級 Pass",
+                      "width": 64,
+                      "height": 64,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../canva-export/assets/eiken-p1.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 15
+                    },
+                    {
+                      "type": "frame",
+                      "id": "eIAtk",
+                      "name": "Latest Mobile App Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jAVUs",
+                          "name": "Latest Mobile App Category",
+                          "fill": "$orange",
+                          "content": "英検準1級",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "s1Yqp",
+                          "name": "Latest Mobile App Title",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "AI英検準1級 Pass",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "n0moy",
+                          "name": "Latest Mobile App Link",
+                          "fill": "$muted",
+                          "content": "App Storeで見る ↗",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "rbfMJ",
+                  "name": "Latest Mobile App AI英検2級 Pass",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 18,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 15,
+                  "padding": 15,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "uJTU4",
+                      "name": "Latest Mobile App Icon AI英検2級 Pass",
+                      "width": 64,
+                      "height": 64,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../canva-export/assets/eiken-2.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 15
+                    },
+                    {
+                      "type": "frame",
+                      "id": "OnrYi",
+                      "name": "Latest Mobile App Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "BetrC",
+                          "name": "Latest Mobile App Category",
+                          "fill": "$orange",
+                          "content": "英検2級",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "wWwMN",
+                          "name": "Latest Mobile App Title",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "AI英検2級 Pass",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "c85oQ",
+                          "name": "Latest Mobile App Link",
+                          "fill": "$muted",
+                          "content": "App Storeで見る ↗",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "oBpY2",
+                  "name": "Latest Mobile App ITパスポート - AI Pass",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 18,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "gap": 15,
+                  "padding": 15,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xiEsB",
+                      "name": "Latest Mobile App Icon ITパスポート - AI Pass",
+                      "width": 64,
+                      "height": 64,
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "../canva-export/assets/it-pass.jpg",
+                        "mode": "fill"
+                      },
+                      "cornerRadius": 15
+                    },
+                    {
+                      "type": "frame",
+                      "id": "T0AwA3",
+                      "name": "Latest Mobile App Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 5,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "zzMQJ",
+                          "name": "Latest Mobile App Category",
+                          "fill": "$orange",
+                          "content": "ITパスポート",
+                          "fontFamily": "$font",
+                          "fontSize": 9,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "fJT0p",
+                          "name": "Latest Mobile App Title",
+                          "fill": "$ink",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "ITパスポート - AI Pass",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "UNGkN",
+                          "name": "Latest Mobile App Link",
+                          "fill": "$muted",
+                          "content": "App Storeで見る ↗",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Jco01",
+          "name": "Latest Mobile Process",
+          "width": 390,
+          "height": 650,
+          "fill": "$paper",
+          "layout": "vertical",
+          "gap": 22,
+          "padding": [
+            58,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "RrzSR",
+              "name": "Latest Mobile Process Eyebrow",
+              "fill": "$green",
+              "content": "FIRST STEP",
+              "fontFamily": "$font",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 1.5
+            },
+            {
+              "type": "text",
+              "id": "H1cwB",
+              "name": "Latest Mobile Process Title",
+              "fill": "$ink",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "小さく確かめてから、\n決める。",
+              "lineHeight": 1.4,
+              "fontFamily": "$font",
+              "fontSize": 29,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "w4pWHd",
+              "name": "Latest Mobile Process Lead",
+              "fill": "$muted",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "無料相談は、取り組む価値がある課題かを見極める時間です。",
+              "lineHeight": 1.7,
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "bxWSj",
+              "name": "Latest Mobile Process Steps",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WWILc",
+                  "name": "Latest Mobile Step 60分の無料相談",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$greenSoft",
+                  "cornerRadius": 18,
+                  "gap": 14,
+                  "padding": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "X9MgUg",
+                      "name": "Latest Mobile Step Number Wrap",
+                      "width": 40,
+                      "height": 40,
+                      "fill": "$ink",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "MIEYx",
+                          "name": "Latest Mobile Step Number",
+                          "fill": "$paper",
+                          "content": "01",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Q6DDE",
+                      "name": "Latest Mobile Step Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Neck1",
+                          "name": "Latest Mobile Step Title",
+                          "fill": "$ink",
+                          "content": "60分の無料相談",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "xiIYY",
+                          "name": "Latest Mobile Step Body",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "現状、目標、制約を伺い、優先課題を整理します。",
+                          "lineHeight": 1.55,
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "F5uOBu",
+                  "name": "Latest Mobile Step 初期提案・お試し",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$greenSoft",
+                  "cornerRadius": 18,
+                  "gap": 14,
+                  "padding": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "L33cMz",
+                      "name": "Latest Mobile Step Number Wrap",
+                      "width": 40,
+                      "height": 40,
+                      "fill": "$ink",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "aZ54y",
+                          "name": "Latest Mobile Step Number",
+                          "fill": "$paper",
+                          "content": "02",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Tr99L",
+                      "name": "Latest Mobile Step Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ubj2x",
+                          "name": "Latest Mobile Step Title",
+                          "fill": "$ink",
+                          "content": "初期提案・お試し",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "NGXgf",
+                          "name": "Latest Mobile Step Body",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "成果指標、進め方、範囲と費用を明示します。",
+                          "lineHeight": 1.55,
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "KNuZt",
+                  "name": "Latest Mobile Step 実装と運用",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$greenSoft",
+                  "cornerRadius": 18,
+                  "gap": 14,
+                  "padding": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Tmjui",
+                      "name": "Latest Mobile Step Number Wrap",
+                      "width": 40,
+                      "height": 40,
+                      "fill": "$ink",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "r7QfC",
+                          "name": "Latest Mobile Step Number",
+                          "fill": "$paper",
+                          "content": "03",
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QZFg9",
+                      "name": "Latest Mobile Step Copy",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "o7PcU",
+                          "name": "Latest Mobile Step Title",
+                          "fill": "$ink",
+                          "content": "実装と運用",
+                          "fontFamily": "$font",
+                          "fontSize": 14,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Lue0a",
+                          "name": "Latest Mobile Step Body",
+                          "fill": "$muted",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "小さく始め、現場の反応を見ながら改善します。",
+                          "lineHeight": 1.55,
+                          "fontFamily": "$font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "oCz4v",
+          "name": "Latest Mobile FAQ",
+          "width": 390,
+          "height": 1200,
+          "fill": "$cream",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": [
+            58,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "KOFB9",
+              "name": "Latest Mobile FAQ Eyebrow",
+              "fill": "$orange",
+              "content": "FAQ",
+              "fontFamily": "$font",
+              "fontSize": 11,
+              "fontWeight": "700",
+              "letterSpacing": 1.5
+            },
+            {
+              "type": "text",
+              "id": "xb3s0",
+              "name": "Latest Mobile FAQ Title",
+              "fill": "$ink",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "相談前のよくある質問",
+              "fontFamily": "$font",
+              "fontSize": 28,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "h8j2WQ",
+              "name": "Latest Mobile FAQ List",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "r4VhLO",
+                  "name": "Latest Mobile FAQ Item どこまで無料ですか？",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 16,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 9,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DbutU",
+                      "name": "Latest Mobile FAQ Question",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Q. どこまで無料ですか？",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "H3k6vN",
+                      "name": "Latest Mobile FAQ Answer",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "初回60分の相談、課題整理、初期提案までは無料です。",
+                      "lineHeight": 1.55,
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "k3VOTe",
+                  "name": "Latest Mobile FAQ Item 要件が未定でも相談できますか？",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 16,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 9,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "EWK11",
+                      "name": "Latest Mobile FAQ Question",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Q. 要件が未定でも相談できますか？",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "VZI5x",
+                      "name": "Latest Mobile FAQ Answer",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "はい。AIを使わない選択肢も含めて優先順位を決めます。",
+                      "lineHeight": 1.55,
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vykmm",
+                  "name": "Latest Mobile FAQ Item 相談時に顧客情報は必要ですか？",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 16,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 9,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "YDVXR",
+                      "name": "Latest Mobile FAQ Question",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Q. 相談時に顧客情報は必要ですか？",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "rwUt5",
+                      "name": "Latest Mobile FAQ Answer",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "初回相談で顧客の個人情報は必要ありません。",
+                      "lineHeight": 1.55,
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "e7vqUT",
+                  "name": "Latest Mobile FAQ Item 募集文書や法令への対応は？",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 16,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 9,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "v8HD9X",
+                      "name": "Latest Mobile FAQ Question",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Q. 募集文書や法令への対応は？",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "h0tWAO",
+                      "name": "Latest Mobile FAQ Answer",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "公開前に各保険会社の考査を経る前提で設計します。",
+                      "lineHeight": 1.55,
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "k2w87E",
+                  "name": "Latest Mobile FAQ Item 比較推奨販売も相談できますか？",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 16,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 9,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "f6cblu",
+                      "name": "Latest Mobile FAQ Question",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Q. 比較推奨販売も相談できますか？",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "K89dc",
+                      "name": "Latest Mobile FAQ Answer",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "理由説明資料の下書きを効率化する仕組みを設計します。",
+                      "lineHeight": 1.55,
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Enumx",
+                  "name": "Latest Mobile FAQ Item 既存会社から乗り換えられますか？",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$paper",
+                  "cornerRadius": 16,
+                  "stroke": "$line",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 9,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yeHsI",
+                      "name": "Latest Mobile FAQ Question",
+                      "fill": "$ink",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Q. 既存会社から乗り換えられますか？",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "u56mwJ",
+                      "name": "Latest Mobile FAQ Answer",
+                      "fill": "$muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "既存契約に合わせた移行計画を提示します。",
+                      "lineHeight": 1.55,
+                      "fontFamily": "$font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wR9M9",
+          "name": "Latest Mobile Contact",
+          "width": 390,
+          "height": 500,
+          "fill": "$orange",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            58,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "NPmS7",
+              "name": "Latest Mobile Contact Eyebrow",
+              "fill": "#FFFFFFC7",
+              "content": "FREE CONSULTATION",
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "700",
+              "letterSpacing": 1.4
+            },
+            {
+              "type": "text",
+              "id": "xnL0s",
+              "name": "Latest Mobile Contact Title",
+              "fill": "$paper",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "いまの課題を、\n60分で整理します。",
+              "lineHeight": 1.4,
+              "fontFamily": "$font",
+              "fontSize": 31,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "gtXAQ",
+              "name": "Latest Mobile Contact Body",
+              "fill": "#FFFFFFD6",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "依頼内容が決まっていなくても大丈夫です。分かる範囲でお聞かせください。",
+              "lineHeight": 1.7,
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "FwKUp",
+              "name": "Latest Mobile Contact Button",
+              "width": "fill_container",
+              "height": 54,
+              "fill": "$paper",
+              "cornerRadius": 999,
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "CEH8k",
+                  "name": "Latest Mobile Contact Button Text",
+                  "fill": "$orange",
+                  "content": "入力内容をメールで送る",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "icon",
+                  "id": "M9uQLp",
+                  "name": "Latest Mobile Contact Arrow",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "$orange"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "HHvf7",
+              "name": "Latest Mobile Contact Trust",
+              "fill": "#FFFFFFB8",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "オンライン・全国対応  ／  初回返信24時間以内  ／  顧客情報不要",
+              "lineHeight": 1.6,
+              "fontFamily": "$font",
+              "fontSize": 10,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "NgzCf",
+          "name": "Latest Mobile Footer",
+          "width": 390,
+          "height": 260,
+          "fill": "$ink",
+          "layout": "vertical",
+          "gap": 22,
+          "padding": [
+            40,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "P9OKo",
+              "name": "Latest Mobile Footer Logo",
+              "gap": 7,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "jYQTA",
+                  "name": "Latest Mobile Footer Wordmark",
+                  "fill": "$paper",
+                  "content": "Cocreo",
+                  "fontFamily": "$font",
+                  "fontSize": 24,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "ellipse",
+                  "id": "TeHM1",
+                  "name": "Latest Mobile Footer Mark",
+                  "fill": "$orange",
+                  "width": 17,
+                  "height": 17
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "sKE5E",
+              "name": "Latest Mobile Footer Statement",
+              "fill": "#FFFFFF99",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "保険代理店の経営課題を、現場で使われる仕組みへ。対話から実装、運用改善まで伴走します。",
+              "lineHeight": 1.7,
+              "fontFamily": "$font",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "Ju4PY",
+              "name": "Latest Mobile Footer Email",
+              "fill": "$paper",
+              "content": "contact@cocreo.jp",
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "ou4AH",
+              "name": "Latest Mobile Copyright",
+              "fill": "#FFFFFF70",
+              "content": "© 2026 Cocreo. All rights reserved.",
+              "fontFamily": "$font",
+              "fontSize": 9,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "ink": {
+      "type": "color",
+      "value": "#14201D"
+    },
+    "muted": {
+      "type": "color",
+      "value": "#66706C"
+    },
+    "cream": {
+      "type": "color",
+      "value": "#FBF8F1"
+    },
+    "paper": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "line": {
+      "type": "color",
+      "value": "#E5E0D6"
+    },
+    "orange": {
+      "type": "color",
+      "value": "#F05A24"
+    },
+    "orangeSoft": {
+      "type": "color",
+      "value": "#FFF0E8"
+    },
+    "green": {
+      "type": "color",
+      "value": "#1D7A5B"
+    },
+    "greenSoft": {
+      "type": "color",
+      "value": "#EAF6F1"
+    },
+    "violet": {
+      "type": "color",
+      "value": "#6750A4"
+    },
+    "violetSoft": {
+      "type": "color",
+      "value": "#F0ECFA"
+    },
+    "font": {
+      "type": "string",
+      "value": "Noto Sans JP"
+    }
+  },
+  "fileToken": "093093b1-a4cc-4c63-b5d1-58fa3dbc6eaf"
+}

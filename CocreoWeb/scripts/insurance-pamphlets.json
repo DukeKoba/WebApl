@@ -1,0 +1,606 @@
+{
+  "meta": {
+    "description": "主要保険会社のパンフレット・契約概要・重要事項説明書URL一覧",
+    "collected_at": "2026-06-02",
+    "note": "PDFのURLは各社の改訂により変更される場合があります。定期的な更新が必要です。",
+    "sources": {
+      "nissay": "https://www.nissay.co.jp/kojin/shohin/ichiran/madohan.html",
+      "meijiyasuda": "https://www.meijiyasuda.co.jp/find/list/",
+      "sumitomolife": "https://www.sumitomolife.co.jp/lineup/shouhin/",
+      "tokiomarine": "https://www.tokiomarine-nichido.co.jp/service/",
+      "sompo": "https://www.sompo-japan.co.jp/kinsurance/contents1/",
+      "ms_ins": "https://www.ms-ins.com/personal/pdf/"
+    }
+  },
+  "companies": [
+    {
+      "id": "nissay",
+      "name": "日本生命保険",
+      "name_en": "Nippon Life Insurance",
+      "type": "生命保険",
+      "website": "https://www.nissay.co.jp",
+      "pamphlet_index_url": "https://www.nissay.co.jp/kojin/shohin/ichiran/madohan.html",
+      "products": [
+        {
+          "product_name": "ロングドリームGOLD3",
+          "product_category": "積立・資産形成",
+          "pamphlet_url": "https://www.nissay.co.jp/kojin/shohin/madohan/longdreamgold3/pdf/longdreamgold3.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.nissay.co.jp/kojin/shohin/madohan/longdreamgold3/",
+          "version": null,
+          "notes": "契約概要は商品パンフレットに統合"
+        },
+        {
+          "product_name": "夢のかたちプラス",
+          "product_category": "積立・資産形成",
+          "pamphlet_url": "https://www.nissay.co.jp/kojin/shohin/madohan/yumenokatachiplus/pdf/yumenokatachiplus.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.nissay.co.jp/kojin/shohin/madohan/yumenokatachiplus/",
+          "version": null,
+          "notes": "契約概要は商品パンフレットに統合"
+        }
+      ]
+    },
+    {
+      "id": "meijiyasuda",
+      "name": "明治安田生命保険",
+      "name_en": "Meiji Yasuda Life Insurance",
+      "type": "生命保険",
+      "website": "https://www.meijiyasuda.co.jp",
+      "pamphlet_index_url": "https://www.meijiyasuda.co.jp/find/list/",
+      "pamphlet_request_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoSelect.aspx",
+      "products": [
+        {
+          "product_name": "ベストスタイル",
+          "product_category": "総合保障",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=37",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "メディカルスタイル F",
+          "product_category": "医療保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=39",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "ずっとよりそう終身医療保険",
+          "product_category": "医療保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=71",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "かんたん告知終身医療保険",
+          "product_category": "医療保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=66",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "循環器病 対策Pro",
+          "product_category": "特定疾患保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=74",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "しっかりそなえるがん終身保険",
+          "product_category": "がん保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=68",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "介護のささえ",
+          "product_category": "介護保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=34",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "エブリバディ",
+          "product_category": "積立・資産形成",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=70",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "長期運用年金",
+          "product_category": "年金保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=73",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "つみたてドル建終身",
+          "product_category": "外貨建保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/ssnorapl/cservice/MYOHPSeikyuShiryoRedirect.aspx?num=52",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "notes": "請求ページ経由のリダイレクト"
+        },
+        {
+          "product_name": "ドル建終身（直接PDF）",
+          "product_category": "外貨建保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/find/list/dolshushin/pdf/heads_up.pdf",
+          "keiyaku_gaiyou_url": "https://www.meijiyasuda.co.jp/find/list/dolshushin/pdf/heads_up.pdf",
+          "juyou_jikou_url": null,
+          "notes": "契約締結前交付書面兼コンセプトパンフレット"
+        },
+        {
+          "product_name": "ドル建介護終身",
+          "product_category": "外貨建保険",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/find/list/dolkaigoshushin/pdf/heads_up.pdf",
+          "keiyaku_gaiyou_url": "https://www.meijiyasuda.co.jp/find/list/dolkaigoshushin/pdf/heads_up.pdf",
+          "juyou_jikou_url": null,
+          "notes": "契約締結前交付書面"
+        },
+        {
+          "product_name": "FC エラベル Life（三菱UFJ銀行）",
+          "product_category": "積立・資産形成",
+          "pamphlet_url": "https://www.meijiyasuda.co.jp/window/files/pdf/dbook25_apr_fc-eraberu-life_mutb.pdf",
+          "keiyaku_gaiyou_url": "https://www.meijiyasuda.co.jp/window/files/pdf/dbook25_apr_fc-eraberu-life_mutb.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年4月版",
+          "notes": "契約締結前交付書面兼商品パンフレット（銀行窓販）"
+        }
+      ]
+    },
+    {
+      "id": "sumitomolife",
+      "name": "住友生命保険",
+      "name_en": "Sumitomo Life Insurance",
+      "type": "生命保険",
+      "website": "https://www.sumitomolife.co.jp",
+      "pamphlet_index_url": "https://www.sumitomolife.co.jp/lineup/shouhin/",
+      "products": [
+        {
+          "product_name": "1UP SP Vitality（健康増進型保険）",
+          "product_category": "健康増進型保険",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/mirailabo/vitalitymain_book.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sumitomolife.co.jp/lineup/mirailabo/smassh/",
+          "version": "2026年1月改訂版"
+        },
+        {
+          "product_name": "1UP Vitality（金融機関向け）",
+          "product_category": "健康増進型保険",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/fi/1upvitality/1upvitality.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/1upvitality/gaiyou.pdf",
+          "juyou_jikou_url": null,
+          "product_page_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/1upvitality/index.html"
+        },
+        {
+          "product_name": "1UP Vitality（直営店・代理店）",
+          "product_category": "健康増進型保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/shop/1upvitality/gaiyou.pdf",
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "タヨレル（郵便局向け医療保険）",
+          "product_category": "医療保険",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/postal/tayoreru-you-p/tayoreru-you-p.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/postal/tayoreru-you-p/tayoreru-you-p.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年11月版",
+          "notes": "契約概要／注意喚起情報兼商品パンフレット（郵便局窓販）"
+        },
+        {
+          "product_name": "T-未来Global（金融機関向け）",
+          "product_category": "外貨建保険",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/fi/t_miraiglobal/t_miraiglobal.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/pdf/other/fi/t_miraiglobal/t_miraiglobal.pdf",
+          "juyou_jikou_url": null,
+          "notes": "契約締結前交付書面兼商品パンフレット"
+        },
+        {
+          "product_name": "T-未来（Mizuho銀行向け）",
+          "product_category": "積立・資産形成",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai_mizuho/tmiraimizuhoa3.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai_mizuho/tmiraimizuhoa3.pdf",
+          "juyou_jikou_url": null,
+          "notes": "銀行窓販向け"
+        },
+        {
+          "product_name": "T-未来",
+          "product_category": "積立・資産形成",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai/ta3.pdf",
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/fi/t_mirai/ta3.pdf",
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "フルハートJプラス",
+          "product_category": "総合保障",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": "https://www.sumitomolife.co.jp/lineup/select/other/shop/fullheartjplus/gaiyou.pdf",
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "エンブレムユー・プレミアム（郵便局）",
+          "product_category": "定期保険",
+          "pamphlet_url": "https://www.sumitomolife.co.jp/lineup/select/other/postal/pdf/emb_you.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    },
+    {
+      "id": "tokiomarine",
+      "name": "東京海上日動火災保険",
+      "name_en": "Tokio Marine & Nichido Fire Insurance",
+      "type": "損害保険",
+      "website": "https://www.tokiomarine-nichido.co.jp",
+      "pamphlet_index_url": "https://www.tokiomarine-nichido.co.jp/service/",
+      "products": [
+        {
+          "product_name": "トータルアシスト自動車保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_260101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_260101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2026年1月1日以降始期用",
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/auto/pamphlet/",
+          "notes": "パンフレット兼重要事項説明書"
+        },
+        {
+          "product_name": "トータルアシスト自動車保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_220101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/total_assist_pamphlet_220101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2022年1月1日以降始期用",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "ドライバー保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/driver_pamphlet_250101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/driver_pamphlet_250101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年1月1日以降始期用",
+          "notes": "パンフレット兼重要事項説明書"
+        },
+        {
+          "product_name": "トータルアシスト住まいの保険",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_251001.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_251001.pdf",
+          "juyou_jikou_url": null,
+          "version": "2025年10月1日以降始期用",
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/live/pamphlet/",
+          "notes": "パンフレット兼重要事項説明書"
+        },
+        {
+          "product_name": "トータルアシスト住まいの保険",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_241001.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/live_pamphlet_241001.pdf",
+          "juyou_jikou_url": null,
+          "version": "2024年10月1日以降始期用",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "超保険（生損保一体型）",
+          "product_category": "総合保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_260101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_260101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2026年1月1日以降始期用",
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/sogo/cho-hoken/pamphlet/",
+          "notes": "パンフレット兼重要事項説明書"
+        },
+        {
+          "product_name": "超保険（生損保一体型）",
+          "product_category": "総合保険",
+          "pamphlet_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_240101.pdf",
+          "keiyaku_gaiyou_url": "https://www.tokiomarine-nichido.co.jp/service/pdf/cho-hoken_pamphlet_240101.pdf",
+          "juyou_jikou_url": null,
+          "version": "2024年1月1日以降始期用",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "トータルアシストからだの保険",
+          "product_category": "医療・傷害保険",
+          "pamphlet_url": null,
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "pamphlet_page_url": "https://www.tokiomarine-nichido.co.jp/service/sick/pamphlet/",
+          "notes": "パンフレットページからダウンロード（URL版管理）"
+        }
+      ]
+    },
+    {
+      "id": "sompo",
+      "name": "損害保険ジャパン",
+      "name_en": "Sompo Japan Insurance",
+      "type": "損害保険",
+      "website": "https://www.sompo-japan.co.jp",
+      "pamphlet_index_url": "https://www.sompo-japan.co.jp/kinsurance/contents1/",
+      "yakkan_index_url": "https://www.sompo-japan.co.jp/kinsurance/yakkan/",
+      "products": [
+        {
+          "product_name": "THE クルマの保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2607.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2026年7月版",
+          "notes": "パンフレット兼重要事項等説明書"
+        },
+        {
+          "product_name": "THE クルマの保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2601.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/thekuruma2601.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2026年1月版",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "つながるドラレコ Driving!",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/driving/driving2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年7月版"
+        },
+        {
+          "product_name": "バイク保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/bike/bike2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年7月版"
+        },
+        {
+          "product_name": "ドライバー保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/driver/driver2601.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年1月版"
+        },
+        {
+          "product_name": "自賠責保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/jibaiseki/jibaiseki.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "THE すまいの保険",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2509.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2509.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2025年9月版",
+          "notes": "パンフレット兼重要事項等説明書"
+        },
+        {
+          "product_name": "THE すまいの保険",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2410.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/sumai/sumai2410.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2024年10月版",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "THE 家財の保険（賃貸住宅入居者専用）",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/kazai/kazai2509.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2025年9月版"
+        },
+        {
+          "product_name": "地震保険",
+          "product_category": "地震保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/earthquake/earthquake2210.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2022年10月版"
+        },
+        {
+          "product_name": "マンション総合保険",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/habitation/mansion/mansion2410.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2024年10月版"
+        },
+        {
+          "product_name": "THE カラダの保険",
+          "product_category": "医療・傷害保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/yakkan/karada2510.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/yakkan/karada2510.pdf?la=ja-JP",
+          "juyou_jikou_url": null,
+          "version": "2025年10月版",
+          "notes": "パンフレット兼重要事項等説明書"
+        },
+        {
+          "product_name": "国内旅行総合保険",
+          "product_category": "旅行保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/leisure/kokunai/kokunai1910.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2019年10月版"
+        },
+        {
+          "product_name": "THE クルマの保険 特約カタログ",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.sompo-japan.co.jp/-/media/SJNK/files/kinsurance/automobile/thekuruma/tokuyaku2607.pdf?la=ja-JP",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年7月版"
+        }
+      ]
+    },
+    {
+      "id": "ms_ins",
+      "name": "三井住友海上火災保険",
+      "name_en": "Mitsui Sumitomo Insurance",
+      "type": "損害保険",
+      "website": "https://www.ms-ins.com",
+      "pamphlet_index_url": "https://www.ms-ins.com/personal/pdf/",
+      "products": [
+        {
+          "product_name": "GK クルマの保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/car/car.pdf",
+          "version": "2026年1月1日以降始期用",
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/car/gk/notice.html"
+        },
+        {
+          "product_name": "GK クルマの保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/20251231_gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/car/20251231_car.pdf",
+          "version": "2025年（2025年1月1日〜2025年12月31日始期用）",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "GK クルマの保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/20241231_gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/car/20241231_car.pdf",
+          "version": "2024年（2024年1月1日〜2024年12月31日始期用）",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "GK クルマの保険 別冊",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk_extra.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年1月1日以降始期用"
+        },
+        {
+          "product_name": "見守るクルマの保険プレミアム",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk_mimamoru-dr-premium.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "はじめての自動車保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/hajimete.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "version": "2026年以降"
+        },
+        {
+          "product_name": "GK すまいの保険",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/kasai/kasai.pdf",
+          "version": "2025年10月1日以降始期用（重要事項）/ 2024年10月1日以降始期用（パンフレット）",
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/kasai/gk/notice.html"
+        },
+        {
+          "product_name": "GK すまいの保険",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/20240930_gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/kasai/20250930_kasai.pdf",
+          "version": "2022年10月1日〜2024年9月30日始期用",
+          "notes": "旧版・参照用"
+        },
+        {
+          "product_name": "GK すまいの保険グランド",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/gk-grand.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/kasai/gk-grand/notice.html"
+        },
+        {
+          "product_name": "リビングFIT（賃貸住宅専用家財の火災保険）",
+          "product_category": "火災保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/living-fit.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null,
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/kasai/living-fit/notice.html"
+        },
+        {
+          "product_name": "地震保険",
+          "product_category": "地震保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kasai/jishin.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "GK ケガの保険",
+          "product_category": "傷害保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kega/gk.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "GK ケガの保険シルバー",
+          "product_category": "傷害保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/kega/silver.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "海外旅行保険",
+          "product_category": "旅行保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/travel/kairyo.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": "https://www.ms-ins.com/pdf/personal/importance/travel/taimen.pdf",
+          "pamphlet_page_url": "https://www.ms-ins.com/personal/travel/taimen/notice.html"
+        },
+        {
+          "product_name": "国内旅行傷害保険",
+          "product_category": "旅行保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/travel/japan.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "ゴルファー保険",
+          "product_category": "レジャー保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/travel/golfer.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "GK クルマの保険・ドライバー保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/gk_driver.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        },
+        {
+          "product_name": "自賠責保険",
+          "product_category": "自動車保険",
+          "pamphlet_url": "https://www.ms-ins.com/pdf/personal/car/jibaiseki.pdf",
+          "keiyaku_gaiyou_url": null,
+          "juyou_jikou_url": null
+        }
+      ]
+    }
+  ]
+}
