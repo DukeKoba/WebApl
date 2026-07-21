@@ -14,6 +14,8 @@ import {
   Mail,
   Rocket,
   Target,
+  HeartHandshake,
+  Gift,
 } from 'lucide-react';
 
 const SERVICES = [
@@ -69,6 +71,26 @@ const SERVICES = [
       'コンプライアンス自動チェック',
       '乗合代理店対応',
     ],
+  },
+];
+
+const FREE_TOOLS = [
+  {
+    icon: HeartHandshake,
+    title: '保険の家族共有シート',
+    description:
+      '加入している保険を1枚にまとめ、もしものとき家族が保険金を請求できるようにする無料ツール。証券の写真から読み取り、印刷・PDF保存して家族に渡せます。',
+    href: '/family-sheet',
+    tag: '登録不要・無料',
+    badge: 'NEW',
+  },
+  {
+    icon: FileText,
+    title: '補助金申請書AI',
+    description:
+      'デジタル化・AI導入補助金2026の申請書ドラフトをAIが3分で自動生成。まずは無料でお試しいただけます。',
+    to: '/cocreo/subsidy-generator',
+    tag: '無料で使える',
   },
 ];
 
@@ -154,6 +176,7 @@ export default function CocreoLanding() {
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-[13px] tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
             <a href="#services" className="hover:text-[var(--color-primary)] transition-colors">サービス</a>
+            <a href="#free-tools" className="hover:text-[var(--color-primary)] transition-colors">無料ツール</a>
             <a href="#portfolio" className="hover:text-[var(--color-primary)] transition-colors">実績</a>
             <a href="#why-us" className="hover:text-[var(--color-primary)] transition-colors">私たちについて</a>
             <a href="#contact" className="hover:text-[var(--color-primary)] transition-colors">お問い合わせ</a>
@@ -291,8 +314,69 @@ export default function CocreoLanding() {
         </div>
       </section>
 
+      {/* Free Tools */}
+      <section id="free-tools" className="py-24 lg:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
+          <div className="max-w-3xl mb-16">
+            <span className="eyebrow mb-5 inline-flex items-center gap-2">
+              <Gift className="w-3.5 h-3.5" />Free Tools
+            </span>
+            <h2 className="font-serif-jp text-[32px] md:text-[42px] leading-[1.45] font-medium mt-5 mb-6" style={{ color: 'var(--color-text-primary)' }}>
+              登録不要で、<br />いますぐ使える無料ツール。
+            </h2>
+            <p className="text-[15px] leading-[2]" style={{ color: 'var(--color-text-secondary)' }}>
+              Cocreoが無料で公開している業務支援ツールです。ログイン不要・その場で使えます。「まず触れて役に立つ」ことを大切に、現場で本当に使えるものだけをお届けします。
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6 max-w-4xl">
+            {FREE_TOOLS.map((t) => {
+              const Icon = t.icon;
+              const sharedClass = 'group block rounded-sm p-7 border transition-all hover:bg-white';
+              const sharedStyle = { backgroundColor: 'var(--color-surface-soft)', borderColor: 'var(--color-border)' };
+              const cardContent = (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-secondary-light)' }}>
+                      <Icon className="w-5 h-5" style={{ color: 'var(--color-primary-dark)' }} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {t.badge && (
+                        <span className="text-[10px] tracking-[0.2em] uppercase font-medium px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: 'var(--color-primary)' }}>
+                          {t.badge}
+                        </span>
+                      )}
+                      <span className="text-[10px] tracking-[0.2em] uppercase font-medium px-2.5 py-1 rounded-full bg-white border" style={{ color: 'var(--color-primary)', borderColor: 'var(--color-secondary)' }}>
+                        {t.tag}
+                      </span>
+                    </div>
+                  </div>
+                  <h3 className="font-serif-jp text-[20px] leading-snug font-medium mb-3 group-hover:text-[var(--color-primary)] transition-colors" style={{ color: 'var(--color-text-primary)' }}>{t.title}</h3>
+                  <p className="text-[13.5px] leading-[1.95] mb-6" style={{ color: 'var(--color-text-secondary)' }}>{t.description}</p>
+                  <div className="flex items-center gap-1.5 text-[12px] tracking-wider uppercase font-medium group-hover:gap-3 transition-all" style={{ color: 'var(--color-primary)' }}>
+                    使ってみる
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </div>
+                </>
+              );
+              return t.href ? (
+                <a key={t.title} href={t.href} className={sharedClass} style={sharedStyle}>
+                  {cardContent}
+                </a>
+              ) : (
+                <Link key={t.title} to={t.to} className={sharedClass} style={sharedStyle}>
+                  {cardContent}
+                </Link>
+              );
+            })}
+          </div>
+          <p className="mt-8 text-[13px] max-w-4xl" style={{ color: 'var(--color-text-muted)' }}>
+            ＊ 保険代理店・士業・地域の事業者の方へ: これらの無料ツールをお客様サービスとしてご活用いただけます。共同提供・ロゴ掲載などもご相談ください。
+          </p>
+        </div>
+      </section>
+
       {/* Portfolio */}
-      <section id="portfolio" className="py-24 lg:py-32 bg-white">
+      <section id="portfolio" className="py-24 lg:py-32" style={{ backgroundColor: 'var(--color-surface-soft)' }}>
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12">
           <div className="max-w-3xl mb-16">
             <span className="eyebrow mb-5">Portfolio</span>
@@ -306,15 +390,15 @@ export default function CocreoLanding() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6 max-w-4xl">
             {PORTFOLIO.map((p) => {
               const Icon = p.icon;
-              const sharedClass = "group block rounded-sm p-7 border transition-all hover:bg-white";
-              const sharedStyle = { backgroundColor: 'var(--color-surface-soft)', borderColor: 'var(--color-border)' };
+              const sharedClass = "group block rounded-sm p-7 border transition-all hover:shadow-[0_20px_50px_-30px_rgba(201,137,31,0.25)]";
+              const sharedStyle = { backgroundColor: 'white', borderColor: 'var(--color-border)' };
               const cardContent = (
                 <>
                   <div className="flex items-center justify-between mb-6">
                     <div className="w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-secondary-light)' }}>
                       <Icon className="w-5 h-5" style={{ color: 'var(--color-primary-dark)' }} />
                     </div>
-                    <span className="text-[10px] tracking-[0.2em] uppercase font-medium px-2.5 py-1 rounded-full bg-white border" style={{ color: 'var(--color-primary)', borderColor: 'var(--color-secondary)' }}>
+                    <span className="text-[10px] tracking-[0.2em] uppercase font-medium px-2.5 py-1 rounded-full border" style={{ color: 'var(--color-primary)', borderColor: 'var(--color-secondary)', backgroundColor: 'var(--color-surface-soft)' }}>
                       {p.tag}
                     </span>
                   </div>
@@ -504,6 +588,7 @@ export default function CocreoLanding() {
             <div>
               <h4 className="text-white mb-5 text-[11px] uppercase tracking-[0.22em]">Products</h4>
               <ul className="space-y-2.5 text-[13px]">
+                <li><a href="/family-sheet" className="hover:text-[var(--color-primary-light)] transition-colors">保険の家族共有シート</a></li>
                 <li><Link to="/cocreo/subsidy-generator" className="hover:text-[var(--color-primary-light)] transition-colors">補助金申請書AI</Link></li>
                 <li><Link to="/cocreo/consulting" className="hover:text-[var(--color-primary-light)] transition-colors">AIコンサル</Link></li>
               </ul>
