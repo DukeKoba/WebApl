@@ -1,4 +1,5 @@
 import { generateTextFull } from './claudeService.js';
+import { xWeightedLength, trimToWeighted } from './xText.js';
 
 const SLURP_APP_URL = 'https://apps.apple.com/app/id6761906850';
 
@@ -516,11 +517,12 @@ ${task.format === 'quiz_reply'
   : '{"post": "短縮後の投稿本文", "reply": null}'}`;
 }
 
+// 加重長で判定（固定文を除いた本文が予算内か）。X認証なしの投稿上限に確実に収める
 function eikenWithinLimits(parsed, task) {
   if (!parsed) return false;
-  if (parsed.post.length > task.bodyLimit) return false;
+  if (xWeightedLength(parsed.post) > task.bodyWeightedBudget) return false;
   if (task.format === 'quiz_reply' && !parsed.reply) return false;
-  if (parsed.reply && parsed.reply.length > task.replyLimit) return false;
+  if (parsed.reply && xWeightedLength(parsed.reply) > task.replyWeightedBudget) return false;
   return true;
 }
 
@@ -539,13 +541,13 @@ export async function orchestrateEikenPost(task, onMessage) {
   let parsed = parseEikenPostJson(finalRaw) || parseEikenPostJson(draftRaw);
   if (!parsed) throw new Error('エージェント出力のJSONパースに失敗しました。もう一度お試しください。');
 
-  // 文字数オーバー時はコピーライターに1回だけ短縮させ、それでもダメなら切り詰める
+  // 文字数オーバー時はコピーライターに1回だけ短縮させ、それでもダメなら加重長で切り詰める
   if (!eikenWithinLimits(parsed, task)) {
     const shortenedRaw = await run('copywriter', buildEikenShortenPrompt(task, parsed), 3);
     const shortened = parseEikenPostJson(shortenedRaw);
     if (shortened) parsed = shortened;
-    parsed.post = parsed.post.slice(0, task.bodyLimit).trimEnd();
-    if (parsed.reply) parsed.reply = parsed.reply.slice(0, task.replyLimit).trimEnd();
+    parsed.post = trimToWeighted(parsed.post, task.bodyWeightedBudget);
+    if (parsed.reply) parsed.reply = trimToWeighted(parsed.reply, task.replyWeightedBudget);
   }
 
   return { conversation, post: parsed.post, reply: parsed.reply };

@@ -5,6 +5,7 @@ import { generateTextFull } from '../services/claudeService.js';
 import { tryClaudeOrEmitPrompt, isClaudeCreditError } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
 import { orchestrateEikenPost, parseEikenPostJson, parseEikenMarkedText } from '../services/agentOrchestrator.js';
+import { xWeightedLength, actualCharBudget, X_MAX_WEIGHTED } from '../services/xText.js';
 
 const router = express.Router();
 
@@ -321,11 +322,8 @@ function buildCtaText(level) {
   return `📲 ${cta.label} → ${cta.url}`;
 }
 
-// X counts every URL as exactly 23 chars regardless of length
-function calcXCharCount(text) {
-  const urlRegex = /https?:\/\/\S+/g;
-  return text.replace(urlRegex, 'x'.repeat(23)).length;
-}
+// X の加重文字数（日本語・絵文字=2、URL=23）。認証なしで投稿できる基準は加重280。
+const calcXCharCount = xWeightedLength;
 
 // 投稿フォーマット:
 //  - quiz_reply: 本文はリンクなしのクイズ。解答・解説＋アプリリンクはリプ欄に投稿（リーチとCVの両立）
@@ -349,7 +347,7 @@ function buildPrefix() {
   const exam = getNextExam();
   if (!exam || exam.daysUntil > COUNTDOWN_WINDOW_DAYS) return { prefix: '', cost: 0 };
   const prefix = `📅 1次試験まであと${exam.daysUntil}日！\n`;
-  return { prefix, cost: prefix.length };
+  return { prefix, cost: calcXCharCount(prefix) };
 }
 
 // 誇大表現・偽の限定性・エンゲージメント乞いはアカウントの信頼とリーチを毀損するため全生成で禁止する
@@ -383,13 +381,22 @@ const FORMAT_DESCRIPTIONS = {
   promo: 'アプリ訴求（本文にApp Storeリンクを含む宣伝投稿。週1回の枠）',
 };
 
+// 投稿にはクイズ/Tipsカード画像を自動生成して添付する。カードが綺麗に組めるよう本文を構造化させる
+const CARD_LAYOUT_RULE = `【重要：文字数と画像】
+- この投稿には内容を要約したカード画像が自動生成され一緒に投稿されます。詳しい情報は画像が担うので、投稿テキストは要点だけ簡潔に。冗長な説明で文字数を使わないこと
+- Xは日本語1文字を2文字分として数えます。文字数制限は必ず守り、超えそうなら削ること
+
+【カード画像用の構造（カードが綺麗に組めるよう次の構造を守ること）】`;
+
 function buildFormatRequirements(format, lv, extra) {
   const extraBlock = extra ? `\n【問題タイプ固有の指示】\n${extra}\n` : '';
   if (format === 'quiz_reply') {
-    return `${extraBlock}【問題ポスト（post）の要件】
-- ${lv.hook}
-- 選択肢は①〜④の4択（3択でも可）
-- **正解・解説は絶対に書かない**（「答えはリプ欄👇」で締める）
+    return `${extraBlock}${CARD_LAYOUT_RULE}
+- 1行目: パンチのある短い見出し（フック）を1行だけ。20文字以内
+- 2行目以降に、空所を1つだけ含む英文の問題文（空所は ( ) で表す。空所は必ず1つ）
+- 選択肢は①〜④の4択。**必ず1行に1つずつ改行して並べる**（例: 「①rose」で改行「②raised」…）。1行に詰め込まない
+- 最後に「答えはリプ欄👇」で締める
+- **正解・解説は絶対に書かない**
 - 絵文字は1〜2個まで
 
 【解答リプライ（reply）の要件】
@@ -397,13 +404,14 @@ function buildFormatRequirements(format, lv, extra) {
 - なぜその答えになるか＋覚え方や関連知識を簡潔に解説
 - 絵文字は1個まで`;
   }
-  return `${extraBlock}【投稿本文（post）の要件】
+  return `${extraBlock}${CARD_LAYOUT_RULE}
+- 1行目: パンチのある短い見出し（フック）を1行だけ。20文字以内
+- 2行目以降: 本文（下記の要件を満たす）
 - ${lv.hook}
 - Tipsまたは例文を1つだけ。読者が今日から実践できる具体性を持たせる
 - **一般論・精神論だけの内容は禁止**（「毎日コツコツ」「スキマ時間を活用しよう」「集中できる環境を作ろう」のような、誰でも言える内容で終わらせない）
 - 次のいずれかを必ず含める: ①名前のある具体的テクニック ②数値（分数・回数・日数・語数） ③3ステップ以内の手順 ④実際の英文例1つ
 - 「今日、机に座ったら最初に何をすればいいか」が明確に分かる粒度まで具体化する
-- クイズ形式にする場合は①②の2択までとし、正解と一言解説も本文内に含める
 - 絵文字は1〜2個まで
 - replyはnull`;
 }
@@ -494,14 +502,19 @@ router.post('/generate', async (req, res) => {
   try {
     const postId = uuidv4();
     const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-    const { prefix } = buildPrefix();
+    const { prefix, cost: prefixCost } = buildPrefix();
     const { suffix, cost: suffixCost } = buildSuffix(lv, level, format);
-    const bodyLimit = 280 - prefix.length - suffixCost - 2; // 2 for safety margin
+
+    // X の加重280（認証なしで投稿できる上限）から固定文分を引いた「本文に使える加重予算」。
+    // 本文の中身はカード画像に載せるため、テキストは短くても成立する。
+    const bodyWeightedBudget = X_MAX_WEIGHTED - prefixCost - suffixCost - 4;
+    const bodyLimit = actualCharBudget(bodyWeightedBudget); // 生成AIに提示する実文字数の目安
 
     // 解答リプにはCTAリンクを付ける（本文をリンクなしに保ちつつ、正解を見に来た人に届く）
     const ctaText = buildCtaText(level);
     const replySuffix = ctaText ? `\n\n${ctaText}` : '';
-    const replyLimit = 280 - calcXCharCount(replySuffix) - 2;
+    const replyWeightedBudget = X_MAX_WEIGHTED - calcXCharCount(replySuffix) - 4;
+    const replyLimit = actualCharBudget(replyWeightedBudget);
 
     const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
     const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replaceAll('{level}', lv.label);
@@ -522,6 +535,8 @@ router.post('/generate', async (req, res) => {
       formatRequirements: buildFormatRequirements(format, lv, extra),
       bodyLimit,
       replyLimit,
+      bodyWeightedBudget,
+      replyWeightedBudget,
       recentPosts,
       varietyHint: pickVariety(questionType, level),
     };
@@ -705,12 +720,15 @@ router.put('/posts/:id', (req, res) => {
 });
 
 // POST /api/eiken/posts/:id/publish
+// body.image / body.reply_image: クライアントで生成したカード画像（data URL）。省略可
 router.post('/posts/:id/publish', async (req, res) => {
   const post = db.prepare(`SELECT * FROM sns_posts WHERE id = ? AND app_type = 'eiken'`).get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
 
+  const { image, reply_image } = req.body || {};
+
   try {
-    const result = await postTweet(post.post_text);
+    const result = await postTweet(post.post_text, { image });
     db.prepare(
       `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP WHERE id = ?`
     ).run(result.id, post.id);
@@ -721,7 +739,7 @@ router.post('/posts/:id/publish', async (req, res) => {
     let replyError = null;
     if (metadata.reply_text) {
       try {
-        const replyResult = await postTweet(metadata.reply_text, { replyToId: result.id });
+        const replyResult = await postTweet(metadata.reply_text, { replyToId: result.id, image: reply_image });
         replyTweetId = replyResult.id;
       } catch (err) {
         replyError = err.message;
@@ -754,7 +772,8 @@ router.post('/generate-university-post', async (req, res) => {
     const postId = uuidv4();
     const levelLabel = level === 'pre1' ? '準1級' : level === '2' ? '2級' : level === 'pre2' ? '準2級' : level;
     const hashtags = `#英検${levelLabel} #推薦入試`;
-    const bodyLimit = 280 - hashtags.length - 2;
+    // X の加重280（認証なしで投稿できる上限）。日本語は2文字換算のため実文字数は約半分
+    const bodyLimit = actualCharBudget(X_MAX_WEIGHTED - xWeightedLength(`\n${hashtags}`) - 4);
 
     const systemPrompt = 'あなたはSNSマーケティングと大学受験の専門家です。';
     const userPrompt = `大学受験で英検を活用できる情報を、そのままX（旧Twitter）に投稿できる完成形で書いてください。
