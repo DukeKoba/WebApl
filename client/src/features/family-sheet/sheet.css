@@ -1,0 +1,185 @@
+/* 家族共有シートの見た目(画面プレビュー & 印刷)。高齢者前提で大きめ・高コントラスト。 */
+
+.fs-sheet-root {
+  font-family: "BIZ UDPGothic", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  color: #1c1917; /* stone-900 */
+}
+
+/* 画面プレビュー: A4比率のカードとして見せる */
+.fs-page {
+  background: #fff;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 20px;
+  padding: 28px 30px;
+  border: 1px solid #e7e5e4;
+  border-radius: 8px;
+  box-shadow: 0 6px 24px -12px rgba(0, 0, 0, 0.2);
+  line-height: 1.7;
+}
+
+.fs-title {
+  font-size: 22px;
+  font-weight: 800;
+  text-align: center;
+  border-bottom: 3px solid #065f46; /* emerald-800 */
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+}
+
+.fs-h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #065f46;
+  margin: 22px 0 10px;
+}
+
+.fs-msg-box {
+  border: 1.5px solid #d6d3d1;
+  border-radius: 8px;
+  padding: 14px 16px;
+  background: #fffdf7;
+}
+.fs-msg-from { font-weight: 700; margin-bottom: 6px; }
+.fs-msg-body { font-size: 15px; white-space: pre-wrap; }
+
+.fs-steps {
+  list-style: decimal;
+  padding-left: 26px;
+  font-size: 15px;
+}
+.fs-steps li { margin-bottom: 12px; }
+.fs-note { color: #57534e; font-size: 13px; }
+.fs-quote {
+  display: inline-block;
+  background: #f5f5f4;
+  border-left: 4px solid #065f46;
+  padding: 4px 10px;
+  margin: 4px 0;
+  font-weight: 700;
+}
+
+.fs-contact-emph {
+  border: 1.5px solid #1c1917;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.9;
+}
+
+/* 保険一覧表(複数契約をスキャンしやすく) */
+.fs-h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #44403c;
+  margin: 16px 0 6px;
+}
+.fs-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.fs-list-table th,
+.fs-list-table td {
+  border: 1px solid #d6d3d1;
+  padding: 7px 8px;
+  font-size: 13px;
+  vertical-align: top;
+  text-align: left;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.fs-list-table thead th {
+  background: #065f46;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.fs-list-table tbody tr:nth-child(even) td { background: #fafaf9; }
+.fs-col-no  { width: 7%;  text-align: center; }
+.fs-col-ins { width: 22%; }
+.fs-col-cov { width: 24%; }
+.fs-col-num { width: 16%; }
+.fs-col-ben { width: 15%; }
+.fs-col-tel { width: 16%; }
+.fs-ins-name { display: block; font-weight: 700; }
+.fs-ins-prod { display: block; font-size: 11.5px; color: #57534e; }
+.fs-ins-cat  { display: inline-block; margin-top: 2px; font-size: 11px; color: #065f46; background: #ecfdf5; padding: 0 5px; border-radius: 4px; }
+.fs-emph { font-weight: 700; }
+
+.fs-notes { list-style: none; padding: 0; margin: 0; }
+.fs-notes li {
+  border: 1px solid #e7e5e4;
+  border-left: 3px solid #065f46;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+}
+.fs-note-no { font-weight: 700; color: #065f46; margin-right: 4px; }
+.fs-note-items { color: #44403c; margin-top: 2px; }
+
+.fs-contact-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+.fs-contact-table th,
+.fs-contact-table td {
+  border: 1px solid #d6d3d1;
+  padding: 7px 10px;
+  font-size: 14px;
+  text-align: left;
+}
+.fs-contact-table th { background: #f5f5f4; }
+
+.fs-memo-lines div {
+  border-bottom: 1px solid #a8a29e;
+  height: 30px;
+}
+
+.fs-disclaimer {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #57534e;
+  border: 1px dashed #d6d3d1;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+.fs-foot {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #78716c;
+  text-align: right;
+}
+
+/* ============ 印刷: シートだけをA4に。周囲のアプリUIは隠す ============ */
+@media print {
+  body * { visibility: hidden; }
+  .fs-print-area, .fs-print-area * { visibility: visible; }
+  .fs-print-area {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+  @page { size: A4; margin: 12mm; }
+  .fs-page {
+    max-width: none;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    page-break-after: always;
+  }
+  .fs-page:last-child { page-break-after: auto; }
+  .fs-list-table tr, .fs-notes li { break-inside: avoid; }
+  .fs-list-table thead { display: table-header-group; } /* 改ページ後もヘッダ再表示 */
+  .fs-title { font-size: 20pt; }
+  .fs-h2 { font-size: 14pt; }
+  .fs-steps, .fs-msg-body { font-size: 11pt; }
+  .fs-list-table th, .fs-list-table td { font-size: 10.5pt; }
+  .fs-contact-emph { font-size: 13pt; }
+  /* 印刷時は色を確実に出す */
+  .fs-list-table thead th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

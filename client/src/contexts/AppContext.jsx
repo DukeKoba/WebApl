@@ -47,7 +47,9 @@ export function AppProvider({ children }) {
     }
   }, [currentOrg]);
 
-  useEffect(() => { loadOrgs(); }, []);
+  // 公開ツール(/family-sheet 等・ログイン不要)では認証付きの初期ロードをしない
+  const isPublicPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/family-sheet');
+  useEffect(() => { if (!isPublicPage) loadOrgs(); else setLoading(false); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (currentOrg) loadOrgData(); }, [currentOrg]);
 
   const value = {

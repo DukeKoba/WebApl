@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, BookOpen, Camera, Brain, ShieldCheck, Shield, Building2, Landmark } from 'lucide-react';
+import { Calendar, BookOpen, Camera, Brain, ShieldCheck, Shield, Landmark, HeartHandshake } from 'lucide-react';
 
 const apps = [
   {
@@ -88,16 +88,16 @@ const apps = [
     badgeColor: 'bg-indigo-100 text-indigo-700',
   },
   {
-    path: '/cocreo',
-    icon: Building2,
-    title: 'Cocreo',
-    description: 'AIで中小企業を元気に。保険代理店DX・業務ツール開発・補助金活用支援',
-    color: 'from-blue-700 to-orange-500',
-    bg: 'bg-blue-50',
-    border: 'border-blue-200',
-    iconBg: 'bg-gradient-to-br from-blue-700 to-orange-500',
-    badge: 'iOS App',
-    badgeColor: 'bg-orange-100 text-orange-700',
+    path: '/family-sheet',
+    icon: HeartHandshake,
+    title: '保険の家族共有シート',
+    description: '証券を撮るだけで家族に渡せる保険一覧シートを作成（無料公開ツール・ログイン不要）',
+    color: 'from-emerald-700 to-amber-500',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-200',
+    iconBg: 'bg-gradient-to-br from-emerald-700 to-amber-500',
+    badge: '公開ツール',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
   },
 ];
 

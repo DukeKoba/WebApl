@@ -16,6 +16,7 @@ import aieduRoutes from './routes/aiedu.js';
 import itpassRoutes from './routes/itpass.js';
 import agentdxRoutes from './routes/agentdx.js';
 import igAnalyticsRoutes from './routes/instagramAnalytics.js';
+import familySheetRoutes from './routes/familySheet.js';
 import authRoutes, { getToken } from './routes/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -30,6 +31,9 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Auth
 app.use('/api/auth', authRoutes);
+
+// 公開ツール(認証不要): 家族共有シートのOCR。必ず /api 認証ミドルウェアより前に置く。
+app.use('/api/family-sheet', familySheetRoutes);
 
 // Auth middleware
 app.use('/api', (req, res, next) => {
