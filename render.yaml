@@ -26,3 +26,5 @@ services:
         sync: false
       - key: X_ACCESS_SECRET
         sync: false
+      - key: X_BEARER_TOKEN
+        sync: false

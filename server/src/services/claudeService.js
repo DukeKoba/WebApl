@@ -128,12 +128,13 @@ const POST_FORMAT_RULES = `【投稿の型】（この構造・順序を厳守�
 - 絵文字は0〜1個まで
 - 最後の行に出典を「SOURCE_URL: https://...」形式で記載（出典が実在する場合のみ）`;
 
-export async function generateAgentDxPost(contentType, label, extraContext, systemPrompt, { sourceUrl = null, sourceText = null, ctaUrl = null } = {}) {
+export async function generateAgentDxPost(contentType, label, extraContext, systemPrompt, { sourceUrl = null, sourceText = null, ctaUrl = null, trendAngle = null } = {}) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth() + 1;
   const todayStr = `${y}-${String(m).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const recentTag = `${y}年${m}月 OR ${y}年${m === 1 ? 12 : m - 1}月 最新`;
+  const trendLine = trendAngle ? `\n【今の時流（この空気感を1文でも織り込む）】\n${trendAngle}\n` : '';
 
   const queries = {
     ins_news:      `保険業界 ニュース 経営 提携 新戦略 ${recentTag}`,
@@ -144,9 +145,10 @@ export async function generateAgentDxPost(contentType, label, extraContext, syst
     agency_ops:    `保険代理店 手数料 乗合 登録要件 経営 ${recentTag}`,
     consumer_trend:`保険 消費者 加入動向 意識調査 ニーズ ${recentTag}`,
     global_ins:    `海外保険業界 InsurTech グローバル 規制 ${recentTag}`,
+    trend_watch:   `site:fsa.go.jp 保険代理店 業務品質 情報管理 AI ${recentTag}`,
   };
 
-  const isConversionType = ['efficiency_tips', 'app_demo', 'law_check'].includes(contentType);
+  const isConversionType = ['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'pinned_app'].includes(contentType);
 
   let userMessage;
   let tools;
@@ -158,7 +160,7 @@ export async function generateAgentDxPost(contentType, label, extraContext, syst
 
 【テーマ】${label}
 【背景・素材】${extraContext}
-${sourceText ? `\n【追加の素材・メモ（これを最優先の材料にする）】\n${sourceText}\n` : ''}
+${trendLine}${sourceText ? `\n【追加の素材・メモ（これを最優先の材料にする）】\n${sourceText}\n` : ''}
 保険代理店向けの実務に役立つX（Twitter）投稿を1件作成してください。
 ニュースの紹介ではなく、「読んだ代理店がそのまま実行できる具体的な内容」にしてください。
 
