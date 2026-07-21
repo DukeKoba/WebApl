@@ -37,6 +37,13 @@ export default function PolicyEditor({ policy, onSave, onCancel, showConfidence 
         </div>
       )}
 
+      {draft.ocrRaw && (
+        <details className="rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm">
+          <summary className="cursor-pointer font-medium text-stone-600">読み取った文字を見る（参考・印刷されません）</summary>
+          <pre className="mt-2 max-h-40 overflow-y-auto whitespace-pre-wrap text-xs text-stone-500">{draft.ocrRaw}</pre>
+        </details>
+      )}
+
       {FIELDS.map((f) => (
         <div key={f.key}>
           <label className="block text-base font-medium text-stone-700 mb-1">

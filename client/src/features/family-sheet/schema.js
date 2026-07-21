@@ -35,6 +35,7 @@ export function emptyPolicy() {
     memo: '',          // 補足メモ(特約など)
     confidence: '',    // AI読取時: high/medium/low(手入力は空)
     confirmedAt: '',   // 確認日(ISO日付)
+    ocrRaw: '',        // OCRで読み取った原文(参考用・印刷されない)
   };
 }
 

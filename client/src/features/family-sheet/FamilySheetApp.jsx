@@ -92,13 +92,14 @@ export default function FamilySheetApp() {
         {step === STEPS.lp && <Landing onStart={() => go(STEPS.start)} agency={agency} />}
         {step === STEPS.start && (
           <StartChoice
-            onAi={() => go(aiEnabled ? STEPS.ocr : STEPS.ai)}
+            onAi={() => go(STEPS.ocr)}
             onManual={() => go(STEPS.manual)}
             onImport={() => go(STEPS.import)}
           />
         )}
         {step === STEPS.ocr && (
           <OcrUpload
+            aiEnabled={aiEnabled}
             onExtracted={onExtracted}
             onBack={() => go(STEPS.start)}
             onManual={(m) => go(m === 'paste' ? STEPS.ai : STEPS.manual)}
