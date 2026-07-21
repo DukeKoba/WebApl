@@ -55,6 +55,21 @@ const CONTENT_TYPE_CONTEXT = {
   pinned_app:     `プロフィール固定用のアプリ訴求投稿。対象業務、利用メリット、無料または試用可能であること、ダウンロードURLを簡潔に伝える。`,
 };
 
+// 2026年下期の時流。転換系・固定ポスト投稿に「今この瞬間の空気」を1つ織り込み、
+// 代理店の現場感に接続させる（生成のたびに1つ選ぶ）。
+const TREND_ANGLES = [
+  '2026年6月施行の保険業法改正対応が最終局面。体制整備・意向把握記録の運用が問われている',
+  '人手不足と採用難で、事務員1人あたりの処理量が限界。定型業務のAI化が待ったなしになっている',
+  '物価高・再保険料上昇を背景に火災保険・自動車保険の改定が続き、更改業務の負荷とお客様説明が増えている',
+  '生成AIが一般業務に浸透し「AIを使えない代理店」との差が可視化され始めた',
+  'サイバー保険・少額短期など新商品領域が広がり、比較推奨と説明責任の記録がより重くなっている',
+  '大型化・合併が進む一方、中小専業代理店は「1人あたり生産性」で生き残りを図る局面に入っている',
+  'FAX・紙・二重入力といったレガシー事務が、若手の定着率と直結する経営課題として再認識されている',
+];
+function pickTrendAngle() {
+  return TREND_ANGLES[Math.floor(Math.random() * TREND_ANGLES.length)];
+}
+
 const X_SEARCH_QUERIES = {
   ins_news:      '(保険業界 OR 生命保険 OR 損害保険) lang:ja has:links -is:retweet -is:reply',
   law_reform:    '(保険業法 OR 金融庁 OR 監督指針 OR 比較推奨) lang:ja has:links -is:retweet -is:reply',
@@ -115,11 +130,12 @@ function buildCtaUrl(contentType) {
 
 const AGENTDX_SYSTEM_PROMPT = 'あなたは保険代理店の業務を深く理解する編集者です。業界ニュースを「いち早く」ではなく「現場への影響が一番わかりやすい形」に翻訳して発信し、代理店の実務に役立つ具体的な情報を届けます。出典に書かれた事実だけを使い、推測や記憶で情報を補わないことを最優先にします。読者は保険代理店の経営者・募集人・事務担当者です。';
 
-function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = null, sourceText = null, ctaUrl = null } = {}) {
+function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = null, sourceText = null, ctaUrl = null, trendAngle = null } = {}) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth() + 1;
   const recentTag = `${y}年${m}月`;
+  const trendLine = trendAngle ? `\n## 今の時流（この空気感を1文でも織り込む）\n${trendAngle}\n` : '';
 
   const isConversionType = ['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'pinned_app'].includes(contentType);
 
@@ -139,7 +155,7 @@ function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = nul
 
 ## テーマ
 ${label}（${extraContext}）
-${sourceText ? `\n## 素材・メモ\n${sourceText}\n` : ''}
+${trendLine}${sourceText ? `\n## 素材・メモ\n${sourceText}\n` : ''}
 ## 投稿要件
 - 保険代理店が「そのまま実行できる」実務的な内容にする（ニュース紹介ではない）
 - 1行目は業務の痛みの提示、中盤に具体的な解決策・手順（数字を入れる）
@@ -229,7 +245,9 @@ router.post('/generate', async (req, res) => {
     const label = CONTENT_TYPE_LABELS[contentType] || contentType;
     const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
     const ctaUrl = buildCtaUrl(contentType);
-    const sourceOptions = { sourceUrl, sourceText, ctaUrl };
+    // 時流を織り込む（転換系＋固定ポスト）。出典に忠実にしたいニュース系ソースがある場合は付けない
+    const trendAngle = !sourceUrl ? pickTrendAngle() : null;
+    const sourceOptions = { sourceUrl, sourceText, ctaUrl, trendAngle };
 
     sendEvent('status', {
       message: sourceUrl
@@ -303,18 +321,32 @@ function headlineLines(text, maxChars = 14) {
   return lines.length ? lines : ['代理店業務を、', 'もっとシンプルに。'];
 }
 
-function socialCardSvg({ headline, kicker, accent = 'violet' }) {
-  const palettes = {
-    violet: ['#17112c', '#6d28d9', '#a78bfa'],
-    blue: ['#071b2e', '#0369a1', '#38bdf8'],
-    emerald: ['#06251d', '#047857', '#34d399'],
-  };
-  const [background, primary, light] = palettes[accent] || palettes.violet;
-  const lines = headlineLines(compactHeadline(headline));
-  const textNodes = lines.map((line, index) =>
-    `<text x="84" y="${250 + (index * 82)}" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="58" font-weight="800" fill="#ffffff">${escapeXml(line)}</text>`
-  ).join('');
+const CARD_PALETTES = {
+  violet: ['#17112c', '#6d28d9', '#a78bfa'],
+  blue: ['#071b2e', '#0369a1', '#38bdf8'],
+  emerald: ['#06251d', '#047857', '#34d399'],
+};
 
+const JP_FONT = 'Hiragino Sans, Noto Sans JP, sans-serif';
+
+// 折り返し（全角maxChars想定）。SVGのtext要素配列を返す
+function wrapSvgText(text, { x, startY, size, weight = '700', color = '#ffffff', lineH, maxChars = 20, maxLines = 4, opacity = 1 }) {
+  const chars = Array.from(String(text || '').replace(/\r/g, ''));
+  const lines = [];
+  let cur = '';
+  for (const ch of chars) {
+    if (ch === '\n' || Array.from(cur).length >= maxChars) {
+      lines.push(cur); cur = ch === '\n' ? '' : ch;
+    } else { cur += ch; }
+    if (lines.length >= maxLines) break;
+  }
+  if (cur && lines.length < maxLines) lines.push(cur);
+  return lines.map((line, i) =>
+    `<text x="${x}" y="${startY + i * lineH}" font-family="${JP_FONT}" font-size="${size}" font-weight="${weight}" fill="${color}" fill-opacity="${opacity}">${escapeXml(line)}</text>`
+  ).join('');
+}
+
+function cardFrame(background, primary, light, inner, badge = 'COCREO  |  INSURANCE DX') {
   return `<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${background}"/><stop offset="1" stop-color="${primary}"/></linearGradient>
@@ -322,13 +354,69 @@ function socialCardSvg({ headline, kicker, accent = 'violet' }) {
     </defs>
     <rect width="1200" height="675" rx="32" fill="url(#bg)"/>
     <circle cx="1060" cy="110" r="310" fill="url(#glow)"/>
-    <circle cx="1080" cy="560" r="190" fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="2"/>
-    <text x="84" y="92" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="25" font-weight="700" letter-spacing="5" fill="${light}">COCREO  |  INSURANCE DX</text>
-    <rect x="84" y="132" width="118" height="7" rx="4" fill="${light}"/>
-    ${textNodes}
-    <text x="84" y="590" font-family="Hiragino Sans, Noto Sans JP, sans-serif" font-size="25" font-weight="600" fill="#ffffff" fill-opacity=".82">${escapeXml(kicker || 'AIで、代理店の現場を前へ。')}</text>
-    <text x="1010" y="610" font-family="Arial, sans-serif" font-size="30" font-weight="800" fill="#ffffff">Cocreo</text>
+    <text x="84" y="88" font-family="${JP_FONT}" font-size="24" font-weight="700" letter-spacing="4" fill="${light}">${escapeXml(badge)}</text>
+    <rect x="84" y="112" width="110" height="6" rx="3" fill="${light}"/>
+    ${inner}
+    <text x="1012" y="610" font-family="Arial, sans-serif" font-size="30" font-weight="800" fill="#ffffff">Cocreo</text>
   </svg>`;
+}
+
+// 4テンプレート対応の図解カード。数字・Before/After・チェックリストは代理店B2Bで刺さる形式。
+function socialCardSvg({ headline, kicker, accent = 'violet', template = 'quote', fields = {} }) {
+  const [background, primary, light] = CARD_PALETTES[accent] || CARD_PALETTES.violet;
+
+  if (template === 'number') {
+    const big = String(fields.bigNumber || compactHeadline(headline)).slice(0, 16);
+    // 数字が長い場合は1040px幅に収まるようフォントを自動縮小（全角混在を0.62係数で近似）
+    const numSize = Math.max(60, Math.min(150, Math.floor(1040 / Math.max(Array.from(big).length, 1) / 0.62)));
+    const inner = `
+      <text x="84" y="205" font-family="${JP_FONT}" font-size="30" font-weight="700" fill="${light}">${escapeXml(fields.eyebrow || '保険代理店の事務コスト')}</text>
+      <text x="80" y="360" font-family="${JP_FONT}" font-size="${numSize}" font-weight="800" fill="#ffffff">${escapeXml(big)}</text>
+      ${wrapSvgText(fields.caption || kicker || '', { x: 84, startY: 440, size: 40, weight: '600', color: '#e2e8f0', lineH: 56, maxChars: 26, maxLines: 2 })}
+      <text x="84" y="600" font-family="${JP_FONT}" font-size="24" font-weight="500" fill="#ffffff" fill-opacity=".55">${escapeXml(fields.footnote || '')}</text>`;
+    return cardFrame(background, primary, light, inner);
+  }
+
+  if (template === 'beforeafter') {
+    const inner = `
+      <text x="84" y="205" font-family="${JP_FONT}" font-size="30" font-weight="700" fill="${light}">${escapeXml(fields.eyebrow || '申込書の入力業務')}</text>
+      <rect x="84" y="248" width="470" height="330" rx="24" fill="#e11d48" fill-opacity=".16"/>
+      <rect x="84" y="248" width="470" height="66" rx="24" fill="#e11d48"/>
+      <text x="319" y="292" text-anchor="middle" font-family="${JP_FONT}" font-size="34" font-weight="800" fill="#ffffff">${escapeXml(fields.beforeLabel || '今')}</text>
+      ${wrapSvgText(fields.beforeText || '', { x: 114, startY: 372, size: 34, weight: '600', color: '#fecdd3', lineH: 50, maxChars: 13, maxLines: 4 })}
+      <text x="600" y="430" text-anchor="middle" font-family="${JP_FONT}" font-size="80" font-weight="800" fill="${light}">→</text>
+      <rect x="646" y="248" width="470" height="330" rx="24" fill="#059669" fill-opacity=".18"/>
+      <rect x="646" y="248" width="470" height="66" rx="24" fill="#059669"/>
+      <text x="881" y="292" text-anchor="middle" font-family="${JP_FONT}" font-size="34" font-weight="800" fill="#ffffff">${escapeXml(fields.afterLabel || 'AI導入後')}</text>
+      ${wrapSvgText(fields.afterText || '', { x: 676, startY: 372, size: 34, weight: '600', color: '#a7f3d0', lineH: 50, maxChars: 13, maxLines: 4 })}`;
+    return cardFrame(background, primary, light, inner);
+  }
+
+  if (template === 'checklist') {
+    const items = String(fields.items || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4);
+    const rows = items.map((item, i) => {
+      const y = 320 + i * 84;
+      return `<rect x="84" y="${y - 38}" width="46" height="46" rx="10" fill="none" stroke="${light}" stroke-width="4"/>
+        <path d="M95 ${y - 14} l11 11 l20 -30" fill="none" stroke="${light}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        ${wrapSvgText(item, { x: 158, startY: y, size: 36, weight: '600', color: '#e2e8f0', lineH: 46, maxChars: 26, maxLines: 1 })}`;
+    }).join('');
+    const inner = `
+      <text x="84" y="200" font-family="${JP_FONT}" font-size="30" font-weight="700" fill="${light}">${escapeXml(fields.eyebrow || '2026年 保険業法改正')}</text>
+      <text x="84" y="262" font-family="${JP_FONT}" font-size="56" font-weight="800" fill="#ffffff">${escapeXml(fields.title || '対応できていますか？')}</text>
+      ${rows}`;
+    return cardFrame(background, primary, light, inner);
+  }
+
+  // quote（既定・従来レイアウト）
+  const lines = headlineLines(compactHeadline(headline));
+  const textNodes = lines.map((line, index) =>
+    `<text x="84" y="${250 + (index * 82)}" font-family="${JP_FONT}" font-size="58" font-weight="800" fill="#ffffff">${escapeXml(line)}</text>`
+  ).join('');
+  const inner = `
+    <circle cx="1080" cy="560" r="190" fill="none" stroke="#ffffff" stroke-opacity=".14" stroke-width="2"/>
+    ${textNodes}
+    <text x="84" y="590" font-family="${JP_FONT}" font-size="25" font-weight="600" fill="#ffffff" fill-opacity=".82">${escapeXml(kicker || 'AIで、代理店の現場を前へ。')}</text>`;
+  return cardFrame(background, primary, light, inner);
 }
 
 function imageUrlFor(post) {
@@ -346,6 +434,8 @@ router.post('/posts/:id/image/generate', async (req, res) => {
       headline: req.body?.headline || post.post_text,
       kicker: req.body?.kicker,
       accent: req.body?.accent,
+      template: req.body?.template || 'quote',
+      fields: req.body?.fields || {},
     });
     await sharp(Buffer.from(svg)).png({ quality: 92 }).toFile(imagePath);
     db.prepare(`UPDATE sns_posts SET image_path = ? WHERE id = ?`).run(imagePath, post.id);
