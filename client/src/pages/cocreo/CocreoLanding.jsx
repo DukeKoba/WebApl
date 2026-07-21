@@ -84,14 +84,6 @@ const FREE_TOOLS = [
     tag: '登録不要・無料',
     badge: 'NEW',
   },
-  {
-    icon: FileText,
-    title: '補助金申請書AI',
-    description:
-      'デジタル化・AI導入補助金2026の申請書ドラフトをAIが3分で自動生成。まずは無料でお試しいただけます。',
-    to: '/cocreo/subsidy-generator',
-    tag: '無料で使える',
-  },
 ];
 
 const PORTFOLIO = [
@@ -328,7 +320,7 @@ export default function CocreoLanding() {
               Cocreoが無料で公開している業務支援ツールです。ログイン不要・その場で使えます。「まず触れて役に立つ」ことを大切に、現場で本当に使えるものだけをお届けします。
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6 max-w-4xl">
+          <div className="grid grid-cols-1 gap-5 lg:gap-6 max-w-md">
             {FREE_TOOLS.map((t) => {
               const Icon = t.icon;
               const sharedClass = 'group block rounded-sm p-7 border transition-all hover:bg-white';
