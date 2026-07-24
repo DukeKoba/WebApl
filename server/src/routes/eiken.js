@@ -229,12 +229,111 @@ const VARIETY_HINTS = {
   ],
 };
 
+// レベル別の具体的な語彙プール。曖昧な指示だとAIが定番語に収束するため、実在の語を大量に用意して
+// 毎回ランダムに数語を提示し「この中から選ぶ」ことで題材を分散させる。
+const WORD_POOLS = {
+  pre1: [
+    'meticulous', 'ambiguous', 'plausible', 'redundant', 'versatile', 'coherent', 'resilient',
+    'discreet', 'tedious', 'feasible', 'arbitrary', 'notorious', 'lucrative', 'obsolete',
+    'prevalent', 'susceptible', 'tentative', 'candid', 'diligent', 'eloquent', 'formidable',
+    'intricate', 'alleviate', 'undermine', 'comply', 'cultivate', 'endorse', 'mitigate',
+    'reconcile', 'suppress', 'compensate', 'oversee', 'retain', 'endure', 'compile',
+    'scrutinize', 'advocate', 'deploy', 'anticipate', 'accumulate', 'inherent', 'compelling',
+    'skeptical', 'ambitious', 'profound', 'subtle', 'vulnerable', 'exploit', 'foster',
+  ],
+  '2': [
+    'available', 'particular', 'sufficient', 'obvious', 'appropriate', 'essential', 'various',
+    'aware', 'familiar', 'complicated', 'immediate', 'apparent', 'reliable', 'flexible',
+    'accurate', 'efficient', 'reasonable', 'significant', 'previous', 'eventually',
+    'prevent', 'appreciate', 'recognize', 'participate', 'involve', 'remain', 'replace',
+    'examine', 'determine', 'refer', 'reduce', 'require', 'admit', 'afford', 'assume',
+    'consist', 'contain', 'declare', 'engage', 'establish', 'maintain', 'observe',
+    'persuade', 'regard', 'reveal', 'seek', 'settle', 'spread', 'tend', 'undergo',
+  ],
+  pre2: [
+    'probably', 'especially', 'average', 'natural', 'similar', 'certain', 'common',
+    'popular', 'comfortable', 'convenient', 'necessary', 'possible', 'special', 'simple',
+    'choose', 'decide', 'improve', 'increase', 'prepare', 'produce', 'receive', 'realize',
+    'suggest', 'describe', 'express', 'imagine', 'introduce', 'invent', 'protect', 'respect',
+    'solve', 'support', 'wonder', 'reason', 'chance', 'result', 'purpose', 'trouble',
+  ],
+  pre2plus: [
+    'reasonable', 'valuable', 'several', 'various', 'actually', 'especially', 'medium',
+    'account', 'benefit', 'method', 'quality', 'sudden', 'apparent', 'obvious', 'aware',
+    'consider', 'continue', 'provide', 'require', 'offer', 'gather', 'mention', 'expect',
+    'prepare', 'realize', 'recognize', 'compare', 'complete', 'discover', 'notice', 'reduce',
+    'succeed', 'appreciate', 'behave', 'consist', 'depend', 'develop', 'perform', 'remain',
+  ],
+  '3': [
+    'enjoy', 'practice', 'excited', 'bored', 'favorite', 'important', 'famous', 'careful',
+    'useful', 'dangerous', 'quiet', 'strange', 'special', 'kind', 'brave', 'polite',
+    'arrive', 'borrow', 'return', 'invite', 'agree', 'worry', 'hope', 'decide', 'promise',
+    'answer', 'believe', 'collect', 'explain', 'finish', 'happen', 'join', 'save', 'share',
+    'travel', 'understand', 'wait', 'win', 'wear', 'reach', 'plan', 'follow',
+  ],
+  '4': [
+    'breakfast', 'weather', 'hobby', 'animal', 'subject', 'holiday', 'garden', 'kitchen',
+    'letter', 'season', 'station', 'street', 'water', 'window', 'morning', 'evening',
+    'bring', 'carry', 'clean', 'cook', 'draw', 'fall', 'hurry', 'jump', 'ride', 'sing',
+    'buy', 'call', 'catch', 'climb', 'dance', 'help', 'leave', 'listen', 'open', 'send',
+    'sit', 'stand', 'stop', 'teach', 'walk', 'wash', 'watch', 'write',
+  ],
+  '5': [
+    'apple', 'dog', 'cat', 'red', 'blue', 'Monday', 'teacher', 'family', 'school', 'book',
+    'water', 'morning', 'friend', 'ball', 'bird', 'car', 'desk', 'egg', 'fish', 'hand',
+    'eat', 'run', 'play', 'read', 'sing', 'walk', 'swim', 'sleep', 'jump', 'go',
+    'like', 'have', 'see', 'sit', 'stand', 'open', 'look', 'make', 'sing', 'help',
+  ],
+};
+
+// 例文・題材の領域。同じ単語・文法でも領域を変えると内容が分散する
+const TOPIC_DOMAINS = [
+  '日常生活・家庭', '学校・部活', '科学・環境', 'ビジネス・経済', '感情・性格',
+  '旅行・異文化', '健康・スポーツ', 'テクノロジー・ニュース', '食べ物・買い物', '自然・動物',
+];
+
+// 教科書・過去投稿で使い古された頻出語。これらは避けさせる
+const OVERUSED_WORDS = [
+  'abandon', 'consequence', 'contribute', 'implement', 'discrepancy', 'postpone',
+  'acquire', 'inevitable', 'allocate', 'propose', 'environment', 'experience',
+];
+
+function sample(arr, n) {
+  const copy = [...arr];
+  const out = [];
+  for (let i = 0; i < n && copy.length; i++) {
+    out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+  }
+  return out;
+}
+
+function pickDomain() {
+  return TOPIC_DOMAINS[Math.floor(Math.random() * TOPIC_DOMAINS.length)];
+}
+
+// 毎回異なる題材・例文になるよう、具体的な指定を組み立てる（語彙は実在語プールから抽選）
 function pickVariety(questionType, level) {
+  const seed = Math.floor(1000 + Math.random() * 9000); // 多様性シード
+  const domain = pickDomain();
+
+  if (questionType === 'vocabulary') {
+    const pool = WORD_POOLS[level] || WORD_POOLS['2'];
+    const candidates = sample(pool, 4);
+    return `今回の題材語の候補（この中から1語を選ぶ。難しければ同レベル・同カテゴリの別語でも可）: ${candidates.join(' / ')}
+・例文の場面は「${domain}」の文脈にする
+・次の使い古された語は使わない: ${OVERUSED_WORDS.join(', ')}
+・多様性シード ${seed}（同じ入力でも毎回、上の候補や場面を変えて別の語・別の例文にすること）`;
+  }
+
   const hints = VARIETY_HINTS[questionType];
-  if (!hints) return '';
-  const list = Array.isArray(hints) ? hints : (hints[level] || hints['2'] || []);
-  if (list.length === 0) return '';
-  return list[Math.floor(Math.random() * list.length)];
+  let base = '';
+  if (hints) {
+    const list = Array.isArray(hints) ? hints : (hints[level] || hints['2'] || []);
+    if (list.length) base = list[Math.floor(Math.random() * list.length)];
+  }
+  const domainLine = `・例文・話題の場面は「${domain}」の文脈にする`;
+  const seedLine = `・多様性シード ${seed}（同じ入力でも毎回、切り口・例・言い回しを変えること）`;
+  return [base, domainLine, seedLine].filter(Boolean).join('\n');
 }
 
 const LEVEL_CONFIG = {
@@ -466,7 +565,8 @@ ${task.recentPosts?.length ? task.recentPosts.map((t, i) => `${i + 1}. ${t.repla
 【フックの型（最近の投稿で使われていないものを選ぶ）】
 ${task.hookPatterns}
 
-【参考テーマ候補】${task.varietyHint || 'なし'}（採用は任意。より刺さる題材があれば優先）
+【今回の題材指定（毎回違う内容にするため必ず従うこと）】
+${task.varietyHint || 'なし'}
 
 【完成形の組み立てルール（固定文は一字一句このまま出力に含めること）】
 ${assemblyRules}
@@ -519,7 +619,7 @@ router.post('/generate', async (req, res) => {
     const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
     const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replaceAll('{level}', lv.label);
     const recentPosts = db.prepare(
-      `SELECT post_text FROM sns_posts WHERE app_type = 'eiken' ORDER BY created_at DESC LIMIT 8`
+      `SELECT post_text FROM sns_posts WHERE app_type = 'eiken' ORDER BY created_at DESC LIMIT 20`
     ).all().map(r => r.post_text);
 
     const task = {
