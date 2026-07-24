@@ -796,12 +796,7 @@ export default function EikenHome() {
   const cardAppLabel = APP_LINKS[level]?.label || 'AI英検Pass';
 
   const downloadCard = (ref, filename) => {
-    const url = ref.current?.getDataURL();
-    if (!url) return;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
+    ref.current?.saveImage(filename);
   };
 
   return (
@@ -1119,7 +1114,7 @@ export default function EikenHome() {
                         onClick={() => downloadCard(postCardRef, 'eiken-post-card.png')}
                         className="w-full py-2 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center gap-1.5"
                       >
-                        <Download className="w-3.5 h-3.5" />この画像をダウンロード
+                        <Download className="w-3.5 h-3.5" />この画像を保存
                       </button>
                     </div>
                     {replyText && (
@@ -1130,7 +1125,7 @@ export default function EikenHome() {
                           onClick={() => downloadCard(replyCardRef, 'eiken-reply-card.png')}
                           className="w-full py-2 rounded-lg text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center gap-1.5"
                         >
-                          <Download className="w-3.5 h-3.5" />この画像をダウンロード
+                          <Download className="w-3.5 h-3.5" />この画像を保存
                         </button>
                       </div>
                     )}

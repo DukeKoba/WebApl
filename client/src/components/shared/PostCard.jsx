@@ -232,14 +232,16 @@ function draw(canvas, { text, tag, kind, appLabel }) {
     y += Math.ceil(choices.length / 2) * 74;
   }
 
-  // ── フッター（締め行 / アプリ導線） ──
+  // ── フッター ──
+  // アプリ名は右上ラベルで既に表示済み。フッターでは重複させない（二重表示防止）。
+  // タップ可能なアプリリンクはリプ本文テキスト側に入る。
   ctx.font = '700 30px "Hiragino Sans", "Noto Sans JP", sans-serif';
   ctx.fillStyle = isReply ? '#0d9488' : '#059669';
   let footer;
-  if (isReply) footer = `📲 ${appLabel || 'AI英検Pass'}で続けて演習`;
+  if (isReply) footer = '👉 続けて演習しよう';
   else if (choices.length) footer = closer || '答えはリプ欄で👇'; // クイズのみ
-  else footer = `📲 ${appLabel || 'AI英検Pass'}`; // Tips/価値提供はアプリ導線
-  ctx.fillText(footer, padX, H - M - 40);
+  else footer = ''; // Tips/価値提供は右上のアプリ名のみ
+  if (footer) ctx.fillText(footer, padX, H - M - 40);
 }
 
 const PostCard = forwardRef(function PostCard({ text, tag, kind = 'post', appLabel }, ref) {
@@ -260,6 +262,32 @@ const PostCard = forwardRef(function PostCard({ text, tag, kind = 'post', appLab
       const canvas = canvasRef.current;
       if (!canvas) return null;
       return canvas.toDataURL('image/png');
+    },
+    // 画像を保存/共有する。iOS Safari は <a download> + data URL が効かないため、
+    // モバイルは共有シート（Web Share API）→ そこから「画像を保存」、PCはBlobダウンロード。
+    saveImage: async (filename) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) return;
+      const file = new File([blob], filename, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] });
+          return;
+        } catch (err) {
+          if (err && err.name === 'AbortError') return; // ユーザーがキャンセル
+          // 共有失敗時はダウンロードにフォールバック
+        }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     },
   }), []);
 
