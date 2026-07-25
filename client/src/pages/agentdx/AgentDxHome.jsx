@@ -6,46 +6,48 @@ import { authFetch } from '../../utils/api';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 import AgentDxStrategyPanel from './AgentDxStrategyPanel';
 import AgentDxImageStudio from './AgentDxImageStudio';
-import XRetweetFinder from './XRetweetFinder';
+import AgentDxNewsFinder from './AgentDxNewsFinder';
+import AgentDxQuoteComposer from './AgentDxQuoteComposer';
 
-const NEWS_TYPES = [
-  { value: 'ins_news', label: '保険業界ニュース' },
-  { value: 'law_reform', label: '法改正・規制動向' },
-  { value: 'new_products', label: '新商品・金融商品' },
-  { value: 'market_data', label: '市場動向・統計' },
-  { value: 'disaster_risk', label: '災害・リスク情報' },
-  { value: 'agency_ops', label: '代理店経営・運営' },
-  { value: 'consumer_trend', label: '顧客・消費者動向' },
-  { value: 'global_ins', label: 'グローバル・海外動向' },
-  { value: 'trend_watch', label: '代理店DXトレンド' },
+// 転換系（受注につながる投稿）を上に置く。ここが主戦場で、ニュース系は補助。
+const CONVERSION_TYPES = [
+  { value: 'case_story', label: '事例・作ったもの', archetype: '型D' },
+  { value: 'app_demo', label: 'アプリ実演・制作実況', archetype: '型D' },
+  { value: 'efficiency_tips', label: '業務効率化Tips', archetype: '型A' },
+  { value: 'law_check', label: '業法対応チェック', archetype: '型B' },
+  { value: 'fail_story', label: '失敗談・週次まとめ', archetype: '型D' },
 ];
 
-const CONVERSION_TYPES = [
-  { value: 'efficiency_tips', label: '業務効率化Tips' },
-  { value: 'app_demo', label: 'アプリ実演・制作実況' },
-  { value: 'law_check', label: '業法対応チェック' },
-  { value: 'case_story', label: '業務改善ミニ事例' },
+// ニュース系は9種→3種に統合（投稿比率を転換系に寄せるため）
+const NEWS_TYPES = [
+  { value: 'ins_news', label: '保険業界ニュース', archetype: '型A' },
+  { value: 'law_reform', label: '法改正・規制動向', archetype: '型B' },
+  { value: 'global_ins', label: 'グローバル・海外動向', archetype: '型C' },
 ];
 
 const CONVERSION_VALUES = CONVERSION_TYPES.map(t => t.value);
 
 export default function AgentDxHome() {
-  const [contentType, setContentType] = useState('ins_news');
+  // 既定は転換系の主力（制作実況・事例）。ニュース系は補助的な位置づけにする。
+  const [contentType, setContentType] = useState('case_story');
   const [sourceText, setSourceText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [postText, setPostText] = useState('');
   const [postId, setPostId] = useState(null);
+  const [replyText, setReplyText] = useState('');
   const [isPublishing, setIsPublishing] = useState(false);
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
+  const [publishNote, setPublishNote] = useState('');
   const [fallbackPrompt, setFallbackPrompt] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
   const [isSavingPinned, setIsSavingPinned] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const isConversionType = CONVERSION_VALUES.includes(contentType);
-  const isOriginalPost = isConversionType || contentType === 'pinned_app';
+  const isQuoteType = contentType === 'quote_post';
+  const isOriginalPost = isConversionType || isQuoteType || contentType === 'pinned_app';
 
   const generateDefaultImage = async (id, text, accent = 'emerald') => {
     setIsGeneratingImage(true);
@@ -66,12 +68,15 @@ export default function AgentDxHome() {
     }
   };
 
-  const handleGenerate = async () => {
+  // source: { sourceUrl?, sourceText?, sourceLanguage? } — ニュース候補や記事URLから生成する場合に渡す
+  const handleGenerate = async (source = {}) => {
     setIsGenerating(true);
     setPostText('');
     setPostId(null);
+    setReplyText('');
     setStatus('draft');
     setError('');
+    setPublishNote('');
     setStatusMessage('');
     setFallbackPrompt(null);
     setImageUrl('');
@@ -82,7 +87,9 @@ export default function AgentDxHome() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contentType,
-          sourceText: sourceText.trim() || undefined,
+          sourceUrl: source.sourceUrl || undefined,
+          sourceText: source.sourceText || sourceText.trim() || undefined,
+          sourceLanguage: source.sourceLanguage || undefined,
         }),
       });
 
@@ -108,6 +115,7 @@ export default function AgentDxHome() {
               if (event === 'final_post') {
                 setPostText(data.post_text);
                 setPostId(data.post_id);
+                setReplyText(data.reply_text || '');
                 setStatusMessage('');
                 if (isConversionType) void generateDefaultImage(data.post_id, data.post_text);
               } else if (event === 'status') {
@@ -141,12 +149,25 @@ export default function AgentDxHome() {
       if (data.post_id) {
         setPostText(data.post_text);
         setPostId(data.post_id);
+        setReplyText(data.reply_text || '');
         setFallbackPrompt(null);
         if (isConversionType) void generateDefaultImage(data.post_id, data.post_text);
       }
     } catch (e) {
       setError(e.message);
     }
+  };
+
+  // 引用ポストの下書きが出来たときに受け取る
+  const handleQuoteDraft = ({ postId: id, postText: text }) => {
+    setContentType('quote_post');
+    setPostText(text);
+    setPostId(id);
+    setReplyText('');   // 引用ポストは本文にURLを持つので出典リプライは送らない
+    setImageUrl('');
+    setStatus('draft');
+    setPublishNote('');
+    setFallbackPrompt(null);
   };
 
   const handleCreatePinned = async (text) => {
@@ -163,9 +184,11 @@ export default function AgentDxHome() {
       setContentType('pinned_app');
       setPostText(data.post_text);
       setPostId(data.post_id);
+      setReplyText('');
       setImageUrl('');
       setFallbackPrompt(null);
       setStatus('draft');
+      setPublishNote('');
       void generateDefaultImage(data.post_id, data.post_text, 'violet');
     } catch (err) {
       setError(err.message);
@@ -176,13 +199,18 @@ export default function AgentDxHome() {
 
   const handlePublish = async (id) => {
     setIsPublishing(true);
+    setPublishNote('');
     try {
       const res = await authFetch(`/agentdx/posts/${id}/publish`, { method: 'POST' });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error);
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
       setStatus('posted');
+      // 本体投稿 → 出典リプライの2段送信の結果を伝える
+      if (data.reply_sent) {
+        setPublishNote('本体投稿の直後に、出典リプライを自動送信しました。');
+      } else if (data.reply_error) {
+        setPublishNote(`本体投稿は成功しましたが、出典リプライに失敗しました: ${data.reply_error}`);
+      }
     } catch (err) {
       setError(err.message);
       setStatus('failed');
@@ -227,18 +255,40 @@ export default function AgentDxHome() {
         />
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 leading-relaxed">
-            <strong className="text-gray-700">投稿戦略：</strong>
-            ニュースは元投稿を確認してリポストし、一次発信への導線を保ちます。
-            業務Tips・アプリ実演・業法チェックはオリジナル画像付きで発信し、プロフィール→固定ポスト→アプリへの導線を作り、
-            無料ツール経由の相談・受注につなげます。
+            <strong className="text-gray-700">投稿方針：</strong>
+            全投稿でハッシュタグは付けず、本文にリンクを入れません（Xでは外部リンク付き投稿のリーチが抑制され、
+            ハッシュタグは到達に寄与せず業者感が出るため）。出典URLは本体投稿の直後にセルフリプライで自動送信します。
+            改行を多用して縦に長く読ませ、最終行は必ず読者への問いかけで終えます（リプライが最重要シグナルのため）。
           </p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-500" />
-            ニュース候補／オリジナル投稿を選ぶ
+            投稿テーマを選ぶ
           </h2>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              転換系 <span className="font-normal text-gray-400">（主戦場。相談・受注につなげる）</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {CONVERSION_TYPES.map(ct => (
+                <button
+                  key={ct.value}
+                  onClick={() => setContentType(ct.value)}
+                  className={`py-2 px-2 rounded-lg text-xs font-medium transition-colors text-center ${
+                    contentType === ct.value
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                  }`}
+                >
+                  {ct.label}
+                  <span className={`block text-[10px] font-normal ${contentType === ct.value ? 'text-emerald-100' : 'text-emerald-500'}`}>{ct.archetype}</span>
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="mb-3">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -256,27 +306,7 @@ export default function AgentDxHome() {
                   }`}
                 >
                   {ct.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              転換系 <span className="font-normal text-gray-400">（アプリ流入・受注につなげる）</span>
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {CONVERSION_TYPES.map(ct => (
-                <button
-                  key={ct.value}
-                  onClick={() => setContentType(ct.value)}
-                  className={`py-2 px-2 rounded-lg text-xs font-medium transition-colors text-center ${
-                    contentType === ct.value
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                  }`}
-                >
-                  {ct.label}
+                  <span className={`block text-[10px] font-normal ${contentType === ct.value ? 'text-indigo-100' : 'text-gray-400'}`}>{ct.archetype}</span>
                 </button>
               ))}
             </div>
@@ -294,14 +324,28 @@ export default function AgentDxHome() {
                 <label className="block text-sm font-medium text-gray-700">素材・メモ <span className="font-normal text-gray-400">（任意）</span></label>
                 <textarea value={sourceText} onChange={e => setSourceText(e.target.value)} rows={3} placeholder="例: 今週デモした内容、削減できた時間の実測値、投稿に入れたい数字など" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300" />
               </div>
-              <button onClick={handleGenerate} disabled={isGenerating || isGeneratingImage} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+              <button onClick={() => handleGenerate()} disabled={isGenerating || isGeneratingImage} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                 {isGenerating || isGeneratingImage ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{isGeneratingImage ? '投稿画像を生成中...' : (statusMessage || '投稿を生成中...')}</> : <><Sparkles className="w-4 h-4" />投稿文＋画像を生成する</>}
               </button>
             </>
           )}
         </div>
 
-        {!isOriginalPost && <XRetweetFinder contentType={contentType} onError={setError} />}
+        <AgentDxQuoteComposer
+          onDraft={handleQuoteDraft}
+          onError={setError}
+          isBusy={isGenerating || isGeneratingImage}
+          highlight={isQuoteType}
+        />
+
+        {!isOriginalPost && (
+          <AgentDxNewsFinder
+            contentType={contentType}
+            onError={setError}
+            onGenerateFromSource={handleGenerate}
+            isGenerating={isGenerating || isGeneratingImage}
+          />
+        )}
 
         {fallbackPrompt && (
           <PromptFallbackPanel
@@ -331,7 +375,14 @@ export default function AgentDxHome() {
           isPublishing={isPublishing}
           status={status}
           imageUrl={imageUrl}
+          replyText={replyText}
         />
+
+        {publishNote && (
+          <div className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-xs text-gray-600">
+            {publishNote}
+          </div>
+        )}
       </div>
     </div>
   );

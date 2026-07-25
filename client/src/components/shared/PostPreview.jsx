@@ -2,7 +2,11 @@ import React from 'react';
 import { Twitter, Instagram, Copy, Check, ExternalLink } from 'lucide-react';
 import { xWeightedLength } from '../../utils/xText';
 
-export default function PostPreview({ platform, text, onChange, imageUrl, postId, onPublish, isPublishing, status }) {
+/**
+ * replyText: 本体投稿の直後に自動送信されるセルフリプライ（agentdxの出典リプライ）。
+ *            渡されたときだけ「本体投稿」「出典リプライ」を分けて表示する。
+ */
+export default function PostPreview({ platform, text, onChange, imageUrl, postId, onPublish, isPublishing, status, replyText, replyLabel }) {
   const [copied, setCopied] = React.useState(false);
   const isX = platform === 'x';
   const charLimit = isX ? 280 : 2200;
@@ -47,7 +51,7 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
       {/* Post text */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-500">{t.postText}</span>
+          <span className="text-xs font-medium text-gray-500">{replyText ? '① 本体投稿（リンク0本）' : t.postText}</span>
           <div className="flex items-center gap-2">
             <span className={`text-xs ${overLimit ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
               {charCount} / {charLimit}
@@ -66,7 +70,7 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
           <textarea
             value={text || ''}
             onChange={e => onChange(e.target.value)}
-            rows={isX ? 4 : 6}
+            rows={isX ? 8 : 6}
             className={`w-full text-sm border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 ${
               overLimit
                 ? 'border-red-300 focus:ring-red-300'
@@ -80,6 +84,19 @@ export default function PostPreview({ platform, text, onChange, imageUrl, postId
 
         {overLimit && (
           <p className="text-xs text-red-500 mt-1">{t.overLimit}</p>
+        )}
+
+        {/* セルフリプライ（出典）。本体投稿の直後に自動送信される */}
+        {replyText && (
+          <div className="mt-4 border-l-2 border-gray-200 pl-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-gray-500">
+                {replyLabel || '② 出典リプライ（本体投稿の直後に自動送信）'}
+              </span>
+              <span className="text-xs text-gray-400">{xWeightedLength(replyText)} / {charLimit}</span>
+            </div>
+            <p className="text-sm text-gray-600 whitespace-pre-wrap break-all">{replyText}</p>
+          </div>
         )}
       </div>
 

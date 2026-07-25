@@ -1,14 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { CalendarDays, Clock3, Download, ExternalLink, Pin, Target, TrendingUp } from 'lucide-react';
 
+// 週次プラン。転換系（制作実況・事例）を主役にし、ニュース系は3種に絞った。
+// 時間帯は 7:30-8:00 をメイン枠、12:00-12:30 と 21:00-22:00 をサブ枠として運用する。
 const WEEKLY_PLAN = [
-  { day: 1, label: '月', time: '7:45', type: 'trend_watch', title: '制度・業務品質トレンド', goal: '経営者の情報収集需要を取る', format: '一次情報＋今週確認すること' },
-  { day: 2, label: '火', time: '12:10', type: 'efficiency_tips', title: '1業務1改善Tips', goal: '保存される実務投稿を作る', format: 'Before／手順／削減時間' },
-  { day: 3, label: '水', time: '18:30', type: 'app_demo', title: 'アプリ実演・制作実況', goal: '技術力と実装力を見せる', format: '画像付きBefore／After' },
-  { day: 4, label: '木', time: '7:45', type: 'agency_ops', title: '代理店経営・運営', goal: '経営課題への理解を示す', format: '数字／変化／現場への影響' },
-  { day: 5, label: '金', time: '12:10', type: 'case_story', title: '業務改善ミニ事例', goal: '無料相談・受注へつなげる', format: '課題／小さな実装／成果／相談CTA' },
-  { day: 6, label: '土', time: '9:00', type: 'law_check', title: '3分セルフチェック', goal: '保存・社内共有を増やす', format: 'チェック項目3つ＋注意書き' },
-  { day: 0, label: '日', time: '20:00', type: 'consumer_trend', title: '顧客視点・Cocreoの考え', goal: '人柄とブランドへの共感', format: '現場の気づき＋来週の問い' },
+  { day: 1, label: '月', time: '7:45', type: 'law_check', title: '業法・制度セルフチェック', goal: 'スクショされ社内共有される', format: '型B：□チェック3つ＋判定' },
+  { day: 2, label: '火', time: '12:10', type: 'efficiency_tips', title: '実務Tips', goal: '保存される実務投稿を作る', format: '型A：数字→換算→手順1・2・3' },
+  { day: 3, label: '水', time: '7:45', type: 'app_demo', title: '制作実況（最重要枠）', goal: '返信で要望を集める', format: '型D：現場の一言→作った→Before/After', key: true },
+  { day: 4, label: '木', time: '12:10', type: 'quote_post', title: '引用ポスト', goal: '業界ニュースに自分の解釈を足す', format: '解釈1〜2行＋引用元URL' },
+  { day: 5, label: '金', time: '7:45', type: 'case_story', title: '事例・作ったもの', goal: '相談・受注へつなげる', format: '型D：課題→作った→削減時間→依頼', key: true },
+  { day: 6, label: '土', time: '7:45', type: 'global_ins', title: '海外ニュース翻訳', goal: '一次情報の翻訳者として認知される', format: '型C：事実＋日本の代理店への効き方' },
+  { day: 0, label: '日', time: '21:30', type: 'fail_story', title: '週次まとめ・失敗談', goal: '人柄への共感とフォロー継続', format: '型D：やったこと／失敗／来週の問い' },
 ];
 
 const TREND_FOCUS = [
@@ -41,7 +43,9 @@ export default function AgentDxStrategyPanel({ onSelectContentType, onCreatePinn
 
   const createPinned = () => {
     if (!appUrl.trim()) return;
-    const text = `保険代理店の手入力を、顧客対応の時間へ。\n${benefit.trim()}「${appName.trim()}」を公開しました。\nまずはアプリで体験してください👇\n${appUrl.trim()}\n#保険代理店 #業務効率化`;
+    // ハッシュタグは付けない（Xでは検索到達に寄与せず、業者感が出てフォロー率を下げるため）。
+    // 固定ポストは例外的に本文へアプリURLを1本だけ入れる。
+    const text = `保険代理店の手入力を、顧客対応の時間へ。\n\n${benefit.trim()}「${appName.trim()}」を作りました。\n\nまずは触ってみてください。\n${appUrl.trim()}\n\nどの業務がいちばん重いか、よければ教えてください。`;
     onCreatePinned(text);
   };
 
@@ -61,7 +65,8 @@ export default function AgentDxStrategyPanel({ onSelectContentType, onCreatePinn
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-indigo-100">
-            <span className="rounded-full bg-white/10 px-2.5 py-1">型: {today.format}</span>
+            <span className="rounded-full bg-white/10 px-2.5 py-1">{today.format}</span>
+            {today.key && <span className="rounded-full bg-amber-300/90 px-2.5 py-1 font-bold text-amber-950">最重要枠</span>}
             <button onClick={() => onSelectContentType(today.type)} className="ml-auto rounded-lg bg-white px-3 py-2 font-semibold text-indigo-700 hover:bg-indigo-50">このテーマで作る</button>
           </div>
         </div>
@@ -76,10 +81,13 @@ export default function AgentDxStrategyPanel({ onSelectContentType, onCreatePinn
             <button key={item.day} onClick={() => onSelectContentType(item.type)} className={`grid w-full grid-cols-[42px_54px_1fr] items-start gap-2 border-b border-gray-100 py-3 text-left last:border-0 ${item.day === today.day ? 'bg-indigo-50/60' : ''}`}>
               <span className="rounded-md bg-gray-900 px-2 py-1 text-center text-xs font-bold text-white">{item.label}</span>
               <span className="pt-1 text-xs font-semibold text-indigo-600">{item.time}</span>
-              <span><strong className="block text-sm text-gray-800">{item.title}</strong><span className="text-xs text-gray-500">{item.goal}｜{item.format}</span></span>
+              <span><strong className="block text-sm text-gray-800">{item.title}{item.key && <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">最重要</span>}</strong><span className="text-xs text-gray-500">{item.goal}｜{item.format}</span></span>
             </button>
           ))}
-          <p className="mt-3 text-[11px] leading-relaxed text-gray-400">投稿時刻は日本時間の初期目安です。Xアナリティクスの反応を月1回確認し、±30分で調整してください。</p>
+          <p className="mt-3 text-[11px] leading-relaxed text-gray-400">
+            メイン枠は7:30-8:00、サブ枠は12:00-12:30と21:00-22:00です。Xアナリティクスの反応を月1回確認し、±30分で調整してください。
+            全型に共通して、ハッシュタグは付けず、本文にリンクを入れず、最終行は読者への問いかけで終えます。
+          </p>
         </div>
       </details>
 
@@ -105,7 +113,7 @@ export default function AgentDxStrategyPanel({ onSelectContentType, onCreatePinn
           <button onClick={createPinned} disabled={!appUrl.trim() || isSavingPinned} className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:bg-gray-300">
             {isSavingPinned ? '作成中...' : <><Download className="h-4 w-4" />固定ポスト案を作成・保存</>}
           </button>
-          <p className="flex items-start gap-1 text-[11px] text-gray-400"><Target className="mt-0.5 h-3 w-3 shrink-0" />投稿後、Xの投稿メニューから「プロフィールに固定」を選択してください。通常投稿は価値提供5：実演1：訴求1の比率を維持します。</p>
+          <p className="flex items-start gap-1 text-[11px] text-gray-400"><Target className="mt-0.5 h-3 w-3 shrink-0" />投稿後、Xの投稿メニューから「プロフィールに固定」を選択してください。本文にURLを入れるのは、この固定ポストと引用ポストだけです（通常投稿はリンク0本・ハッシュタグ0個）。</p>
         </div>
       </section>
     </div>
