@@ -6,9 +6,9 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import sharp from 'sharp';
 import db from '../database.js';
-import { generateAgentDxPost } from '../services/claudeService.js';
+import { generateAgentDxPost, searchInsuranceNews, parseNewsItems, AGENTDX_NEWS_QUERIES } from '../services/claudeService.js';
 import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
-import { postTweet, repostPost, searchRecentPosts } from '../services/xService.js';
+import { postTweet } from '../services/xService.js';
 
 const router = express.Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,62 +70,16 @@ function pickTrendAngle() {
   return TREND_ANGLES[Math.floor(Math.random() * TREND_ANGLES.length)];
 }
 
-const X_SEARCH_QUERIES = {
-  ins_news:      '(保険業界 OR 生命保険 OR 損害保険) lang:ja has:links -is:retweet -is:reply',
-  law_reform:    '(保険業法 OR 金融庁 OR 監督指針 OR 比較推奨) lang:ja has:links -is:retweet -is:reply',
-  new_products:  '(保険 新商品 OR 商品改定) lang:ja has:links -is:retweet -is:reply',
-  market_data:   '(保険市場 OR 保険料収入 OR 加入率 OR 保険 統計) lang:ja has:links -is:retweet -is:reply',
-  disaster_risk: '(災害 保険 OR サイバー保険 OR 地震保険 OR 水災) lang:ja has:links -is:retweet -is:reply',
-  agency_ops:    '(保険代理店 OR 乗合代理店) (経営 OR 業務品質 OR 手数料) lang:ja has:links -is:retweet -is:reply',
-  consumer_trend:'(保険 意識調査 OR 保険 消費者動向 OR 保険 ニーズ) lang:ja has:links -is:retweet -is:reply',
-  global_ins:    '(InsurTech OR インシュアテック OR 海外 保険) lang:ja has:links -is:retweet -is:reply',
-  trend_watch:   '(保険代理店 DX OR 保険代理店 AI OR 保険代理店 業務改善) lang:ja has:links -is:retweet -is:reply',
-};
-const ORIGINAL_POST_TYPES = new Set(['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'pinned_app']);
+// 転換系（受注につなげる）投稿。ニュース系はこれ以外の全種別。
+const CONVERSION_POST_TYPES = new Set(['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'pinned_app']);
+// 最新ニュース検索の対象になる種別（AGENTDX_NEWS_QUERIES にクエリを持つもの）
+const NEWS_POST_TYPES = new Set(Object.keys(AGENTDX_NEWS_QUERIES));
 
-function xSearchUrl(query) {
-  return `https://x.com/search?q=${encodeURIComponent(query)}&src=typed_query&f=live`;
-}
-
-router.post('/x-search', async (req, res) => {
-  const contentType = req.body?.contentType || 'ins_news';
-  const customQuery = typeof req.body?.query === 'string' ? req.body.query.trim().slice(0, 300) : '';
-  const query = customQuery || X_SEARCH_QUERIES[contentType] || X_SEARCH_QUERIES.ins_news;
-  const searchUrl = xSearchUrl(query);
-
-  try {
-    const posts = await searchRecentPosts(query, 20);
-    res.json({ query, search_url: searchUrl, posts });
-  } catch (err) {
-    if (err.code === 'X_SEARCH_NOT_CONFIGURED') {
-      return res.json({ query, search_url: searchUrl, posts: [], fallback: true, message: err.message });
-    }
-    res.status(502).json({ error: err.message, query, search_url: searchUrl });
-  }
-});
-
-router.post('/repost/:postId', async (req, res) => {
-  try {
-    const result = await repostPost(req.params.postId);
-    res.json({ success: true, data: result.data || result });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// 転換系投稿に入れるCTAリンク。/insurance LP・計算機が公開されたらパスを差し替える
-const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL || 'https://webapl-ycgb.onrender.com';
-const CTA_PATHS = {
-  efficiency_tips: '/cocreo',
-  app_demo:        '/cocreo',
-  law_check:       '/cocreo',
-  case_story:      '/cocreo',
-};
-
-function buildCtaUrl(contentType) {
-  const path = CTA_PATHS[contentType];
-  if (!path) return null;
-  return `${PUBLIC_SITE_URL}${path}?utm_source=x&utm_medium=social&utm_content=${contentType}`;
+// 自社サイトへのCTAリンクは既定でOFF。
+// 開発実績が公開できる状態になるまで投稿にリンクを入れない方針のため、
+// buildCtaUrl による自動生成は廃止した。UIから明示的にURLを渡したときだけ本文に入る。
+function normalizeCtaUrl(value) {
+  return typeof value === 'string' && /^https?:\/\/\S+$/.test(value.trim()) ? value.trim() : null;
 }
 
 const AGENTDX_SYSTEM_PROMPT = 'あなたは保険代理店の業務を深く理解する編集者です。業界ニュースを「いち早く」ではなく「現場への影響が一番わかりやすい形」に翻訳して発信し、代理店の実務に役立つ具体的な情報を届けます。出典に書かれた事実だけを使い、推測や記憶で情報を補わないことを最優先にします。読者は保険代理店の経営者・募集人・事務担当者です。';
@@ -137,7 +91,15 @@ function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = nul
   const recentTag = `${y}年${m}月`;
   const trendLine = trendAngle ? `\n## 今の時流（この空気感を1文でも織り込む）\n${trendAngle}\n` : '';
 
-  const isConversionType = ['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'pinned_app'].includes(contentType);
+  const isConversionType = CONVERSION_POST_TYPES.has(contentType);
+
+  const translationRules = `## 日本語以外の記事の扱い
+- 記事が英語など日本語以外の場合は、正確に日本語へ翻訳・要約したうえで投稿を作る（投稿文は必ず日本語）
+- 専門用語は日本の保険業界で通じる語に置き換える（underwriting→引受、claims→保険金支払、broker/agent→代理店、
+  premium→保険料、policyholder→契約者、loss ratio→損害率、InsurTech→インシュアテック、regulator→規制当局）
+- 金額・単位は原文の通貨・単位のまま扱う（勝手に円換算しない）
+- 原文にない情報は足さない。日本の制度への読み替えを断定しない
+- 海外事例は「日本の代理店にとっての示唆」を1文で添える`;
 
   const formatRules = `## 投稿の型（この構造・順序を厳守）
 - 1行目: 数字か意外性のあるフック
@@ -160,7 +122,11 @@ ${trendLine}${sourceText ? `\n## 素材・メモ\n${sourceText}\n` : ''}
 - 保険代理店が「そのまま実行できる」実務的な内容にする（ニュース紹介ではない）
 - 1行目は業務の痛みの提示、中盤に具体的な解決策・手順（数字を入れる）
 - 本文はURL・ハッシュタグ込みで全角130文字以内（Xは全角1字=2単位・上限280単位・URLは23単位）
-${ctaUrl ? `- 本文中に必ずこのリンクを入れる: ${ctaUrl}` : '- リンクは入れない'}
+${ctaUrl
+      ? `- 本文中に必ずこのリンクを入れる: ${ctaUrl}`
+      : `- リンク・URLは一切入れない（自社サイトも含む）。「詳細はこちら」等のリンク前提の表現も使わない
+- 締めはリンク無しで成立させる。(a) その場で試せる具体的な行動を1つ提案する、
+  または (b) 読者に考えさせる問いかけで終える、のどちらかにする`}
 - 末尾にハッシュタグ1〜2個（#保険代理店 を基本に）
 
 ## 出力形式
@@ -171,7 +137,7 @@ ${ctaUrl ? `- 本文中に必ずこのリンクを入れる: ${ctaUrl}` : '- リ
     return `あなたは保険代理店の業務を深く理解する編集者です。
 
 ## 根拠にする記事
-${sourceUrl ? `URL: ${sourceUrl}（この記事の内容を確認してください）` : ''}
+${sourceUrl ? `URL: ${sourceUrl}（この記事の内容を確認してください。海外メディアの記事でも構いません）` : ''}
 ${sourceText ? `\n${sourceText}` : ''}
 
 ## 手順
@@ -181,24 +147,15 @@ ${sourceText ? `\n${sourceText}` : ''}
 ## テーマ
 ${label}（${extraContext}）
 
+${translationRules}
+
 ${formatRules}
 
 ## 出力形式
 投稿文とSOURCE_URLのみ出力してください。前後に説明文は不要です。`;
   }
 
-  const queries = {
-    ins_news:      `保険業界 ニュース 経営 提携 ${recentTag}`,
-    law_reform:    `保険業法 改正 金融庁 規制 ${recentTag}`,
-    new_products:  `保険 新商品 発売 生命保険 損害保険 ${recentTag}`,
-    market_data:   `保険市場 統計 加入率 ${recentTag}`,
-    disaster_risk: `自然災害 保険金支払い サイバーリスク ${recentTag}`,
-    agency_ops:    `保険代理店 手数料 乗合 経営 ${recentTag}`,
-    consumer_trend:`保険 消費者 加入動向 意識調査 ${recentTag}`,
-    global_ins:    `海外保険業界 InsurTech グローバル ${recentTag}`,
-    trend_watch:   `site:fsa.go.jp 保険代理店 業務品質 情報管理 AI ${recentTag}`,
-  };
-  const query = queries[contentType] || `保険代理店 ${label} 最新 ${recentTag}`;
+  const query = `${AGENTDX_NEWS_QUERIES[contentType] || `保険代理店 ${label}`} ${recentTag} 最新`;
 
   return `あなたは保険代理店の業務を深く理解する編集者です。
 
@@ -211,16 +168,106 @@ ${formatRules}
 ## テーマ
 ${label}（${extraContext}）
 
+${translationRules}
+
 ${formatRules}
 
 ## 出力形式
 投稿文とSOURCE_URLのみ出力してください。前後に説明文は不要です。`;
 }
 
+// 最新ニュース検索用のプロンプト（APIキーが無い環境ではこれを外部AIで実行してもらう）
+function buildNewsSearchPrompt(contentType, label) {
+  const now = new Date();
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const cutoff = new Date(now);
+  cutoff.setDate(cutoff.getDate() - 90);
+  const query = `${AGENTDX_NEWS_QUERIES[contentType] || `保険代理店 ${label}`} ${now.getFullYear()}年${now.getMonth() + 1}月 最新`;
+
+  return `今日は ${iso(now)} です。Web検索を使って「${query}」を調べ、
+保険代理店の実務担当者が知るべきニュースを3〜5件集めてください。
+
+## 厳守ルール
+- 公開日が ${iso(cutoff)} 以降（直近90日以内）の記事のみ採用する
+- 公開日が確認できない記事は採用しない
+- 記事に書かれていない事実・数字・制度名を足さない
+- 記事が英語など日本語以外でも採用してよい。ただし title・summary は必ず正確な日本語に翻訳して書く。
+  専門用語は日本の保険業界で通じる語に置き換える（underwriting→引受、claims→保険金支払、broker/agent→代理店、
+  premium→保険料、policyholder→契約者、InsurTech→インシュアテック）。原文にない情報は補わない
+
+## 出力形式
+説明文を書かず、次のJSON配列だけを \`\`\`json のコードブロックで出力してください。
+[
+  {
+    "date": "YYYY-MM-DD",
+    "title": "日本語の見出し（40字以内）",
+    "summary": "日本語の要約2〜3文。数字・企業名・制度名を残す",
+    "impact": "保険代理店の現場への影響を1文で",
+    "url": "https://...",
+    "language": "ja / en など原文の言語コード"
+  }
+]`;
+}
+
+// 最新ニュースを取得して要約する（リポスト機能の置き換え）。
+// APIキーが無い環境では fallback_prompt を返し、外部AIの結果を貼り戻して使えるようにする。
+router.post('/news-search', async (req, res) => {
+  const contentType = NEWS_POST_TYPES.has(req.body?.contentType) ? req.body.contentType : 'ins_news';
+  const label = CONTENT_TYPE_LABELS[contentType] || contentType;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sendEvent = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    sendEvent('status', { message: `${label}の最新ニュースを検索中...` });
+
+    const promptInfo = {
+      label: `${label} 最新ニュース検索プロンプト`,
+      system: AGENTDX_SYSTEM_PROMPT,
+      user: buildNewsSearchPrompt(contentType, label),
+    };
+
+    const result = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      () => searchInsuranceNews(contentType, label),
+      sendEvent,
+    );
+
+    if (result == null) {
+      sendEvent('done', {});
+      return;
+    }
+
+    sendEvent('news_items', { items: result.items || [], sources: result.sources || [] });
+    sendEvent('done', {});
+  } catch (err) {
+    console.error('[agentdx] news-search error:', err);
+    sendEvent('error', { message: `最新ニュースを取得できませんでした: ${err.message}` });
+  } finally {
+    res.end();
+  }
+});
+
+// 外部AI（プロンプト方式）で取得したニュース一覧のJSONを候補リストに変換する
+router.post('/news-parse', (req, res) => {
+  const text = typeof req.body?.text === 'string' ? req.body.text.slice(0, 40000) : '';
+  const items = parseNewsItems(text);
+  if (!items.length) {
+    return res.status(400).json({ error: 'ニュース候補を読み取れませんでした。JSON配列を含む結果を貼り付けてください。' });
+  }
+  res.json({ items });
+});
+
 router.post('/generate', async (req, res) => {
-  const { contentType = 'ins_news', sourceUrl: rawSourceUrl, sourceText: rawSourceText } = req.body;
-  if (!ORIGINAL_POST_TYPES.has(contentType)) {
-    return res.status(400).json({ error: 'ニュース系はXの候補検索から元投稿をリポストしてください。' });
+  const { contentType = 'ins_news', sourceUrl: rawSourceUrl, sourceText: rawSourceText, ctaUrl: rawCtaUrl } = req.body;
+  if (!CONTENT_TYPE_LABELS[contentType]) {
+    return res.status(400).json({ error: '不明なコンテンツ種別です。' });
   }
 
   // 出典URLはhttp(s)のみ許可。テキストは長すぎる貼り付けを切り詰める
@@ -244,7 +291,8 @@ router.post('/generate', async (req, res) => {
     const postId = uuidv4();
     const label = CONTENT_TYPE_LABELS[contentType] || contentType;
     const extraContext = CONTENT_TYPE_CONTEXT[contentType] || '';
-    const ctaUrl = buildCtaUrl(contentType);
+    // 既定はリンク無し。UIから明示的にURLが渡されたときだけ本文に入る
+    const ctaUrl = normalizeCtaUrl(rawCtaUrl);
     // 時流を織り込む（転換系＋固定ポスト）。出典に忠実にしたいニュース系ソースがある場合は付けない
     const trendAngle = !sourceUrl ? pickTrendAngle() : null;
     const sourceOptions = { sourceUrl, sourceText, ctaUrl, trendAngle };
@@ -485,7 +533,12 @@ router.post('/posts/:id/publish', async (req, res) => {
   if (!post) return res.status(404).json({ error: 'Post not found' });
 
   try {
-    const result = await postTweet(post.post_text, { mediaPath: post.image_path || undefined });
+    // xService.postTweet は base64 の `image` を受け取る（`mediaPath` は解釈されない）
+    let image;
+    if (post.image_path) {
+      image = await fs.readFile(post.image_path, { encoding: 'base64' }).catch(() => undefined);
+    }
+    const result = await postTweet(post.post_text, { image });
     db.prepare(
       `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP WHERE id = ?`
     ).run(result.id, post.id);

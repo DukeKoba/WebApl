@@ -6,7 +6,7 @@ import { authFetch } from '../../utils/api';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 import AgentDxStrategyPanel from './AgentDxStrategyPanel';
 import AgentDxImageStudio from './AgentDxImageStudio';
-import XRetweetFinder from './XRetweetFinder';
+import AgentDxNewsFinder from './AgentDxNewsFinder';
 
 const NEWS_TYPES = [
   { value: 'ins_news', label: '保険業界ニュース' },
@@ -66,7 +66,8 @@ export default function AgentDxHome() {
     }
   };
 
-  const handleGenerate = async () => {
+  // source: { sourceUrl?, sourceText? } — ニュース候補や記事URLから生成する場合に渡す
+  const handleGenerate = async (source = {}) => {
     setIsGenerating(true);
     setPostText('');
     setPostId(null);
@@ -82,7 +83,8 @@ export default function AgentDxHome() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contentType,
-          sourceText: sourceText.trim() || undefined,
+          sourceUrl: source.sourceUrl || undefined,
+          sourceText: source.sourceText || sourceText.trim() || undefined,
         }),
       });
 
@@ -228,16 +230,16 @@ export default function AgentDxHome() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-xs text-gray-500 leading-relaxed">
             <strong className="text-gray-700">投稿戦略：</strong>
-            ニュースは元投稿を確認してリポストし、一次発信への導線を保ちます。
-            業務Tips・アプリ実演・業法チェックはオリジナル画像付きで発信し、プロフィール→固定ポスト→アプリへの導線を作り、
-            無料ツール経由の相談・受注につなげます。
+            ニュースは最新記事を検索・要約して、出典URL付きの自分の言葉で発信します（海外記事は日本語に翻訳・要約）。
+            業務Tips・アプリ実演・業法チェックはオリジナル画像付きで発信し、プロフィール→固定ポストへの導線を作ります。
+            開発実績を公開できるまで、投稿本文に自社サイトのリンクは入れません。
           </p>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-500" />
-            ニュース候補／オリジナル投稿を選ぶ
+            投稿テーマを選ぶ
           </h2>
 
           <div className="mb-3">
@@ -294,14 +296,21 @@ export default function AgentDxHome() {
                 <label className="block text-sm font-medium text-gray-700">素材・メモ <span className="font-normal text-gray-400">（任意）</span></label>
                 <textarea value={sourceText} onChange={e => setSourceText(e.target.value)} rows={3} placeholder="例: 今週デモした内容、削減できた時間の実測値、投稿に入れたい数字など" className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300" />
               </div>
-              <button onClick={handleGenerate} disabled={isGenerating || isGeneratingImage} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+              <button onClick={() => handleGenerate()} disabled={isGenerating || isGeneratingImage} className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
                 {isGenerating || isGeneratingImage ? <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{isGeneratingImage ? '投稿画像を生成中...' : (statusMessage || '投稿を生成中...')}</> : <><Sparkles className="w-4 h-4" />投稿文＋画像を生成する</>}
               </button>
             </>
           )}
         </div>
 
-        {!isOriginalPost && <XRetweetFinder contentType={contentType} onError={setError} />}
+        {!isOriginalPost && (
+          <AgentDxNewsFinder
+            contentType={contentType}
+            onError={setError}
+            onGenerateFromSource={handleGenerate}
+            isGenerating={isGenerating || isGeneratingImage}
+          />
+        )}
 
         {fallbackPrompt && (
           <PromptFallbackPanel
