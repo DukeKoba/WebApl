@@ -6,7 +6,17 @@ import { fileURLToPath } from 'url';
 import multer from 'multer';
 import sharp from 'sharp';
 import db from '../database.js';
-import { generateAgentDxPost, searchInsuranceNews, parseNewsItems, AGENTDX_NEWS_QUERIES } from '../services/claudeService.js';
+import {
+  generateAgentDxPost,
+  generateQuotePostComment,
+  searchInsuranceNews,
+  parseNewsItems,
+  resolveArchetype,
+  buildPostFormatRules,
+  sanitizePostBody,
+  AGENTDX_NEWS_QUERIES,
+} from '../services/claudeService.js';
+import { xWeightedLength, X_MAX_WEIGHTED } from '../services/xText.js';
 import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
 
@@ -20,39 +30,32 @@ const upload = multer({
 });
 
 const CONTENT_TYPE_LABELS = {
-  // ニュース系（集客）
+  // ニュース系（集客）※9種→3種に統合。比率を転換系に寄せる
   ins_news:      '保険業界ニュース',
   law_reform:    '法改正・規制動向',
-  new_products:  '新商品・金融商品',
-  market_data:   '市場動向・統計',
-  disaster_risk: '災害・リスク情報',
-  agency_ops:    '代理店経営・運営',
-  consumer_trend:'顧客・消費者動向',
   global_ins:    'グローバル・海外動向',
   // 転換系（受注につなげる投稿）
-  efficiency_tips:'業務効率化Tips',
+  case_story:     '事例・作ったもの',
   app_demo:       'アプリ実演・制作実況',
+  efficiency_tips:'業務効率化Tips',
   law_check:      '業法対応チェック',
-  trend_watch:    '代理店DXトレンド',
-  case_story:     '業務改善ミニ事例',
+  fail_story:     '失敗談・週次まとめ',
   pinned_app:     '固定ポスト・アプリ訴求',
+  // 引用ポスト（リポストの置き換え）
+  quote_post:     '引用ポスト',
 };
 
 const CONTENT_TYPE_CONTEXT = {
-  ins_news:      `保険業界全般の直近ニュース。各社の新戦略・業績発表・提携・経営ニュース・業界団体の動きなど2025〜2026年の最新情報を取り上げる。`,
+  ins_news:      `保険業界全般の直近ニュース。各社の新戦略・業績発表・提携・経営ニュース、手数料体系や市場統計、災害と保険金支払いなど、代理店の経営・実務に効くものを1件だけ取り上げる。`,
   law_reform:    `保険業法改正・金融庁ガイドライン・監督指針・意向把握義務・比較推奨規制など、代理店が即座に対応すべき法令・規制の最新動向を分かりやすく伝える。`,
-  new_products:  `生命保険・損害保険・第三分野・投資型保険・金融商品の新商品情報。各社の新商品発売・改定内容・販売戦略など代理店担当者が押さえるべき商品ニュースを発信する。`,
-  market_data:   `保険市場の統計データ・調査結果・ランキング。契約件数・保険料収入・解約率・加入率トレンドなど業界全体の市場動向を数字とともに伝える。`,
-  disaster_risk: `自然災害・事故・リスク情報と保険への影響。台風・地震・水害の保険金支払い実績、新たなリスク領域（サイバー・気候変動）と保険商品の関連情報を発信する。`,
-  agency_ops:    `保険代理店の経営・運営に直結する情報。手数料体系の変更・乗合申請・登録要件・監査対応・人材確保など代理店経営者が気になる最新トピックを伝える。`,
-  consumer_trend:`顧客・消費者の保険に対する意識・行動変化。加入動機・解約理由・比較サイト利用実態・SNSでの口コミ傾向など、代理店の営業戦略に活きる消費者インサイトを発信する。`,
-  global_ins:    `海外の保険業界・InsurTechの最新動向。欧米アジアの規制変化・グローバル大手の戦略・国際的なInsurTechトレンドで国内市場への示唆を発信する。`,
+  global_ins:    `海外の保険業界・InsurTechの最新動向。欧米アジアの規制変化・グローバル大手の戦略・国際的なInsurTechトレンド。必ず「日本の代理店の実務にどう効くか」まで翻訳する。`,
   efficiency_tips:`保険代理店の定型業務（申込書・告知書の転記、満期更改の管理、意向把握記録、保全業務、手数料計算など）をAI・デジタルツールで効率化する具体的な手順やコツ。「自動車の設計書作成は1件30〜60分」「満期更改は月50〜200件」といった業務実態を踏まえ、削減できる時間を数字で示す。`,
-  app_demo:       `Cocreoが開発する保険代理店向けAIツール（申込書AI読取・転記コスト計算・業務自動化）の実演紹介。デモ動画やBefore/After画像を添付する前提で、「手入力なら12分の作業がAIなら38秒」のように効果を数字で見せる。売り込み口調にせず「作ってみた・試せます」のトーンで。`,
-  law_check:      `2026年施行の保険業法改正への対応チェック。意向把握の記録・乗合比較推奨の理由書面・高齢者募集ルール・体制整備義務など、代理店が自社の対応状況を確認すべき観点を1投稿1論点で問いかける。法的助言ではなく「確認のきっかけ」を提供するトーンで。`,
-  trend_watch:    `保険代理店に影響する直近90日のトレンドを、①業務品質を重視した代理店評価、②顧客情報・委託先管理、③人手不足を補うAI活用、④顧客本位の比較推奨・意向把握、の優先順で扱う。必ず一次情報を根拠にし、「代理店が今週確認すること」を1つ示す。`,
-  case_story:     `保険代理店の業務改善ミニ事例。課題、実装した小さな仕組み、削減時間、現場の変化の順に、誇張せず具体的に示す。最後は無料相談への自然な問いかけで終える。`,
-  pinned_app:     `プロフィール固定用のアプリ訴求投稿。対象業務、利用メリット、無料または試用可能であること、ダウンロードURLを簡潔に伝える。`,
+  app_demo:       `自分が作った保険代理店向けAIツール（申込書AI読取・転記コスト計算・業務自動化）の制作実況。誰のどんな一言から作り始めたか、Before/Afterの時間、何をやめただけなのか、を素直に書く。売り込み口調にしない。`,
+  law_check:      `2026年施行の保険業法改正への対応チェック。意向把握の記録・乗合比較推奨の理由書面・高齢者募集ルール・体制整備義務など、代理店が自社の対応状況を確認すべき観点をチェックリスト形式にする。法的助言ではなく「確認のきっかけ」を提供するトーンで。`,
+  case_story:     `保険代理店の業務改善ミニ事例／自分が作ったものの話。現場で言われた一言、作った小さな仕組み、削減時間、種明かしの順に、誇張せず具体的に書く。`,
+  fail_story:     `今週やってみたこと・うまくいかなかったことの共有。失敗の内容と、そこから分かったことを正直に書く。かっこつけない。最後は読者に「同じ失敗をした人はいるか」を聞く。`,
+  pinned_app:     `プロフィール固定用のアプリ訴求投稿。対象業務、利用メリット、無料または試用可能であることを簡潔に伝える。`,
+  quote_post:     `業界ニュースや他アカウントの投稿に、自分の解釈を1〜2行だけ足して引用する。`,
 };
 
 // 2026年下期の時流。転換系・固定ポスト投稿に「今この瞬間の空気」を1つ織り込み、
@@ -71,7 +74,7 @@ function pickTrendAngle() {
 }
 
 // 転換系（受注につなげる）投稿。ニュース系はこれ以外の全種別。
-const CONVERSION_POST_TYPES = new Set(['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'pinned_app']);
+const CONVERSION_POST_TYPES = new Set(['efficiency_tips', 'app_demo', 'law_check', 'case_story', 'fail_story', 'pinned_app']);
 // 最新ニュース検索の対象になる種別（AGENTDX_NEWS_QUERIES にクエリを持つもの）
 const NEWS_POST_TYPES = new Set(Object.keys(AGENTDX_NEWS_QUERIES));
 
@@ -82,9 +85,28 @@ function normalizeCtaUrl(value) {
   return typeof value === 'string' && /^https?:\/\/\S+$/.test(value.trim()) ? value.trim() : null;
 }
 
-const AGENTDX_SYSTEM_PROMPT = 'あなたは保険代理店の業務を深く理解する編集者です。業界ニュースを「いち早く」ではなく「現場への影響が一番わかりやすい形」に翻訳して発信し、代理店の実務に役立つ具体的な情報を届けます。出典に書かれた事実だけを使い、推測や記憶で情報を補わないことを最優先にします。読者は保険代理店の経営者・募集人・事務担当者です。';
+// 人格: 中立的な「編集者」をやめ、一人称の個人開発者にする。
+// 誰でも書ける文章ではなく「この人が書いている」と分かる投稿にするため。
+// ただし保険業界で誤報は致命的なので、事実の正確性ルールは人格より上位に置く。
+const AGENTDX_SYSTEM_PROMPT = `あなたは、保険代理店の業務を実際に理解している個人開発者です。フリーの立場で、代理店の事務作業を減らすツールを自分で作っています。
 
-function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = null, sourceText = null, ctaUrl = null, trendAngle = null } = {}) {
+【あなたという人】
+- 申込書の転記、満期更改の一覧作成、意向把握の記録、手数料計算といった業務が、現場で何分かかり誰の時間を奪っているかを具体的に知っている
+- 大企業の中の人でもコンサルでもない。自分で手を動かしてツールを作り、うまくいかなかったことも普通にある
+- 一人称は「私」。断定しすぎず、しかし遠慮もしない。読者を「代理店の皆様」と呼ばない
+- 売り込まない。「作ってみた」「聞いたので作った」「これは失敗した」という実況の口調で書く
+- バズ狙いの煽り、意識高い言い回し、コンサル用語（DX推進・シナジー・ソリューション等）を使わない
+
+【事実と解釈の分離：これは人格より優先する最重要ルール】
+- 事実は厳密に。出典・素材に書かれた事実だけを使い、推測や記憶で情報を補わない。
+  数字・制度名・施行日・企業名を、確認できていない状態で書くことは絶対にしない
+- 解釈は一人称で。「私はこう読んだ」「代理店の現場ではこうなる」という形で、事実と明確に区別して書く
+- 事実部分に自分の解釈を混ぜて断定しない。保険業界では誤報が致命的だという前提を常に持つ
+- 根拠が足りなければ、書かずに「NO_POST: 理由」と返す方を選ぶ
+
+読者は保険代理店の経営者・募集人・事務担当者です。`;
+
+function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = null, sourceText = null, ctaUrl = null, trendAngle = null, sourceLanguage = null } = {}) {
   const now = new Date();
   const y = now.getFullYear();
   const m = now.getMonth() + 1;
@@ -92,6 +114,7 @@ function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = nul
   const trendLine = trendAngle ? `\n## 今の時流（この空気感を1文でも織り込む）\n${trendAngle}\n` : '';
 
   const isConversionType = CONVERSION_POST_TYPES.has(contentType);
+  const archetype = resolveArchetype(contentType, { sourceLanguage, sourceUrl });
 
   const translationRules = `## 日本語以外の記事の扱い
 - 記事が英語など日本語以外の場合は、正確に日本語へ翻訳・要約したうえで投稿を作る（投稿文は必ず日本語）
@@ -99,44 +122,24 @@ function buildFallbackPrompt(contentType, label, extraContext, { sourceUrl = nul
   premium→保険料、policyholder→契約者、loss ratio→損害率、InsurTech→インシュアテック、regulator→規制当局）
 - 金額・単位は原文の通貨・単位のまま扱う（勝手に円換算しない）
 - 原文にない情報は足さない。日本の制度への読み替えを断定しない
-- 海外事例は「日本の代理店にとっての示唆」を1文で添える`;
-
-  const formatRules = `## 投稿の型（この構造・順序を厳守）
-- 1行目: 数字か意外性のあるフック
-- 2〜3行目: 事実の要約（出典に書かれていることだけ。推測で補わない）
-- 次の行: 「▼代理店の現場では」+ 実務への影響・やるべきこと1つ
-- 末尾: ハッシュタグ1〜2個（#保険代理店 を基本に）
-
-## 文字数・体裁
-- 本文はURL・ハッシュタグ込みで全角135文字以内（Xは全角1字=2単位・上限280単位・URLは23単位）
-- 絵文字は0〜1個
-- 最後の行に「SOURCE_URL: https://...」形式で出典を記載`;
+- 海外事例は「日本の代理店にとっての示唆」を1〜2行で添える`;
 
   if (isConversionType) {
-    return `あなたは保険代理店の業務を深く理解する編集者です。
-
-## テーマ
+    return `## テーマ
 ${label}（${extraContext}）
-${trendLine}${sourceText ? `\n## 素材・メモ\n${sourceText}\n` : ''}
+${trendLine}${sourceText ? `\n## 素材・メモ（これを最優先の材料にする）\n${sourceText}\n` : ''}
 ## 投稿要件
-- 保険代理店が「そのまま実行できる」実務的な内容にする（ニュース紹介ではない）
-- 1行目は業務の痛みの提示、中盤に具体的な解決策・手順（数字を入れる）
-- 本文はURL・ハッシュタグ込みで全角130文字以内（Xは全角1字=2単位・上限280単位・URLは23単位）
-${ctaUrl
-      ? `- 本文中に必ずこのリンクを入れる: ${ctaUrl}`
-      : `- リンク・URLは一切入れない（自社サイトも含む）。「詳細はこちら」等のリンク前提の表現も使わない
-- 締めはリンク無しで成立させる。(a) その場で試せる具体的な行動を1つ提案する、
-  または (b) 読者に考えさせる問いかけで終える、のどちらかにする`}
-- 末尾にハッシュタグ1〜2個（#保険代理店 を基本に）
+- 保険代理店が「そのまま実行できる」内容にする（ニュース紹介ではない）
+- 素材に書かれていない事実・数字は作らない
+
+${buildPostFormatRules(archetype, { ctaUrl })}
 
 ## 出力形式
 投稿文のみを出力してください。前後に説明文は不要です。`;
   }
 
   if (sourceUrl || sourceText) {
-    return `あなたは保険代理店の業務を深く理解する編集者です。
-
-## 根拠にする記事
+    return `## 根拠にする記事
 ${sourceUrl ? `URL: ${sourceUrl}（この記事の内容を確認してください。海外メディアの記事でも構いません）` : ''}
 ${sourceText ? `\n${sourceText}` : ''}
 
@@ -149,7 +152,7 @@ ${label}（${extraContext}）
 
 ${translationRules}
 
-${formatRules}
+${buildPostFormatRules(archetype, { ctaUrl, sourceLine: true })}
 
 ## 出力形式
 投稿文とSOURCE_URLのみ出力してください。前後に説明文は不要です。`;
@@ -157,9 +160,7 @@ ${formatRules}
 
   const query = `${AGENTDX_NEWS_QUERIES[contentType] || `保険代理店 ${label}`} ${recentTag} 最新`;
 
-  return `あなたは保険代理店の業務を深く理解する編集者です。
-
-## 手順
+  return `## 手順
 
 1. **Web検索**: 「${query}」で検索し、直近3ヶ月以内の最新ニュースを3〜5件ピックアップしてください
 2. **記事選定**: 保険代理店の担当者が最も注目すべき記事を1件選ぶ
@@ -170,10 +171,35 @@ ${label}（${extraContext}）
 
 ${translationRules}
 
-${formatRules}
+${buildPostFormatRules(archetype, { ctaUrl, sourceLine: true })}
 
 ## 出力形式
 投稿文とSOURCE_URLのみ出力してください。前後に説明文は不要です。`;
+}
+
+// 引用ポスト用のフォールバックプロンプト（APIキーが無い環境で外部AIに実行してもらう）
+function buildQuoteFallbackPrompt({ quoteUrl, quotedText = null, note = null }) {
+  const hasText = Boolean(quotedText && quotedText.trim());
+  return `## 引用ポストのコメントを作る
+引用元の投稿URL: ${quoteUrl}
+${hasText
+    ? `\n## 引用元の投稿の内容（これだけを根拠にする）\n${quotedText.trim()}\n`
+    : `\nこのURLの内容を確認し、その内容「だけ」を根拠にしてください。確認できない場合は「NO_POST: 引用元の内容を取得できませんでした」とだけ出力してください。\n`}${note && note.trim() ? `\n## 運営者のメモ・言いたいこと（最優先で反映する）\n${note.trim()}\n` : ''}
+## 厳守
+- 引用元に書かれていない事実・数字・制度名を書かない
+- 引用元が保険代理店の実務に関係が薄い場合は「NO_POST: 理由」とだけ出力する
+
+${buildPostFormatRules('Q', { hasBodyUrl: true })}
+
+## 出力形式
+コメント部分のみを出力してください。引用元URLは書かないでください（システムが自動で末尾に付けます）。`;
+}
+
+// 出典URLは本文に入れず、本体投稿の直後にセルフリプライで出す。
+// 外部リンク付き投稿はリーチが抑制されるため、本体はリンク0本に保つ。
+export function buildSourceReplyText(sourceUrl) {
+  if (!sourceUrl || !/^https?:\/\/\S+$/.test(String(sourceUrl).trim())) return null;
+  return `出典: ${String(sourceUrl).trim()}\n\n要点は上の投稿にまとめました。`;
 }
 
 // 最新ニュース検索用のプロンプト（APIキーが無い環境ではこれを外部AIで実行してもらう）
@@ -265,8 +291,14 @@ router.post('/news-parse', (req, res) => {
 });
 
 router.post('/generate', async (req, res) => {
-  const { contentType = 'ins_news', sourceUrl: rawSourceUrl, sourceText: rawSourceText, ctaUrl: rawCtaUrl } = req.body;
-  if (!CONTENT_TYPE_LABELS[contentType]) {
+  const {
+    contentType = 'ins_news',
+    sourceUrl: rawSourceUrl,
+    sourceText: rawSourceText,
+    ctaUrl: rawCtaUrl,
+    sourceLanguage: rawSourceLanguage,
+  } = req.body;
+  if (!CONTENT_TYPE_LABELS[contentType] || contentType === 'quote_post') {
     return res.status(400).json({ error: '不明なコンテンツ種別です。' });
   }
 
@@ -276,6 +308,10 @@ router.post('/generate', async (req, res) => {
     : null;
   const sourceText = typeof rawSourceText === 'string' && rawSourceText.trim()
     ? rawSourceText.trim().slice(0, 8000)
+    : null;
+  // ニュース候補の language（'en' など）が渡っていれば海外記事扱い＝型Cを優先する
+  const sourceLanguage = typeof rawSourceLanguage === 'string' && rawSourceLanguage.trim()
+    ? rawSourceLanguage.trim().slice(0, 8)
     : null;
 
   res.setHeader('Content-Type', 'text/event-stream');
@@ -295,7 +331,8 @@ router.post('/generate', async (req, res) => {
     const ctaUrl = normalizeCtaUrl(rawCtaUrl);
     // 時流を織り込む（転換系＋固定ポスト）。出典に忠実にしたいニュース系ソースがある場合は付けない
     const trendAngle = !sourceUrl ? pickTrendAngle() : null;
-    const sourceOptions = { sourceUrl, sourceText, ctaUrl, trendAngle };
+    const sourceOptions = { sourceUrl, sourceText, ctaUrl, trendAngle, sourceLanguage };
+    const archetype = resolveArchetype(contentType, { sourceLanguage, sourceUrl });
 
     sendEvent('status', {
       message: sourceUrl
@@ -304,7 +341,7 @@ router.post('/generate', async (req, res) => {
     });
 
     const promptInfo = {
-      label: `${label} 投稿プロンプト`,
+      label: `${label} 投稿プロンプト（型${archetype}）`,
       system: AGENTDX_SYSTEM_PROMPT,
       user: buildFallbackPrompt(contentType, label, extraContext, sourceOptions),
     };
@@ -320,18 +357,29 @@ router.post('/generate', async (req, res) => {
       return;
     }
 
-    let postText = result.postText;
-    if (result.sourceUrl && !postText.includes(result.sourceUrl)) {
-      postText = `${postText}\n${result.sourceUrl}`;
-    }
+    // 出典URLは本文に付け足さない（本体投稿はリンク0本に保つ）。
+    // metadata に保存し、publish 時に「本体投稿 → 出典リプライ」の2段送信で出す。
+    const postText = result.postText;
+    const finalSourceUrl = result.sourceUrl || null;
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
       postId, 'agentdx', postText,
-      JSON.stringify({ contentType, sourceUrl: result.sourceUrl, groundedOn: sourceUrl ? 'url' : (sourceText ? 'text' : 'search') }),
+      JSON.stringify({
+        contentType,
+        sourceUrl: finalSourceUrl,
+        archetype: result.archetype || archetype,
+        groundedOn: sourceUrl ? 'url' : (sourceText ? 'text' : 'search'),
+      }),
       'draft'
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText });
+    sendEvent('final_post', {
+      post_id: postId,
+      post_text: postText,
+      source_url: finalSourceUrl,
+      reply_text: buildSourceReplyText(finalSourceUrl),
+      archetype: result.archetype || archetype,
+    });
     sendEvent('done', {});
   } catch (err) {
     console.error('[agentdx] generate error:', err);
@@ -341,14 +389,116 @@ router.post('/generate', async (req, res) => {
   }
 });
 
+// 引用ポスト（リポストの置き換え）。
+// X APIでは「本文＋対象ツイートURL」で引用が成立するため、本文に引用元URLを1本だけ含む。
+// 文字数は URL=23単位 を差し引いた枠でコメントを書かせる。
+const X_STATUS_URL_RE = /^https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[^/]+\/status\/\d+/i;
+
+router.post('/quote-generate', async (req, res) => {
+  const quoteUrl = typeof req.body?.quoteUrl === 'string' ? req.body.quoteUrl.trim() : '';
+  const quotedText = typeof req.body?.quotedText === 'string' && req.body.quotedText.trim()
+    ? req.body.quotedText.trim().slice(0, 4000)
+    : null;
+  const note = typeof req.body?.note === 'string' && req.body.note.trim()
+    ? req.body.note.trim().slice(0, 2000)
+    : null;
+
+  if (!X_STATUS_URL_RE.test(quoteUrl)) {
+    return res.status(400).json({ error: '引用する投稿のURL（https://x.com/ユーザー名/status/...）を入力してください。' });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sendEvent = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const postId = uuidv4();
+    sendEvent('status', { message: '引用元を読んで、自分の解釈を書いています...' });
+
+    const promptInfo = {
+      label: '引用ポスト コメント生成プロンプト',
+      system: AGENTDX_SYSTEM_PROMPT,
+      user: buildQuoteFallbackPrompt({ quoteUrl, quotedText, note }),
+    };
+
+    const result = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      () => generateQuotePostComment(AGENTDX_SYSTEM_PROMPT, { quoteUrl, quotedText, note }),
+      sendEvent,
+    );
+
+    if (result == null) {
+      sendEvent('done', {});
+      return;
+    }
+
+    const postText = composeQuotePost(result.comment, quoteUrl);
+    db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+      postId, 'agentdx', postText,
+      JSON.stringify({ contentType: 'quote_post', quoteUrl, archetype: 'Q', groundedOn: quotedText ? 'text' : 'url' }),
+      'draft'
+    );
+
+    sendEvent('final_post', {
+      post_id: postId,
+      post_text: postText,
+      quote_url: quoteUrl,
+      weighted_length: xWeightedLength(postText),
+      archetype: 'Q',
+    });
+    sendEvent('done', {});
+  } catch (err) {
+    console.error('[agentdx] quote-generate error:', err);
+    sendEvent('error', { message: err.message });
+  } finally {
+    res.end();
+  }
+});
+
+// コメント＋引用元URL。URLは常に23単位で数えられるため、超過時はコメント側を削る。
+function composeQuotePost(comment, quoteUrl) {
+  const clean = sanitizePostBody(comment, { allowUrls: false });
+  let body = clean;
+  // 280 - 23(URL) - 2(改行2つ) = 255単位がコメントの上限
+  const budget = X_MAX_WEIGHTED - 23 - 2;
+  if (xWeightedLength(body) > budget) {
+    const chars = Array.from(body);
+    while (chars.length && xWeightedLength(chars.join('')) > budget) chars.pop();
+    body = chars.join('').trimEnd();
+  }
+  return `${body}\n\n${quoteUrl}`;
+}
+
 router.post('/save-manual', (req, res) => {
   const { contentType, post_text } = req.body;
   if (!post_text?.trim()) return res.status(400).json({ error: 'post_text is required' });
+
+  // 外部AIが返した本文には SOURCE_URL 行が含まれる。本文からは外し、
+  // metadata に保存して publish 時の出典リプライに使う。
+  const raw = post_text.trim();
+  const urlMatch = raw.match(/SOURCE_URL:\s*(https?:\/\/\S+)/);
+  const sourceUrl = urlMatch ? urlMatch[1] : null;
+  let cleaned = raw.replace(/SOURCE_URL:\s*https?:\/\/\S+/g, '').trim();
+  // 固定ポストと引用ポストは本文にURLを持つ仕様なのでURLは残す。ハッシュタグは常に除去。
+  const allowUrls = contentType === 'pinned_app' || contentType === 'quote_post';
+  cleaned = sanitizePostBody(cleaned, { allowUrls });
+  if (!cleaned) return res.status(400).json({ error: '投稿本文が空になりました。' });
+
   const postId = uuidv4();
   db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-    postId, 'agentdx', post_text.trim(), JSON.stringify({ contentType, manual: true }), 'draft'
+    postId, 'agentdx', cleaned, JSON.stringify({ contentType, sourceUrl, manual: true }), 'draft'
   );
-  res.json({ post_id: postId, post_text: post_text.trim() });
+  res.json({
+    post_id: postId,
+    post_text: cleaned,
+    source_url: sourceUrl,
+    reply_text: buildSourceReplyText(sourceUrl),
+  });
 });
 
 function escapeXml(value = '') {
@@ -519,7 +669,14 @@ router.get('/posts', (req, res) => {
 router.get('/posts/:id', (req, res) => {
   const post = db.prepare(`SELECT * FROM sns_posts WHERE id = ? AND app_type = 'agentdx'`).get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
-  res.json({ ...post, image_url: imageUrlFor(post), metadata: JSON.parse(post.metadata || '{}') });
+  let metadata = {};
+  try { metadata = JSON.parse(post.metadata || '{}'); } catch { metadata = {}; }
+  res.json({
+    ...post,
+    image_url: imageUrlFor(post),
+    metadata,
+    reply_text: buildSourceReplyText(metadata.sourceUrl),
+  });
 });
 
 router.put('/posts/:id', (req, res) => {
@@ -532,17 +689,46 @@ router.post('/posts/:id/publish', async (req, res) => {
   const post = db.prepare(`SELECT * FROM sns_posts WHERE id = ? AND app_type = 'agentdx'`).get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
 
+  let metadata = {};
+  try { metadata = JSON.parse(post.metadata || '{}'); } catch { metadata = {}; }
+
   try {
     // xService.postTweet は base64 の `image` を受け取る（`mediaPath` は解釈されない）
     let image;
     if (post.image_path) {
       image = await fs.readFile(post.image_path, { encoding: 'base64' }).catch(() => undefined);
     }
+
+    // ① 本体投稿（リンク0本）
     const result = await postTweet(post.post_text, { image });
+
+    // ② 出典があれば、返ってきた tweet_id に対してセルフリプライで出典を送る。
+    //    本体投稿に外部リンクを入れるとリーチが抑制されるため、リンクはこちらに逃がす。
+    const replyText = buildSourceReplyText(metadata.sourceUrl);
+    let replyTweetId = null;
+    let replyError = null;
+    if (replyText && result?.id) {
+      try {
+        const reply = await postTweet(replyText, { replyToId: result.id });
+        replyTweetId = reply?.id || null;
+      } catch (err) {
+        // 出典リプライの失敗で本体投稿を失敗扱いにはしない（本体は既に公開済み）
+        replyError = err.message;
+        console.error('[agentdx] source reply failed:', err);
+      }
+    }
+
     db.prepare(
-      `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP WHERE id = ?`
-    ).run(result.id, post.id);
-    res.json({ success: true, tweet_id: result.id });
+      `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP, metadata = ? WHERE id = ?`
+    ).run(result.id, JSON.stringify({ ...metadata, sourceReplyTweetId: replyTweetId, sourceReplyError: replyError }), post.id);
+
+    res.json({
+      success: true,
+      tweet_id: result.id,
+      reply_tweet_id: replyTweetId,
+      reply_error: replyError,
+      reply_sent: Boolean(replyTweetId),
+    });
   } catch (err) {
     db.prepare(`UPDATE sns_posts SET status = 'failed', error_message = ? WHERE id = ?`).run(err.message, post.id);
     res.status(500).json({ error: err.message });

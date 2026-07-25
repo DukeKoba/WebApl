@@ -9,18 +9,21 @@ const STATUS_CONFIG = {
   failed: { label: '失敗', icon: XCircle, color: 'text-red-500', bg: 'bg-red-100' },
 };
 
+// server/src/routes/agentdx.js の CONTENT_TYPE_LABELS と対応させる
 const CONTENT_TYPE_LABELS = {
-  dx_trend: 'DXトレンド',
-  insurtech: 'InsurTech動向',
-  compliance: 'コンプライアンス',
-  customer_mgmt: '顧客管理DX',
-  digital_sales: 'デジタル営業',
-  ai_usecase: 'AI活用事例',
-  paperless: 'ペーパーレス化',
-  remote_meeting: 'リモート商談',
-  subsidy: '補助金・助成金',
-  case_study: '成功事例',
+  ins_news: '保険業界ニュース',
+  law_reform: '法改正・規制動向',
+  global_ins: 'グローバル・海外動向',
+  case_story: '事例・作ったもの',
+  app_demo: 'アプリ実演・制作実況',
+  efficiency_tips: '業務効率化Tips',
+  law_check: '業法対応チェック',
+  fail_story: '失敗談・週次まとめ',
+  pinned_app: '固定ポスト・アプリ訴求',
+  quote_post: '引用ポスト',
 };
+
+const ARCHETYPE_LABELS = { A: '型A 数字ショック', B: '型B セルフチェック', C: '型C 海外翻訳', D: '型D 制作実況', Q: '引用' };
 
 export default function AgentDxHistory() {
   const [posts, setPosts] = useState([]);
@@ -87,6 +90,14 @@ export default function AgentDxHistory() {
                           <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
                             {CONTENT_TYPE_LABELS[post.metadata.contentType] || post.metadata.contentType}
                           </span>
+                        )}
+                        {post.metadata?.archetype && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                            {ARCHETYPE_LABELS[post.metadata.archetype] || post.metadata.archetype}
+                          </span>
+                        )}
+                        {post.metadata?.sourceUrl && (
+                          <span className="text-xs bg-sky-50 text-sky-700 px-2 py-0.5 rounded-full">出典リプライ有</span>
                         )}
                         <span className="text-xs text-gray-400 flex items-center gap-1 ml-auto">
                           <Clock className="w-3 h-3" />

@@ -110,6 +110,8 @@ export default function AgentDxNewsFinder({ contentType, onError, onGenerateFrom
     onGenerateFromSource({
       sourceUrl: item.url,
       sourceText: [item.title, item.summary, item.impact].filter(Boolean).join('\n'),
+      // 海外記事（language が ja 以外）は型C（海外ニュース翻訳型）で書かせる
+      sourceLanguage: item.language || undefined,
     });
   };
 
@@ -207,7 +209,7 @@ export default function AgentDxNewsFinder({ contentType, onError, onGenerateFrom
               <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-gray-600">{item.summary}</p>
               {item.impact && (
                 <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-xs leading-relaxed text-amber-900">
-                  ▼代理店の現場では: {item.impact}
+                  現場への影響: {item.impact}
                 </p>
               )}
             </div>
