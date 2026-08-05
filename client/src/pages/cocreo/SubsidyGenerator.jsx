@@ -68,12 +68,13 @@ export default function SubsidyGenerator() {
       return;
     }
     setErrors([]);
-    setStep('generating');
-    setTimeout(() => {
-      const result = generateSubsidyDraft(form);
-      setDraft(result);
-      setStep('result');
-    }, 3000);
+    // 以前はここで setTimeout(3000) を挟み「AIが生成中」と表示していたが、
+    // 実際には generateSubsidyDraft() はテンプレートの穴埋めでAIを呼んでいない。
+    // 待たせる理由がないので即座に結果を出す。
+    const result = generateSubsidyDraft(form);
+    setDraft(result);
+    setStep('result');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function handleReset() {
@@ -118,7 +119,8 @@ ${draft.budgetEstimate}
     alert('申請書ドラフトをクリップボードにコピーしました');
   }
 
-  const activeStep = step === 'input' ? 1 : step === 'generating' ? 2 : 3;
+  // 「AI生成」の中間ステップは廃止したので2段階
+  const activeStep = step === 'input' ? 1 : 2;
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, #f8fafc, #eff6ff)' }}>
@@ -129,15 +131,22 @@ ${draft.budgetEstimate}
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>AI補助金申請書ジェネレーター</h1>
+              <h1 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>補助金 申請書テンプレート作成</h1>
               <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>デジタル化・AI導入補助金 2026 対応</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full">
+            {/* 締切日はハードコードしない（2026年5月12日と表示したまま過ぎていた）。
+                公式サイトの最新スケジュールへ誘導する */}
+            <a
+              href="https://it-shien.smrj.go.jp/schedule/"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors"
+            >
               <Clock className="w-4 h-4" />
-              <span className="font-medium">1次締切: 2026年5月12日</span>
-            </div>
+              <span className="font-medium">締切は公式サイトでご確認ください</span>
+            </a>
             <Link to="/cocreo" className="hidden sm:block text-xs px-3 py-1.5 rounded-full border transition-colors" style={{ color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)' }}>
               ← Cocreo
             </Link>
@@ -150,21 +159,20 @@ ${draft.budgetEstimate}
         <div className="flex items-center justify-center gap-4 mb-10">
           {[
             { label: '情報入力', num: 1 },
-            { label: 'AI生成', num: 2 },
-            { label: 'ドラフト完成', num: 3 },
+            { label: '下書きテンプレート', num: 2 },
           ].map((s, i) => (
             <div key={s.num} className="flex items-center gap-2">
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                   activeStep === s.num
                     ? 'text-white'
-                    : step === 'result' && s.num < 3
+                    : step === 'result' && s.num < 2
                     ? 'bg-green-500 text-white'
                     : 'bg-slate-200 text-slate-500'
                 }`}
                 style={activeStep === s.num ? { backgroundColor: 'var(--color-primary)' } : undefined}
               >
-                {step === 'result' && s.num < 3 ? <CheckCircle2 className="w-5 h-5" /> : s.num}
+                {step === 'result' && s.num < 2 ? <CheckCircle2 className="w-5 h-5" /> : s.num}
               </div>
               <span
                 className="text-sm font-medium"
@@ -172,7 +180,7 @@ ${draft.budgetEstimate}
               >
                 {s.label}
               </span>
-              {i < 2 && <ChevronRight className="w-4 h-4 text-slate-300 ml-2" />}
+              {i < 1 && <ChevronRight className="w-4 h-4 text-slate-300 ml-2" />}
             </div>
           ))}
         </div>
@@ -405,24 +413,7 @@ ${draft.budgetEstimate}
           </div>
         )}
 
-        {/* Step 2: Generating */}
-        {step === 'generating' && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="relative w-24 h-24 mb-8">
-              <div className="absolute inset-0 rounded-full border-4" style={{ borderColor: 'rgba(201,137,31,0.2)' }} />
-              <div className="absolute inset-0 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: 'var(--color-primary)', borderTopColor: 'transparent' }} />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="w-8 h-8" style={{ color: 'var(--color-primary)' }} />
-              </div>
-            </div>
-            <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>AIが申請書を生成中...</h2>
-            <div className="space-y-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              <p>✓ 会社情報を分析中</p>
-              <p>✓ 補助金要件とのマッチング中</p>
-              <p className="animate-pulse">⟳ 申請書ドラフトを作成中...</p>
-            </div>
-          </div>
-        )}
+        {/* Step 2(旧): 生成中の演出。AIを呼んでいないため廃止した（即時に result へ遷移する） */}
 
         {/* Step 3: Result */}
         {step === 'result' && draft && (
@@ -430,9 +421,10 @@ ${draft.budgetEstimate}
             <div className="bg-green-50 border border-green-200 rounded-xl p-6 flex items-start gap-4">
               <CheckCircle2 className="w-8 h-8 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h2 className="text-xl font-bold text-green-900">申請書ドラフトが完成しました</h2>
+                <h2 className="text-xl font-bold text-green-900">申請書の下書きテンプレートができました</h2>
                 <p className="text-sm text-green-700 mt-1">
-                  以下の内容をベースに、IT導入支援事業者と相談しながら申請書を完成させてください。
+                  入力内容を定型フォーマットに当てはめたものです（AIによる生成ではありません）。
+                  必ずご自身で内容を確認・加筆し、IT導入支援事業者と相談しながら完成させてください。
                 </p>
               </div>
             </div>
@@ -490,7 +482,16 @@ ${draft.budgetEstimate}
                 <li>このドラフトをもとにIT導入支援事業者を探す</li>
                 <li>支援事業者と一緒に申請内容を詳細化する</li>
                 <li className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                  2026年5月12日 17:00 までに申請を完了する
+                  <a
+                    href="https://it-shien.smrj.go.jp/schedule/"
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="underline"
+                    style={{ color: 'var(--color-primary)' }}
+                  >
+                    公式サイトの締切
+                  </a>
+                  までに申請を完了する
                 </li>
               </ol>
               <div className="mt-4 pt-4 border-t text-sm" style={{ borderColor: 'rgba(201,137,31,0.2)', color: 'var(--color-text-secondary)' }}>
@@ -509,13 +510,13 @@ ${draft.budgetEstimate}
 
       <footer className="py-8 mt-16" style={{ backgroundColor: 'var(--color-surface-dark)' }}>
         <div className="max-w-5xl mx-auto px-4 text-center text-sm text-white/50">
-          <p>© 2026 Kagary Project. AI補助金申請書ジェネレーター</p>
+          <p>© 2026 Kagary Project. 補助金 申請書テンプレート作成</p>
           <p className="mt-1 text-xs text-white/30">
             ※ 本ツールが生成する内容はドラフト（下書き）です。実際の採択を保証するものではありません。
           </p>
           <div className="mt-3 flex items-center justify-center gap-4 text-xs">
             <Link to="/cocreo" className="text-white/40 hover:text-white/60 transition-colors">← Cocreoトップ</Link>
-            <Link to="/cocreo/consulting" className="text-white/40 hover:text-white/60 transition-colors">AIコンサルを試す →</Link>
+            <a href="mailto:contact@cocreo.jp?subject=Cocreo%20%E3%81%94%E7%9B%B8%E8%AB%87" className="text-white/40 hover:text-white/60 transition-colors">メールで相談する →</a>
           </div>
         </div>
       </footer>

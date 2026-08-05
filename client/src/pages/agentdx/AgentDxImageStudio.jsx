@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ImagePlus, Loader2, Palette, Upload } from 'lucide-react';
 import { authFetch } from '../../utils/api';
 
+// Cocreoのブランドカラーはオレンジ(#F26522)。紫に 'Cocreo' ラベルが付いていたのは誤り。
 const ACCENTS = [
-  { value: 'violet', label: 'Cocreo', className: 'bg-violet-600' },
+  { value: 'violet', label: '紫', className: 'bg-violet-600' },
   { value: 'blue', label: '信頼', className: 'bg-sky-600' },
   { value: 'emerald', label: '改善', className: 'bg-emerald-600' },
 ];
@@ -106,7 +107,8 @@ export default function AgentDxImageStudio({ postId, postText, imageUrl, onImage
         <div><h2 className="font-bold text-gray-900">投稿イメージ</h2><p className="text-xs text-gray-500">投稿文と一緒に自動生成されます。見出し変更・再生成・手元画像への差し替えもできます。</p></div>
       </div>
 
-      {imageUrl && <img src={imageUrl} alt="X投稿添付" className="mt-4 aspect-video w-full rounded-xl border border-gray-200 object-cover" />}
+      {/* object-cover だと端が切れてプレビューが実出力と一致しないため contain */}
+      {imageUrl && <img src={imageUrl} alt="X投稿添付" className="mt-4 aspect-video w-full rounded-xl border border-gray-200 object-contain" />}
 
       <label className="mt-4 block text-xs font-medium text-gray-600">図解フォーマット</label>
       <div className="mt-1 grid grid-cols-4 gap-1.5">
