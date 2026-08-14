@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Download,
   RotateCcw,
-  Sparkles,
   Clock,
   AlertCircle,
 } from 'lucide-react';
@@ -403,12 +402,13 @@ ${draft.budgetEstimate}
               className="w-full py-4 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              <Sparkles className="w-6 h-6" />
-              AIで申請書ドラフトを生成する
+              <FileText className="w-6 h-6" />
+              入力内容から下書きを作る
             </button>
 
             <p className="text-center text-xs" style={{ color: 'var(--color-text-muted)' }}>
-              ※ 生成されるドラフトはあくまで参考資料です。実際の申請にはIT導入支援事業者との連携が必要です。
+              ※ 入力内容を定型フォーマットに当てはめた下書きです（AIによる生成ではありません）。
+              あくまで参考資料であり、実際の申請にはIT導入支援事業者との連携が必要です。
             </p>
           </div>
         )}

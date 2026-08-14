@@ -33,7 +33,7 @@ export default function CocreoHeader({ onBack, currentPage, breadcrumb }) {
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>Cocreo</span>
-                <span className="text-[10px] leading-tight hidden sm:block" style={{ color: 'var(--color-text-secondary)' }}>AI経営コンサルティング</span>
+                <span className="text-[10px] leading-tight hidden sm:block" style={{ color: 'var(--color-text-secondary)' }}>保険代理店の業務ツール</span>
               </div>
             </Link>
           </div>
