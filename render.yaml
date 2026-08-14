@@ -16,6 +16,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # 未設定だと認証が必要なAPIは全て503/401になる(fail-closed)。必ず設定すること。
+      - key: APP_PASSWORD
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: X_API_KEY

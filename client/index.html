@@ -3,11 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShiftSync - シフト管理プラットフォーム</title>
+  <!--
+    このSPAは cocreo.jp(別リポジトリ・Vercel)から「補助金申請書AI」「家族共有シート」等の
+    機能ページとしてリンクされる。見込み客が実物に触れる瞬間のタブ表示・共有プレビューが
+    「ShiftSync」のままだと信用を毀損するため、Cocreo名義に統一する。
+  -->
+  <title>Cocreo｜保険代理店の業務ツール</title>
+  <meta name="description" content="保険会社ごとにバラバラな帳票・様式・CSVを、入力1回にまとめる仕組みをつくります。顧客データはお預かりしません。保険業界20年の実務者が開発しています。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Cocreo｜保険代理店の業務ツール" />
+  <meta property="og:description" content="保険会社ごとにバラバラな帳票・様式・CSVを、入力1回にまとめる仕組みをつくります。顧客データはお預かりしません。" />
+  <meta property="og:image" content="/cocreo-logo.png" />
+  <meta property="og:site_name" content="Cocreo" />
+  <meta name="twitter:card" content="summary" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Shippori+Mincho:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Shippori Mincho は旧ランディング専用だった(現存ページに使用箇所なし)ため削除。
+       500(font-medium)は31ファイルで使用中のため残す。9→4ウエイトで転送量を削減 -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
 </head>
 <body class="bg-gray-50">
   <div id="root"></div>

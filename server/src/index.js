@@ -1,4 +1,7 @@
 import 'dotenv/config';
+// sharp/librsvg が fontconfig を初期化する前に FONTCONFIG_FILE を立てたいので、
+// 他のローカルモジュールより先に読み込む(import時に同期で設定される)。
+import { assertJpFontAvailable, fontsConfigured, FONT_DIR } from './fonts.js';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -18,6 +21,7 @@ import agentdxRoutes from './routes/agentdx.js';
 import igAnalyticsRoutes from './routes/instagramAnalytics.js';
 import familySheetRoutes from './routes/familySheet.js';
 import authRoutes, { getToken } from './routes/auth.js';
+import { rateLimit } from './rateLimit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -33,12 +37,20 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.use('/api/auth', authRoutes);
 
 // 公開ツール(認証不要): 家族共有シートのOCR。必ず /api 認証ミドルウェアより前に置く。
-app.use('/api/family-sheet', familySheetRoutes);
+// 認証がない＝誰でも外部AIのAPIを叩けてしまうため、レート制限を必ず噛ませる。
+app.use('/api/family-sheet', rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: '読み取りの実行回数が上限に達しました。1時間ほど空けて再度お試しください。',
+}), familySheetRoutes);
 
 // Auth middleware
 app.use('/api', (req, res, next) => {
+  const expected = getToken();
+  // APP_PASSWORD 未設定時は getToken() が null。その場合は全て拒否する(fail-closed)
+  if (!expected) return res.status(503).json({ error: 'サーバー側の認証設定が未完了です。' });
   const token = req.headers['x-auth-token'];
-  if (token !== getToken()) return res.status(401).json({ error: 'Unauthorized' });
+  if (token !== expected) return res.status(401).json({ error: 'Unauthorized' });
   next();
 });
 
@@ -68,6 +80,18 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`API running on http://localhost:${PORT}`);
+
+  // 日本語フォントの実描画チェック。NGなら画像生成APIは503を返す(豆腐画像の投稿防止)。
+  const fontOk = await assertJpFontAvailable();
+  if (fontOk) {
+    console.log('[fonts] 日本語フォント OK（画像生成を有効化）');
+  } else {
+    console.error(
+      '[fonts] 日本語フォントを検出できませんでした。カード画像の生成を停止します。\n' +
+      `        ${FONT_DIR} に Noto Sans JP (.otf/.ttf) を配置して再起動してください。\n` +
+      `        (同梱フォントの読み込み: ${fontsConfigured ? '成功' : '未検出'})`
+    );
+  }
 });

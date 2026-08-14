@@ -3,7 +3,12 @@ dist/
 build/
 .env
 *.db
+*.db-wal
+*.db-shm
+*.db-journal
 *.sqlite
+*.sqlite-wal
+*.sqlite-shm
 .DS_Store
 *.log
 server/uploads/

@@ -6,10 +6,11 @@ export default function CocreoHeader({ onBack, currentPage, breadcrumb }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // 「AIコンサル」は生成部分を作り直すまで導線から外している
+  // （CocreoConsulting.jsx の CONSULTING_ENABLED を参照）
   const navItems = [
     { label: 'ホーム', href: '/cocreo' },
-    { label: 'AIコンサル', href: '/cocreo/consulting' },
-    { label: '補助金申請AI', href: '/cocreo/subsidy-generator' },
+    { label: '補助金 申請書テンプレート', href: '/cocreo/subsidy-generator' },
   ];
 
   return (
@@ -32,7 +33,7 @@ export default function CocreoHeader({ onBack, currentPage, breadcrumb }) {
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>Cocreo</span>
-                <span className="text-[10px] leading-tight hidden sm:block" style={{ color: 'var(--color-text-secondary)' }}>AI経営コンサルティング</span>
+                <span className="text-[10px] leading-tight hidden sm:block" style={{ color: 'var(--color-text-secondary)' }}>保険代理店の業務ツール</span>
               </div>
             </Link>
           </div>
@@ -70,13 +71,13 @@ export default function CocreoHeader({ onBack, currentPage, breadcrumb }) {
                 {item.label}
               </Link>
             ))}
-            <Link
-              to="/cocreo/consulting"
+            <a
+              href="mailto:contact@cocreo.jp?subject=Cocreo%20%E3%81%94%E7%9B%B8%E8%AB%87"
               className="ml-2 px-5 py-2 text-white rounded-xl text-sm font-medium hover:shadow-md transition-all"
               style={{ backgroundColor: 'var(--color-primary)' }}
             >
-              無料で始める
-            </Link>
+              メールで相談する
+            </a>
           </nav>
 
           <button
@@ -110,14 +111,14 @@ export default function CocreoHeader({ onBack, currentPage, breadcrumb }) {
               </Link>
             ))}
             <div className="mt-2 pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
-              <Link
-                to="/cocreo/consulting"
+              <a
+                href="mailto:contact@cocreo.jp?subject=Cocreo%20%E3%81%94%E7%9B%B8%E8%AB%87"
                 onClick={() => setMenuOpen(false)}
                 className="block px-4 py-3 text-white rounded-xl font-medium text-center text-sm transition-colors"
                 style={{ backgroundColor: 'var(--color-primary)' }}
               >
-                無料で始める
-              </Link>
+                メールで相談する
+              </a>
             </div>
           </nav>
         </div>
