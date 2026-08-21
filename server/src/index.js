@@ -19,6 +19,7 @@ import igAnalyticsRoutes from './routes/instagramAnalytics.js';
 import familySheetRoutes from './routes/familySheet.js';
 import authRoutes, { getToken } from './routes/auth.js';
 import mediaRoutes from './routes/media.js';
+import koyomiRoutes from './routes/koyomi.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -56,6 +57,7 @@ app.use('/api/analytics', analyticsRoutes);
 
 // SNS poster API routes
 app.use('/api/eiken', eikenRoutes);
+app.use('/api/koyomi', koyomiRoutes);
 app.use('/api/ramen', ramenRoutes);
 app.use('/api/aiedu', aieduRoutes);
 app.use('/api/itpass', itpassRoutes);

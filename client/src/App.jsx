@@ -12,6 +12,8 @@ import Absences from './pages/Absences';
 import Setup from './pages/Setup';
 import EikenHome from './pages/eiken/EikenHome';
 import EikenHistory from './pages/eiken/EikenHistory';
+import KoyomiHome from './pages/koyomi/KoyomiHome';
+import KoyomiHistory from './pages/koyomi/KoyomiHistory';
 import RamenHome from './pages/ramen/RamenHome';
 import RamenHistory from './pages/ramen/RamenHistory';
 import InstagramAnalytics from './pages/ramen/InstagramAnalytics';
@@ -73,6 +75,8 @@ function AuthenticatedApp({ token, setToken }) {
       <Route path="/shiftsync/*" element={<ShiftSyncApp />} />
       <Route path="/eiken" element={<EikenHome />} />
       <Route path="/eiken/history" element={<EikenHistory />} />
+      <Route path="/koyomi" element={<KoyomiHome />} />
+      <Route path="/koyomi/history" element={<KoyomiHistory />} />
       <Route path="/ramen" element={<RamenHome />} />
       <Route path="/ramen/history" element={<RamenHistory />} />
       <Route path="/ramen/analytics" element={<InstagramAnalytics />} />
