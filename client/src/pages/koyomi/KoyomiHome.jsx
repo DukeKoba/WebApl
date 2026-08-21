@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Scroll, Sparkles, History, ArrowLeft, Download, Zap,
-  CheckCircle2, RefreshCw, AlertTriangle, FileText, Copy, Check, ExternalLink
+  CheckCircle2, RefreshCw, AlertTriangle, FileText, Copy, Check, ExternalLink,
+  ChevronRight, Bot
 } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
@@ -17,6 +18,20 @@ const HISTORY_TYPES = [
     badgeColor: 'bg-amber-600 text-white',
     desc: '正誤判定・因果関係・年表把握の1問1答',
     color: 'from-amber-600 to-red-600',
+    hints: [
+      '古代・ヤマト政権〜律令国家（国分寺建立・墾田永年私財法などの政策と天皇）',
+      '平安・摂関政治と院政（藤原道長・白河上皇・保元平治の乱の因果）',
+      '中世・鎌倉〜室町幕府（御恩と奉公・惣村・応仁の乱の構造）',
+      '織豊政権・太閤検地と刀狩（兵農分離の意義）',
+      '江戸初期・幕藩体制（武家諸法度・鎖国の完成手順）',
+      '江戸中期・三大改革（享保・寛政・天保の政策の違いと結果）',
+      '幕末・開国から明治維新（日米修好通商条約・尊皇攘夷・倒幕の流れ）',
+      '明治・立憲体制と日清日露戦争（大日本帝国憲法・条約改正）',
+      '大正・デモクラシーと政党政治（普通選挙法・治安維持法）',
+      '昭和・恐慌から戦時体制・戦後改革（農地改革・財閥解体・日本国憲法）',
+    ],
+    hashtags: '#日本史 #共通テスト #大学受験',
+    isQa: true,
   },
   {
     value: 'world_center_qa',
@@ -25,6 +40,20 @@ const HISTORY_TYPES = [
     badgeColor: 'bg-blue-600 text-white',
     desc: '王朝史・革命・世界の一体化の1問1答',
     color: 'from-blue-600 to-indigo-600',
+    hints: [
+      'オリエント・地中海世界（アケメネス朝・ポリス民主政・ローマ帝国）',
+      '中国王朝史（秦・漢の統一政策・唐の律令制・宋の文治主義）',
+      'イスラム世界（ウマイヤ朝・アッバース朝・オスマン帝国の拡大）',
+      '中世ヨーロッパ（封建社会・十字軍・教皇権の盛衰）',
+      'ルネサンス・大航海時代・宗教改革（世界の一体化と商業革命）',
+      '主権国家体制・絶対王政（三十年戦争・ルイ14世・議会政治）',
+      '市民革命・産業革命（アメリカ独立・フランス革命・ナポレオン）',
+      '19世紀の欧米（ウィーン体制・イタリア/ドイツ統一・帝国主義）',
+      '第一次世界大戦・ロシア革命・ヴェルサイユ体制',
+      '第二次世界大戦・冷戦構造（キューバ危機・中東戦争・東欧革命）',
+    ],
+    hashtags: '#世界史 #共通テスト #大学受験',
+    isQa: true,
   },
   {
     value: 'same_era_qa',
@@ -33,6 +62,16 @@ const HISTORY_TYPES = [
     badgeColor: 'bg-purple-600 text-white',
     desc: '「同じ年に世界では？」を問う横断1問1答',
     color: 'from-purple-600 to-pink-600',
+    hints: [
+      '1600年頃: 関ヶ原の戦いの時、ヨーロッパでは何が起きていた？（東インド会社・三十年戦争前夜）',
+      '1192/1185年: 鎌倉幕府成立の頃、中国や中東では？（南宋・第3回十字軍）',
+      '1853/1868年: ペリー来航・明治維新の頃、清や欧米では？（アヘン戦争/太平天国・南北戦争・普仏戦争）',
+      '710/794年: 奈良・平安初期、世界では何帝国が最盛期？（唐・アッバース朝・カール大帝）',
+      '1543/1549年: 鉄砲伝来・キリスト教伝来と大航海時代（宗教改革・イエズス会）',
+      '1904年: 日露戦争の頃、ヨーロッパの同盟関係は？（英仏協商・三国協商）',
+    ],
+    hashtags: '#日本史 #世界史 #大学受験',
+    isQa: true,
   },
   {
     value: 'japanese_history',
@@ -41,6 +80,19 @@ const HISTORY_TYPES = [
     badgeColor: 'bg-gray-700 text-white',
     desc: '幕府・改革・明治維新の重要ポイント',
     color: 'from-gray-700 to-gray-900',
+    hints: [
+      '鎌倉幕府の成立をめぐる年号と実態のズレ',
+      '応仁の乱が戦国時代を生んだ流れ',
+      '織豊政権の政策（検地・刀狩）の狙い',
+      '江戸幕府の三大改革の違いと結果',
+      '開国から明治維新までの条約と国内対立',
+      '自由民権運動と憲法制定の流れ',
+      '大正デモクラシーと政党政治',
+      '昭和恐慌から戦時体制への転換点',
+      '戦後改革（農地改革・財閥解体）の中身',
+    ],
+    hashtags: '#日本史 #大学受験',
+    isQa: false,
   },
   {
     value: 'world_history',
@@ -49,6 +101,19 @@ const HISTORY_TYPES = [
     badgeColor: 'bg-gray-700 text-white',
     desc: '市民革命・大航海・冷戦の重要ポイント',
     color: 'from-gray-700 to-gray-900',
+    hints: [
+      '十字軍が結果的に何を変えたか',
+      'ルネサンスと宗教改革のつながり',
+      '大航海時代がもたらした世界の一体化',
+      '市民革命（英・米・仏）の共通点と違い',
+      '産業革命が社会構造をどう変えたか',
+      'ウィーン体制とその崩壊',
+      '帝国主義とアフリカ分割',
+      '第一次世界大戦の原因と戦後処理',
+      '冷戦の始まりと分断の構造',
+    ],
+    hashtags: '#世界史 #大学受験',
+    isQa: false,
   },
   {
     value: 'mnemonic',
@@ -57,101 +122,106 @@ const HISTORY_TYPES = [
     badgeColor: 'bg-teal-600 text-white',
     desc: '紛らわしい重要年号の語呂合わせ',
     color: 'from-teal-600 to-cyan-600',
+    hints: [
+      '中世の重要年号のゴロ合わせ',
+      '近世（江戸）の重要年号のゴロ合わせ',
+      '近代（明治〜大正）の重要年号のゴロ合わせ',
+      '世界史の重要年号のゴロ合わせ',
+    ],
+    hashtags: '#日本史 #世界史 #受験勉強',
+    isQa: false,
   },
 ];
 
 const KOYOMI_URL = 'https://apps.apple.com/jp/app/id6794647918';
 
-async function readSse(res, onEvent) {
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || `サーバー通信エラー (${res.status})`);
-  }
-  const reader = res.body?.getReader();
-  if (!reader) {
-    throw new Error('ストリームの読み込みに失敗しました');
-  }
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let event = '';
+function buildLocalHistoryPrompt(contentType) {
+  const type = HISTORY_TYPES.find(t => t.value === contentType) || HISTORY_TYPES[0];
+  const variety = type.hints[Math.floor(Math.random() * type.hints.length)];
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
+  const system = 'あなたはSNSマーケティングと高校歴史教育の専門家です。事実の正確さを最優先しつつ、Xで圧倒的に伸びる書き方を熟知しています。';
 
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
+  let user = '';
+  if (type.isQa) {
+    user = `大学入試センター試験・共通テスト相当の【${type.label}】の1問1答問題をX（旧Twitter）に投稿します。
+ターゲット: 共通テスト・大学入試で日本史/世界史を受験する高校生・浪人生
+テーマ・時代: ${variety}
 
-    for (const line of lines) {
-      if (line.startsWith('event: ')) {
-        event = line.slice(7).trim();
-      } else if (line.startsWith('data: ')) {
-        try {
-          onEvent(event, JSON.parse(line.slice(6)));
-        } catch {}
-      }
-    }
+【問題の要件（センター試験・共通テストレベルの良問）】
+- 教科書の重要事項・正誤判定・因果関係・同時代把握に直結する良問を作成してください。
+- 難易度: センター試験・共通テスト標準〜やや難（正答率40〜60%の差がつく問題）。
+
+【本文の構成（厳守）】
+1行目: フック（例:「【センター${type.label.includes('日本史') ? '日本史' : '世界史'}】9割が悩む正誤判定。あなたは解けますか？」「【共通テスト頻出】差がつく1問👇」）
+2. 📝【問題文】（時代背景を簡潔に示し、下線部や設問を提示）
+3. 選択肢: ① 〜  ② 〜 （※紛らわしく考えさせる2択。教科書に明確な根拠があるもの）
+4. 締め: 「①と②どっちが正しい？理由をリプで教えてください👇（正解と年表・因果関係の解説はリプ欄へ）」
+
+【リプライの構成（厳守）】
+- 正解（「正解は①（または②）！」）
+- なぜそれが正解か、もう一方がなぜ誤りかの詳細な解説（年号・背景・因果関係）
+- 年表での位置づけや覚え方のポイント
+
+【出力フォーマット（厳守）】
+===本文===
+（X本文。日本語で約120〜130文字程度。URLやハッシュタグは書かない）
+===リプライ===
+（正解と解説。日本語で約100文字程度。URLやハッシュタグは書かない）`;
+  } else {
+    user = `${type.label}の学習コンテンツをX（旧Twitter）に投稿します。
+ターゲット: 大学受験で日本史・世界史を使う高校生・浪人生
+テーマ: ${variety}
+
+【内容の要件】
+- 高校の教科書・入試で扱われる範囲の定説だけを書く
+- 年号・人名・出来事は確実なものだけ使う
+- 用語の暗記ではなく「なぜそうなったか」の因果や流れが分かる内容にする
+
+【出力フォーマット（厳守）】
+===本文===
+（X本文。1行目に強力なフック、箇条書きを活用して約120〜130文字。URLやハッシュタグは書かない）
+===リプライ===
+（背景や詳細解説。約100文字。URLやハッシュタグは書かない）`;
   }
+
+  return {
+    label: `${type.label} 生成プロンプト`,
+    system,
+    user,
+  };
 }
 
 function HistoryBatchSection() {
   const [aiMode] = useAiMode();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(null);
-  const [batchPosts, setBatchPosts] = useState([]);
   const [batchPrompts, setBatchPrompts] = useState(null);
-  const [publishingIds, setPublishingIds] = useState({});
-  const [postStatuses, setPostStatuses] = useState({});
   const [copiedBatch, setCopiedBatch] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleGenerateBatch = async () => {
-    setIsGenerating(true);
-    setProgress({ current: 0, total: 7, itemTitle: '準備中...' });
-    setBatchPosts([]);
-    setBatchPrompts(null);
-    setError('');
+  const handleGenerateBatchPrompts = () => {
+    const scheduleTemplate = [
+      { type: 'japanese_center_qa', day: '月曜', title: '🇯🇵 日本史 センター1問1答' },
+      { type: 'world_center_qa', day: '火曜', title: '🌍 世界史 センター1問1答' },
+      { type: 'same_era_qa', day: '水曜', title: '🔄 同時代 センター1問1答' },
+      { type: 'japanese_history', day: '木曜', title: '🇯🇵 日本史 重要因果解説' },
+      { type: 'world_history', day: '金曜', title: '🌍 世界史 重要因果解説' },
+      { type: 'mnemonic', day: '土曜', title: '💡 年号ゴロ合わせ' },
+      { type: 'japanese_center_qa', day: '日曜', title: '🇯🇵 日本史 週末良問演習' },
+    ];
 
-    if (aiMode === 'prompt') {
-      try {
-        const res = await authFetch('/koyomi/batch-prompts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ count: 7 }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        setBatchPrompts(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsGenerating(false);
-      }
-      return;
-    }
+    const prompts = scheduleTemplate.map(item => {
+      const p = buildLocalHistoryPrompt(item.type);
+      return {
+        day: item.day,
+        title: item.title,
+        label: `【${item.day}】${item.title} プロンプト`,
+        system: p.system,
+        user: p.user,
+      };
+    });
 
-    try {
-      const res = await authFetch('/koyomi/generate-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ count: 7 }),
-      });
+    const fullPromptCombined = `【高校歴史 X投稿 1週間分（7投稿）の一括生成指示】\n\n以下の7つのテーマに従って、それぞれの投稿本文とリプライを出力してください。\n各投稿は「===Day 1===」「===Day 2===」で区切って出力してください。\n\n` +
+      prompts.map((p, i) => `--- Day ${i + 1} (${p.day}: ${p.title}) ---\n${p.user}`).join('\n\n');
 
-      await readSse(res, (event, data) => {
-        if (event === 'batch_progress') {
-          setProgress(data);
-        } else if (event === 'batch_complete') {
-          setBatchPosts(data.posts || []);
-        } else if (event === 'error') {
-          setError(data.message);
-        }
-      });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsGenerating(false);
-    }
+    setBatchPrompts({ prompts, combined_prompt: fullPromptCombined });
   };
 
   const handleCopyCombined = () => {
@@ -159,20 +229,6 @@ function HistoryBatchSection() {
     navigator.clipboard.writeText(batchPrompts.combined_prompt);
     setCopiedBatch(true);
     setTimeout(() => setCopiedBatch(false), 2000);
-  };
-
-  const handlePublishPost = async (postId) => {
-    setPublishingIds(prev => ({ ...prev, [postId]: true }));
-    try {
-      const res = await authFetch(`/koyomi/posts/${postId}/publish`, { method: 'POST' });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error);
-      setPostStatuses(prev => ({ ...prev, [postId]: 'posted' }));
-    } catch (err) {
-      alert(`投稿失敗: ${err.message}`);
-    } finally {
-      setPublishingIds(prev => ({ ...prev, [postId]: false }));
-    }
   };
 
   return (
@@ -183,127 +239,57 @@ function HistoryBatchSection() {
           <h2 className="font-bold text-lg">歴史 1週間分（7問）の一括量産ジェネレーター</h2>
         </div>
         <p className="text-sm text-amber-100 leading-relaxed mb-4">
-          日本史共テ問・世界史共テ問・同時代比較・因果関係解説・年号ゴロ合わせなど、1週間分のストックを一撃で自動作成します。
+          日本史共テ問・世界史共テ問・同時代比較・因果関係解説・年号ゴロ合わせなど、1週間分のストックを一撃で作成できます。
         </p>
 
         <button
-          onClick={handleGenerateBatch}
-          disabled={isGenerating}
-          className="w-full py-3.5 px-5 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 disabled:from-gray-500 disabled:to-gray-600 text-gray-900 font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+          onClick={handleGenerateBatchPrompts}
+          className="w-full py-3.5 px-5 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-gray-900 font-extrabold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
         >
-          {isGenerating ? (
-            <>
-              <RefreshCw className="w-4 h-4 animate-spin text-gray-900" />
-              <span>作成中...</span>
-            </>
-          ) : (
-            <>
-              <Zap className="w-4 h-4 fill-gray-900" />
-              <span>{aiMode === 'prompt' ? '1週間分のプロンプトを一括作成' : '1週間分（7投稿）を直接AI生成'}</span>
-            </>
-          )}
+          <FileText className="w-4 h-4 fill-gray-900" />
+          <span>1週間分（7投稿分）のプロンプトを一括作成</span>
         </button>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0" />
-          {error}
-        </div>
-      )}
-
       {batchPrompts && (
-        <div className="space-y-4 bg-amber-50/60 border border-amber-300 rounded-2xl p-4">
+        <div className="space-y-4 bg-amber-50/60 border-2 border-amber-300 rounded-2xl p-5 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+            <h3 className="font-extrabold text-sm text-gray-900 flex items-center gap-1.5">
               <FileText className="w-4 h-4 text-amber-700" />
-              1週間分（7投稿）の生成プロンプト
+              1週間分（7投稿）の生成プロンプト一覧
             </h3>
             <button
               onClick={handleCopyCombined}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all shadow-md ${
                 copiedBatch ? 'bg-green-600 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'
               }`}
             >
-              {copiedBatch ? <><Check className="w-4 h-4" />7日分まとめてコピー完了！</> : <><Copy className="w-4 h-4" />7日分まとめてコピー</>}
+              {copiedBatch ? <><Check className="w-4 h-4" />7日分まとめてコピー完了！</> : <><Copy className="w-4 h-4" />7日分まとめて一括コピー</>}
             </button>
           </div>
 
+          <p className="text-xs text-gray-600">
+            「7日分まとめて一括コピー」を押して ChatGPT や Claude に貼り付けると、月〜日の7日分の投稿が一気に生成されます。
+          </p>
+
           <div className="space-y-3">
             {batchPrompts.prompts?.map((p, idx) => (
-              <div key={idx} className="bg-white border border-gray-200 rounded-xl p-3 shadow-2xs">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-bold text-xs text-gray-800">{p.label}</span>
+              <div key={idx} className="bg-white border border-amber-200 rounded-xl p-3.5 shadow-2xs">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-bold text-xs text-gray-900">{p.label}</span>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(`${p.system ? `【システム】\n${p.system}\n\n` : ''}${p.user}`);
-                      alert(`${p.day}のプロンプトをコピーしました`);
+                      alert(`${p.day}のプロンプトをコピーしました！`);
                     }}
-                    className="text-xs text-amber-700 hover:text-amber-900 font-bold flex items-center gap-1"
+                    className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 px-2.5 py-1 rounded-md font-bold flex items-center gap-1 transition-colors"
                   >
-                    <Copy className="w-3.5 h-3.5" /> コピー
+                    <Copy className="w-3 h-3" /> コピー
                   </button>
                 </div>
-                <p className="text-xs text-gray-600 font-mono bg-gray-50 p-2 rounded max-h-24 overflow-y-auto whitespace-pre-wrap">
+                <p className="text-xs text-gray-700 font-mono bg-gray-50 p-2.5 rounded-lg max-h-28 overflow-y-auto whitespace-pre-wrap leading-relaxed">
                   {p.user}
                 </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isGenerating && progress && (
-        <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm space-y-2">
-          <div className="flex justify-between text-xs font-semibold text-gray-700">
-            <span className="flex items-center gap-1.5 text-amber-700">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              【{progress.itemDay}】{progress.itemTitle} を生成中...
-            </span>
-            <span>{progress.current} / {progress.total}</span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-amber-600 to-orange-600 h-2 transition-all duration-300 rounded-full"
-              style={{ width: `${(progress.current / (progress.total || 7)) * 100}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {batchPosts.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              生成された1週間分の歴史問題 ({batchPosts.length}件)
-            </h3>
-            <span className="text-xs text-gray-500">下書きに自動保存済み</span>
-          </div>
-
-          <div className="space-y-4">
-            {batchPosts.map((p, idx) => (
-              <div key={p.post_id || idx} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-                <div className="bg-amber-50/70 px-4 py-2.5 flex items-center justify-between border-b border-amber-200">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-amber-700 text-white font-bold text-xs px-2 py-0.5 rounded">
-                      {p.day || `Day ${idx + 1}`}
-                    </span>
-                    <span className="font-bold text-xs text-gray-800">{p.title}</span>
-                  </div>
-                </div>
-
-                <div className="p-4">
-                  <PostPreview
-                    platform="x"
-                    text={p.post_text}
-                    postId={p.post_id}
-                    onPublish={handlePublishPost}
-                    isPublishing={publishingIds[p.post_id]}
-                    status={postStatuses[p.post_id] || 'draft'}
-                    ctaText={p.reply_text}
-                  />
-                </div>
               </div>
             ))}
           </div>
@@ -344,32 +330,88 @@ export default function KoyomiHome() {
     }
   }, [postText, fallbackPrompt, error]);
 
-  const handleGeneratePost = async () => {
-    setIsGenerating(true);
+  // プロンプト生成ボタン押下時のハンドラー
+  const handleGenerateClick = async () => {
     resetOutput();
 
+    // 📄 プロンプト生成モード（標準）: サーバー通信を待たずに即時生成！
+    if (promptOnly) {
+      const p = buildLocalHistoryPrompt(contentType);
+      setFallbackPrompt({
+        prompts: [p],
+        reason: 'prompt_only',
+      });
+      return;
+    }
+
+    // 🤖 API直接実行モード
+    setIsGenerating(true);
     try {
       const res = await authFetch('/koyomi/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contentType, prompt_only: promptOnly }),
+        body: JSON.stringify({ contentType, prompt_only: false }),
       });
 
-      await readSse(res, (event, data) => {
-        if (event === 'final_post') {
-          setPostText(data.post_text);
-          setReplyText(data.reply_text || '');
-          setPostId(data.post_id);
-        } else if (event === 'fallback_prompt') {
-          setFallbackPrompt(data);
-        } else if (event === 'error') {
-          setError(data.message);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let event = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            event = line.slice(7).trim();
+          } else if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (event === 'final_post') {
+                setPostText(data.post_text);
+                setReplyText(data.reply_text || '');
+                setPostId(data.post_id);
+              } else if (event === 'fallback_prompt') {
+                setFallbackPrompt(data);
+              } else if (event === 'error') {
+                setError(data.message);
+              }
+            } catch {}
+          }
         }
-      });
+      }
     } catch (err) {
-      setError(err.message);
+      // API直接実行でエラーの場合は即座にプロンプト表示にフォールバック
+      const p = buildLocalHistoryPrompt(contentType);
+      setFallbackPrompt({
+        prompts: [p],
+        reason: 'api_error',
+        errorMessage: err.message,
+      });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSaveManualResult = async (pastedText) => {
+    try {
+      const res = await authFetch('/koyomi/save-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contentType, body_text: pastedText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setPostText(data.post_text);
+      setReplyText(data.reply_text);
+      setPostId(data.post_id);
+      setFallbackPrompt(null);
+    } catch (err) {
+      setError(`保存エラー: ${err.message}`);
     }
   };
 
@@ -442,7 +484,7 @@ export default function KoyomiHome() {
                   setTab(t.value);
                   resetOutput();
                 }}
-                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs whitespace-nowrap transition-all cursor-pointer ${
                   isActive
                     ? `${t.color} shadow-sm scale-[1.02]`
                     : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
@@ -483,7 +525,7 @@ export default function KoyomiHome() {
 
         {tab === 'single' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3 shadow-xs">
               <span className="text-xs font-bold text-gray-800 block">問題タイプ・ジャンルを選択</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {HISTORY_TYPES.map(h => {
@@ -492,7 +534,7 @@ export default function KoyomiHome() {
                     <button
                       key={h.value}
                       onClick={() => setContentType(h.value)}
-                      className={`text-left p-3.5 rounded-xl border-2 transition-all flex flex-col justify-between ${
+                      className={`text-left p-3.5 rounded-xl border-2 transition-all flex flex-col justify-between cursor-pointer ${
                         isSelected
                           ? 'border-amber-600 bg-amber-50/50 shadow-xs ring-1 ring-amber-500'
                           : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -512,19 +554,19 @@ export default function KoyomiHome() {
 
               {/* 生成ボタン */}
               <button
-                onClick={handleGeneratePost}
+                onClick={handleGenerateClick}
                 disabled={isGenerating}
-                className="w-full py-3.5 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 disabled:from-gray-400 disabled:to-gray-500 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 disabled:from-gray-400 disabled:to-gray-500 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg hover:scale-[1.005]"
               >
                 {isGenerating ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>プロンプトを作成中...</span>
+                    <span>AI生成中...</span>
                   </>
                 ) : (
                   <>
-                    {promptOnly ? <FileText className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-                    <span>{promptOnly ? '✨ センター試験1問1答の生成プロンプトを作成' : '🤖 センター試験レベルの1問1答を自動生成'}</span>
+                    {promptOnly ? <FileText className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    <span>{promptOnly ? '✨ センター試験1問1答の生成プロンプトを作成' : '🤖 センター試験レベルの1問1答を直接AI生成'}</span>
                   </>
                 )}
               </button>
@@ -532,7 +574,8 @@ export default function KoyomiHome() {
 
             <div ref={outputRef} className="space-y-4">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
                   {error}
                 </div>
               )}
@@ -540,21 +583,9 @@ export default function KoyomiHome() {
               {fallbackPrompt && (
                 <PromptFallbackPanel
                   prompts={fallbackPrompt.prompts}
-                  onSaveManual={(text) => {
-                    authFetch('/koyomi/save-manual', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ contentType, body_text: text }),
-                    })
-                      .then(r => r.json())
-                      .then(d => {
-                        setPostText(d.post_text);
-                        setReplyText(d.reply_text);
-                        setPostId(d.post_id);
-                        setFallbackPrompt(null);
-                      })
-                      .catch(err => setError(err.message));
-                  }}
+                  reason={fallbackPrompt.reason}
+                  errorMessage={fallbackPrompt.errorMessage}
+                  onSave={handleSaveManualResult}
                 />
               )}
 
