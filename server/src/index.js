@@ -18,6 +18,7 @@ import agentdxRoutes from './routes/agentdx.js';
 import igAnalyticsRoutes from './routes/instagramAnalytics.js';
 import familySheetRoutes from './routes/familySheet.js';
 import authRoutes, { getToken } from './routes/auth.js';
+import mediaRoutes from './routes/media.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -37,7 +38,9 @@ app.use('/api/family-sheet', familySheetRoutes);
 
 // Auth middleware
 app.use('/api', (req, res, next) => {
-  const token = req.headers['x-auth-token'];
+  const isMediaPreview = req.method === 'GET' && req.path === '/media/file';
+  const isMediaDownload = req.method === 'GET' && req.path.startsWith('/media/download/');
+  const token = req.headers['x-auth-token'] || (isMediaPreview || isMediaDownload ? req.query.token : '');
   if (token !== getToken()) return res.status(401).json({ error: 'Unauthorized' });
   next();
 });
@@ -58,6 +61,7 @@ app.use('/api/aiedu', aieduRoutes);
 app.use('/api/itpass', itpassRoutes);
 app.use('/api/agentdx', agentdxRoutes);
 app.use('/api/instagram', igAnalyticsRoutes);
+app.use('/api/media', mediaRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {

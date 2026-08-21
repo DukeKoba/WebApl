@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, BookOpen, Camera, Brain, ShieldCheck, Shield, Landmark, HeartHandshake } from 'lucide-react';
+import { Calendar, BookOpen, Camera, Brain, ShieldCheck, Shield, Landmark, HeartHandshake, FolderDown, Film } from 'lucide-react';
 
 const apps = [
   {
@@ -18,14 +18,14 @@ const apps = [
   {
     path: '/eiken',
     icon: BookOpen,
-    title: '英検コンテンツ生成',
-    description: 'サンプル問題・学習TipsをAIエージェントチームが日本語でX投稿',
-    color: 'from-green-500 to-emerald-700',
-    bg: 'bg-green-50',
-    border: 'border-green-200',
-    iconBg: 'bg-green-600',
+    title: 'AI英検・歴史コンテンツ生成',
+    description: 'AI英作文添削・AI面接・センター日本史/世界史1問1答などバズ特化X投稿生成',
+    color: 'from-red-500 to-orange-600',
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    iconBg: 'bg-red-600',
     badge: 'X (Twitter)',
-    badgeColor: 'bg-green-100 text-green-700',
+    badgeColor: 'bg-red-100 text-red-700',
   },
   {
     path: '/ramen',
@@ -98,6 +98,30 @@ const apps = [
     iconBg: 'bg-gradient-to-br from-emerald-700 to-amber-500',
     badge: '公開ツール',
     badgeColor: 'bg-emerald-100 text-emerald-700',
+  },
+  {
+    path: '/media-extractor',
+    icon: FolderDown,
+    title: 'Media Extractor',
+    description: '指定のローカルフォルダから画像や動画をスキャン・抽出するツール',
+    color: 'from-pink-500 to-rose-700',
+    bg: 'bg-rose-50',
+    border: 'border-rose-200',
+    iconBg: 'bg-rose-600',
+    badge: 'ファイル操作',
+    badgeColor: 'bg-rose-100 text-rose-700',
+  },
+  {
+    path: '/mov-converter',
+    icon: Film,
+    title: 'MOV → MP4 Converter',
+    description: 'ローカルフォルダ内の古いMOVをブラウザー互換MP4へ一括変換',
+    color: 'from-violet-500 to-purple-700',
+    bg: 'bg-violet-50',
+    border: 'border-violet-200',
+    iconBg: 'bg-violet-600',
+    badge: '動画変換',
+    badgeColor: 'bg-violet-100 text-violet-700',
   },
 ];
 

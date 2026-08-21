@@ -101,4 +101,14 @@ export const api = {
   getFairness: (orgId, scheduleId) => request(`/analytics/fairness?org_id=${orgId}${scheduleId ? `&schedule_id=${scheduleId}` : ''}`),
   getLaborCost: (orgId, scheduleId) => request(`/analytics/labor-cost?org_id=${orgId}${scheduleId ? `&schedule_id=${scheduleId}` : ''}`),
   getAvailabilityMap: (orgId, start, end) => request(`/analytics/availability-map?org_id=${orgId}&start_date=${start}&end_date=${end}`),
+
+  // Media Extractor
+  scanMedia: (path) => request('/media/scan', { method: 'POST', body: { path } }),
+  extractMedia: (files, targetDir) => request('/media/extract', { method: 'POST', body: { files, targetDir } }),
+  moveMedia: (files, targetDir) => request('/media/move', { method: 'POST', body: { files, targetDir } }),
+  browseMediaFolder: (purpose) => request('/media/browse-folder', { method: 'POST', body: { purpose } }),
+  convertMov: (files, targetDir) => request('/media/convert-mov', { method: 'POST', body: { files, targetDir } }),
+  scanMovFolder: (sourceDir) => request('/media/scan-mov-folder', { method: 'POST', body: { sourceDir } }),
+  convertMovFolder: (sourceDir, targetDir) => request('/media/convert-mov-folder', { method: 'POST', body: { sourceDir, targetDir } }),
+  getMovConversionProgress: (jobId) => request(`/media/convert-mov-folder/status/${encodeURIComponent(jobId)}`),
 };

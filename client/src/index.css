@@ -20,6 +20,42 @@
   --font-serif: 'Shippori Mincho', 'Hiragino Mincho ProN', serif;
 }
 
+html {
+  overflow-y: scroll !important;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+body {
+  min-height: 100vh;
+  scrollbar-width: auto;
+  scrollbar-color: #9ca3af #f3f4f6;
+}
+
+::-webkit-scrollbar {
+  display: block;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #f3f4f6;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border: 3px solid #f3f4f6;
+  border-radius: 9999px;
+  min-height: 48px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
 /* ── Cocreo typography ── */
 .font-serif-jp {
   font-family: var(--font-serif);
@@ -120,6 +156,31 @@
 }
 
 @layer components {
+  .media-scrollbar {
+    scrollbar-width: auto;
+    scrollbar-color: #4b5563 #111827;
+    scrollbar-gutter: stable;
+  }
+
+  .media-scrollbar::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  .media-scrollbar::-webkit-scrollbar-track {
+    background: #111827;
+  }
+
+  .media-scrollbar::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border: 3px solid #111827;
+    border-radius: 9999px;
+  }
+
+  .media-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
   .btn-primary {
     @apply bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed;
   }

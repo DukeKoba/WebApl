@@ -9,6 +9,15 @@ services:
         destination: /support.html
 
   - type: web
+    name: EikenSupport
+    env: static
+    staticPublishPath: eiken-support
+    routes:
+      - type: rewrite
+        source: /
+        destination: /support.html
+
+  - type: web
     name: webapl
     runtime: node
     buildCommand: npm install && cd client && npm install && npx vite build && cd ../server && npm install

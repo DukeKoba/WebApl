@@ -2,14 +2,24 @@ import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../database.js';
 import { generateTextFull } from '../services/claudeService.js';
-import { tryClaudeOrEmitPrompt, isClaudeCreditError } from '../services/claudeFallback.js';
+import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
-import { orchestrateEikenPost, parseEikenPostJson, parseEikenMarkedText } from '../services/agentOrchestrator.js';
-import { xWeightedLength, actualCharBudget, X_MAX_WEIGHTED } from '../services/xText.js';
+import { xLength, xTruncate } from '../utils/xText.js';
+import { EIKEN_EXAMS, getNextExam, getCountdown } from '../data/eikenSchedule.js';
 
 const router = express.Router();
 
+const X_LIMIT = 280;
+
 const QUESTION_TYPE_LABELS = {
+  // 🔥 キラーコンテンツ（AI英検特化・バイラル）
+  ai_writing_correction: '🔥 AI英作文 Before➔After添削',
+  ai_interview: '🎙️ AI面接シミュレーション（満点vs不合格）',
+  native_vs_japanese: '💡 ネイティブ違和感表現（直訳の罠）',
+  controversial_quiz: '❓ 議論型1問1答（リプ・ツッコミ誘発）',
+  thread_summary: '🧵 要点まとめスレッド（3〜4連ツイ）',
+
+  // 基礎・既存
   vocabulary: '語彙',
   grammar: '文法',
   reading: '読解',
@@ -24,6 +34,49 @@ const QUESTION_TYPE_LABELS = {
 
 // Extra instructions per question type
 const QUESTION_TYPE_EXTRA = {
+  ai_writing_correction: `【AI英作文 Before➔After 添削】
+受験生が英検{level}の英作文で実際に書いてしまいがちな「惜しい・減点される英文」を取り上げ、AIが赤ペン添削して「ネイティブ級の合格答案」に劇的リライトする形式にしてください。
+
+【構成（厳守）】
+1行目: フック（例:「英検{level}の英作文、これ書くと確実に減点されます⚠️」「AI添削で発覚した惜しいミス👇」）
+2. ❌【生徒の惜しい英文】（文法・語彙の不自然さや稚拙さがある一文）
+3. 🤖【AIの赤ペン添削・減点理由】（「〜は不自然」「〜を使うと語彙レベルUP」と簡潔に指摘）
+4. ⭕【合格模範答案】（英検{level}で満点が狙える自然で格調高い英文＋和訳）
+5. 締め: 「無料のAI英検アプリで、あなたの英作文も一瞬で添削できます📲 詳細はリプ欄へ👇」`,
+
+  ai_interview: `【AI面接シミュレーション（満点 vs 不合格）】
+英検{level}の2次面接（スピーキング試験）のリアルな出題を取り上げ、「落ちる人の典型回答」と「AIが教える満点回答」を対比させてください。
+
+【構成（厳守）】
+1行目: フック（例:「英検{level}面接、この答え方だと落ちます⚠️」「面接官が『おっ』と感心する回答テクニック👇」）
+2. 🎤【面接官の質問】（英検{level}の頻出質問 Q. "Some people say that..." など）
+3. ❌【不合格になりがちな回答】（単語1語だけ、沈黙、理由の展開がない回答）
+4. ⭕【AI推奨の満点回答】（"First of all... Also..." などの型と自然な表現を使った回答＋和訳）
+5. 締め: 「面接練習もAIアプリなら本番形式で何回でも無料練習できます🎙️ 詳細はリプ欄へ👇」`,
+
+  native_vs_japanese: `【ネイティブが違和感を持つ英検ミス・コロケーション】
+「日本人が直訳して使いがちだけど、ネイティブが聞くと違和感がある・減点される表現」と「英検{level}で使える自然で高得点な英語」を対比して解説してください。
+
+【構成（厳守）】
+1行目: フック（例:「英検{level}で直訳すると減点される英語3選」「ネイティブが『ん？』と思う日本人のミス⚠️」）
+2. ❌【日本人がやりがちな不自然な英語】
+3. ⭕【ネイティブの自然な高得点表現】
+4. 💡【なぜダメなのかの理由・ニュアンス解説】（簡潔に2〜3行）
+5. 締め: 「AIが不自然な英語を瞬時に見抜く！アプリ情報はリプ欄👇」`,
+
+  controversial_quiz: `【議論・リプライ誘発型 1問1答】
+正答率が低く、直感とズレるひっかけ問題や、「なぜこれが間違いか説明できますか？」とフォロワーに考えさせてリプライを書き込ませる形式にしてください。
+
+【構成（厳守）】
+1行目: フック（例:「【正答率23%】英検{level}の罠問題。あなたは解けますか？」「9割の受験生が引っかかる1語⚠️」）
+2. 📝【問題文】（英検{level}レベルの空所補充または文法問題）
+3. 選択肢: ①〜 ②〜（絶妙な紛らわしさがある2択）
+4. 締め: 「①と②どっちが正解だと思う？理由も一緒にリプで教えてください👇（正解と解説はリプ欄にあります）」`,
+
+  thread_summary: `【要点まとめスレッド（3〜4連ツイート）】
+英検{level}に最短で合格するための「神テンプレ」「頻出構文」「即点数になるテクニック」を3〜4ツイートの連投スレッドとして作成してください。
+※本文とリプライのフォーマットではなく、スレッド形式で出力します。`,
+
   american_culture: `アメリカの文化・習慣・スラング・慣用句に由来する英語表現を1つ取り上げてください。
 例：「It's not rocket science」「ballpark figure」「rain check」など日本人が知らない表現。
 その表現の意味・由来・使い方を簡潔に紹介し、英検{level}レベルのリーダーが実際に使えるようにしてください。`,
@@ -39,8 +92,145 @@ const QUESTION_TYPE_EXTRA = {
 今日から実践できる具体的なステップや、英検{level}のリスニングセクションに直結する練習素材・フレーズ例を必ず含めてください。`,
 };
 
-// Randomized angle / theme hints — vocabulary & grammar are level-keyed, others are shared
+// Randomized angle / theme hints
 const VARIETY_HINTS = {
+  ai_writing_correction: {
+    pre1: [
+      '理由付けで because から文を始めてしまうミス ➔ Since/Given that への書き換え',
+      '「多くの人々」で many people を多用するミス ➔ a growing number of individuals / proponents への書き換え',
+      '「重要だと思う」で I think it is important ➔ It is crucial/imperative that への洗練',
+      '語彙が稚拙（good/bad/get） ➔ beneficial/detrimental/acquire への置換',
+      '接続詞 moreover / furthermore の重複と不自然な位置の修正',
+    ],
+    '2': [
+      '「〜だと思う」で I think... を3回連続で使ってしまうミス ➔ In my opinion / From my perspective',
+      '「便利だから」で It is convenient だけ書いて終わるミス ➔ 具体例を展開する型',
+      '主語と動詞の不一致（People uses...）や時制のブレ',
+      '「たくさんのお金」で a lot of money ➔ significant financial resources への言い換え',
+      '結論で So I think... と書くミス ➔ For these reasons, I believe that...',
+    ],
+    pre2: [
+      'I like to... で幼稚に見える表現 ➔ I enjoy / I prefer',
+      'because だけの不完全な文（Because it is fun. でピリオド）の修正',
+      '単語のスペルミス・品詞の混同（delicious food vs very deliciously）',
+      '理由が1つしか書けていない答案 ➔ Also を使って2つ目を追加する型',
+    ],
+    pre2plus: [
+      'opinion と reason のつなぎが雑なミス ➔ First / Second の定石導入',
+      'general idea と specific example の切り分け',
+      '動名詞と不定詞の使い分けミス（enjoy to go ➔ enjoy going）',
+    ],
+    '3': [
+      '動詞の過去形忘れ（Yesterday I go...）の修正',
+      'I want to... の繰り返し ➔ I hope to / I would like to',
+    ],
+    '4': ['be動詞と一般動詞の混同（I am like apples）の修正'],
+    '5': ['大文字・小文字、ピリオド忘れの修正'],
+  },
+  ai_interview: {
+    pre1: [
+      'Q. Should companies allow employees to work from home full-time?',
+      'Q. Is it acceptable for artificial intelligence to replace human workers in creative fields?',
+      'Q. Do you think the government should invest more in renewable energy?',
+      'Q. Will online education completely replace traditional universities in the future?',
+    ],
+    '2': [
+      'Q. Some people say that young people spend too much time on smartphones. What do you think?',
+      'Q. Do you think more schools should introduce e-textbooks?',
+      'Q. These days, many people buy eco-friendly products. Do you think this trend will continue?',
+      'Q. Some people say that students should do more volunteer activities. What is your opinion?',
+    ],
+    pre2: [
+      'Q. Do you think it is good for children to have their own smartphones?',
+      'Q. Today, many people read books on tablet devices. Do you prefer paper books or e-books?',
+      'Q. Do you think people will travel abroad more in the future?',
+    ],
+    pre2plus: [
+      'Q. Do you think students should take part in club activities after school?',
+      'Q. Some people say that people should use public transportation instead of cars. What do you think?',
+    ],
+    '3': [
+      'Q. Which do you like better, reading books or watching movies?',
+      'Q. What is your favorite season? Why?',
+    ],
+    '4': ['Q. What do you usually do on Sundays?'],
+    '5': ['Q. Do you like sports?'],
+  },
+  native_vs_japanese: {
+    pre1: [
+      '❌ discuss about ➔ ⭕ discuss（他動詞なので about 不要）',
+      '❌ consider about ➔ ⭕ consider',
+      '❌ take a challenge ➔ ⭕ take on a challenge / take a risk',
+      '❌ almost of people ➔ ⭕ most people / almost all people',
+      '❌ improve my English skill ➔ ⭕ improve my English (proficiency)',
+    ],
+    '2': [
+      '❌ play with smartphone ➔ ⭕ use my smartphone',
+      '❌ I am boring ➔ ⭕ I am bored',
+      '❌ make an effort to ➔ ⭕ strive to / work hard to',
+      '❌ in my opinion, I think... ➔ ⭕ In my opinion, / I think...',
+      '❌ Japanese people is... ➔ ⭕ Japanese people are...',
+    ],
+    pre2: [
+      '❌ I went to shopping ➔ ⭕ I went shopping',
+      '❌ see TV ➔ ⭕ watch TV',
+      '❌ teach my English ➔ ⭕ teach me English',
+    ],
+    pre2plus: [
+      '❌ agree with you vs agree to the plan の使い分け',
+      '❌ explain me the problem ➔ ⭕ explain the problem to me',
+    ],
+    '3': ['❌ listen music ➔ ⭕ listen to music'],
+    '4': ['❌ look the picture ➔ ⭕ look at the picture'],
+    '5': ['❌ Thank you about ➔ ⭕ Thank you for'],
+  },
+  controversial_quiz: {
+    pre1: [
+      '「〜にもかかわらず」despite of は正しい？ 正解: despite または in spite of',
+      'demand that S (should) do の仮定法現在トラップ',
+      'hard vs hardly, late vs lately の品詞・意味トラップ',
+      'affect vs effect の動詞/名詞トラップ',
+    ],
+    '2': [
+      'suggest that he (go / goes) to hospital? どっちが正解？',
+      'used to do vs be used to doing の使い分けトラップ',
+      'look forward to (hear / hearing) from you? どっち？',
+      'borrow / lend / rent の使い分けひっかけ',
+    ],
+    pre2: [
+      'stop to smoke vs stop smoking の意味の違い',
+      'remember to do vs remember doing の違い',
+    ],
+    pre2plus: [
+      'If I (was / were) rich... どっちが英検で満点？',
+      'The number of students (is / are) increasing?',
+    ],
+    '3': ['have been to vs have gone to の違い'],
+    '4': ['yesterday がある文で had / have どっち？'],
+    '5': ['he (have / has) a dog?'],
+  },
+  thread_summary: {
+    pre1: [
+      '英検準1級ライティングで28点以上を確定させる「神フレーズ＆構文5選」',
+      '準1級語彙パートで8割取るための「語源×コロケーション暗記術」',
+      '準1級面接で評価4（満点）を連発する「2文展開ロジック」',
+    ],
+    '2': [
+      '英検2級英作文で14/16点以上取る「絶対に減点されない黄金テンプレ」',
+      '2級リスニング第2部で先読みして満点を取る「3秒ルール」',
+      '2級面接（スピーキング）で合格率98%にする「魔法の切り返し言葉3選」',
+    ],
+    pre2: [
+      '準2級ライティングで即満点が取れる「3段落テンプレート」',
+      '準2級で合否を分ける重要動詞トップ10と例文',
+    ],
+    pre2plus: [
+      '準2級プラス新形式の完全対策とライティング要約のコツ',
+    ],
+    '3': ['英検3級英作文の書き方と満点テンプレ'],
+    '4': ['英検4級の長文読解を10分で終わらせるコツ'],
+    '5': ['英検5級リスニングで満点を取るコツ'],
+  },
   vocabulary: {
     pre1: [
       'TOEIC・学術論文頻出の動詞を1語（allocate/discrepancy相当レベル）',
@@ -142,47 +332,32 @@ const VARIETY_HINTS = {
     ],
   },
   reading: [
-    '設問先読み→固有名詞・数字だけマークしてから本文に入る手順',
-    'スラッシュリーディング（意味のかたまりで区切って読む）の練習手順',
-    'パラグラフの1文目だけ拾って全体像をつかむスキミングの手順',
-    '選択肢の言い換え（パラフレーズ）の定番パターンと見抜き方',
-    'However/Therefore など逆接・結論マーカーの直後に答えが集まる理由',
-    '内容不一致（NOT）問題を消去法で解く手順',
-    '長文の時間配分と「捨て問」を決める基準',
-    '代名詞 it/they が指すものを直前の文から3秒で特定する方法',
-    'タイトルと最終段落を先に読む「サンドイッチ読み」',
-    '空所補充問題は空所の前後1文だけで解ける場合が多い理由',
+    '長文のパラグラフリーディングのコツ',
+    '指示語・代名詞を素早く特定するコツ',
+    '選択肢の言い換え（パラフレーズ）を見抜くコツ',
+    '筆者の主張と具体例を見分けるコツ',
+    '時間配分・設問先読みのコツ',
   ],
   writing: [
-    '「主張→理由2つ→結論」テンプレートの実際の書き出し英文',
-    'どんなお題にも使い回せる万能理由（health / money / time / environment）の当てはめ方',
-    'First / Second / For these reasons などディスコースマーカーの正しい配置',
-    '語数が足りない時に減点されずに増やす方法（理由に具体例を1文足す）',
-    '減点されやすいミスTOP3（三単現・冠詞・時制）のセルフチェック手順',
-    '賛成・反対は「本心」ではなく「理由を英語で書きやすい方」を選ぶ判断基準',
-    'そのまま使える意見文の定型表現（I believe that 〜 / It is important to 〜）',
-    '本番の時間配分（構想→執筆→見直しの分数配分）',
-    'お題の単語をそのまま使い回して主題文を作る時短テク',
+    '意見文のテンプレート型構成',
+    '理由2つ型の展開パターン',
+    'つなぎ言葉・ディスコースマーカーの使い方',
+    '語数を稼ぎつつ減点されないコツ',
+    '主張→理由→具体例→結論の流れ',
   ],
   listening: [
-    '音声が流れる前の10秒で選択肢の動詞だけ先読みする手順',
-    '数字・曜日・時刻のメモの取り方（算用数字＋記号で書く）',
-    'gonna / wanna / gotta など縮約形の聞き取り方と元の形',
-    '連結（リエゾン）の具体例（an apple / check it out）と聞こえ方',
-    '会話問題は最後の発言に答えが集中する理由と狙い方',
-    '1問聞き逃した時に引きずらず切り替えるルール',
-    'ディクテーションの正しい手順（1文再生→書く→答え合わせ→音読）',
-    '同じ音声を「字幕なし→スクリプト確認→もう1回」で聞く3回法',
+    'ディクテーションの進め方',
+    'シャドーイングのやり方',
+    '会話問題の先読みのコツ',
+    '数字・時刻・固定表現の聞き取りのコツ',
+    '連結・脱落・同化など音の変化',
   ],
   interview: [
-    '沈黙を作らないつなぎ表現（Well… / Let me see…）の使いどころ',
-    '質問が聞き取れなかった時の聞き返しフレーズ（Could you say that again?）',
-    '意見問題は「結論1文＋理由1文」の2文で答える型',
-    'アティチュード（態度点）で満点を取るための具体行動（アイコンタクト・声量・返事）',
-    'パッセージ音読は3語ずつ区切る・カンマで必ず一拍置く',
-    'イラスト問題を現在進行形で左から順に描写する手順',
-    '入室から着席までの英語のやりとりの実際の流れ',
-    '答えに詰まったら In my case… で自分の経験に引き寄せる技',
+    '入室・挨拶でのマナーとコツ',
+    'パッセージ音読のコツ',
+    'イラスト描写問題のコツ',
+    '意見を述べる問題の答え方',
+    '聞き返し・言い換えのテクニック',
   ],
   american_culture: [
     '天気・季節に関する慣用句',
@@ -190,150 +365,33 @@ const VARIETY_HINTS = {
     'スポーツ由来のイディオム',
     '食べ物にまつわる表現',
     '日常会話でよく出る縮約・スラング',
-    '数字を使ったイディオム（24/7 / first thing など）',
-    'アメリカの学校生活のリアル表現（pop quiz / hall pass など）',
-    '映画・ドラマ頻出の相づち・リアクション表現',
-    '直訳すると失礼になる日本人がやりがちな英語表現',
   ],
   ai_tips: [
-    '英作文を採点基準付きで添削させるプロンプトの実例',
-    'AIを英検の面接官にするロールプレイプロンプトの実例',
-    '苦手単語10個から4択クイズを作らせるプロンプトの実例',
-    '「なぜ他の選択肢が間違いか」まで説明させる過去問深掘りの質問例',
-    '1週間の学習計画表をAIに作らせる時に渡すべき情報3つ',
-    'リスニング用スクリプトを生成して読み上げ機能で練習する手順',
-    '自分の英作文に「より自然な言い回しを3つ」出させるプロンプト',
-    '長文を「1文ずつ日本語訳＋文法解説」に分解させる使い方',
+    '英作文添削プロンプト',
+    '音読・スピーキング練習相手としての使い方',
+    '単語暗記のフラッシュカード生成',
+    'リスニング用スクリプト生成',
+    '過去問の解説を深掘りさせる使い方',
+    '弱点分析とカリキュラム作成',
   ],
   study_tips: [
-    '忘却曲線に基づく復習タイミング（当日→翌日→1週間後の3回）',
-    '過去問1回分を3周する方法（1周目解く→2周目精読→3周目音読）',
-    '単語は「見て1秒で意味が言える」まで高速周回する方法（1周を薄く速く）',
-    'ポモドーロ法（25分集中＋5分休憩）を英語学習に当てはめた実例',
-    '寝る前10分の単語インプット→翌朝セルフテストで定着させる手順',
-    '間違いノートの作り方（間違えた理由を1行で書き添える）',
-    '週1回のセルフ模試で本番の時間感覚を作る方法',
-    '同じ長文を音読30回すると読速が上がる理由と実施手順',
-    'スランプ時は「解ける問題だけやる日」を作って再起動する方法',
-    '通学15分でできるリスニング学習の具体メニュー',
-    '勉強開始のハードルを下げる「2分ルール」（最初の1問だけ解く）',
-  ],
-  listening_tips: [
-    'シャドーイングの4段階（聞く→スクリプト精読→オーバーラッピング→シャドーイング）',
-    'ディクテーションで「聞こえない音」を特定して潰す手順',
-    '返り読みを封じて英語の語順のまま理解するトレーニング',
-    '過去問音声を1.2倍速で聞いて本番をゆっくり感じさせる方法',
-    '音の変化3種（連結・脱落・同化）を具体例セットで覚える',
-    '毎日10分の「精聴」と流し聞き「多聴」の使い分け基準',
-    '知らない単語は聞き取れない：リスニング前の語彙確認手順',
+    'スキマ時間の活用法（通学・休み時間）',
+    '過去問の復習サイクル（間違いノート運用）',
+    'モチベーション維持・習慣化のコツ',
+    '音読・シャドーイングのルーティン化',
+    '睡眠と記憶定着を意識した学習スケジュール',
+    'スランプから抜け出すメンタル管理法',
+    '学習環境・集中力を高める工夫',
+    '1日のタイムブロッキング勉強法',
   ],
 };
 
-// レベル別の具体的な語彙プール。曖昧な指示だとAIが定番語に収束するため、実在の語を大量に用意して
-// 毎回ランダムに数語を提示し「この中から選ぶ」ことで題材を分散させる。
-const WORD_POOLS = {
-  pre1: [
-    'meticulous', 'ambiguous', 'plausible', 'redundant', 'versatile', 'coherent', 'resilient',
-    'discreet', 'tedious', 'feasible', 'arbitrary', 'notorious', 'lucrative', 'obsolete',
-    'prevalent', 'susceptible', 'tentative', 'candid', 'diligent', 'eloquent', 'formidable',
-    'intricate', 'alleviate', 'undermine', 'comply', 'cultivate', 'endorse', 'mitigate',
-    'reconcile', 'suppress', 'compensate', 'oversee', 'retain', 'endure', 'compile',
-    'scrutinize', 'advocate', 'deploy', 'anticipate', 'accumulate', 'inherent', 'compelling',
-    'skeptical', 'ambitious', 'profound', 'subtle', 'vulnerable', 'exploit', 'foster',
-  ],
-  '2': [
-    'available', 'particular', 'sufficient', 'obvious', 'appropriate', 'essential', 'various',
-    'aware', 'familiar', 'complicated', 'immediate', 'apparent', 'reliable', 'flexible',
-    'accurate', 'efficient', 'reasonable', 'significant', 'previous', 'eventually',
-    'prevent', 'appreciate', 'recognize', 'participate', 'involve', 'remain', 'replace',
-    'examine', 'determine', 'refer', 'reduce', 'require', 'admit', 'afford', 'assume',
-    'consist', 'contain', 'declare', 'engage', 'establish', 'maintain', 'observe',
-    'persuade', 'regard', 'reveal', 'seek', 'settle', 'spread', 'tend', 'undergo',
-  ],
-  pre2: [
-    'probably', 'especially', 'average', 'natural', 'similar', 'certain', 'common',
-    'popular', 'comfortable', 'convenient', 'necessary', 'possible', 'special', 'simple',
-    'choose', 'decide', 'improve', 'increase', 'prepare', 'produce', 'receive', 'realize',
-    'suggest', 'describe', 'express', 'imagine', 'introduce', 'invent', 'protect', 'respect',
-    'solve', 'support', 'wonder', 'reason', 'chance', 'result', 'purpose', 'trouble',
-  ],
-  pre2plus: [
-    'reasonable', 'valuable', 'several', 'various', 'actually', 'especially', 'medium',
-    'account', 'benefit', 'method', 'quality', 'sudden', 'apparent', 'obvious', 'aware',
-    'consider', 'continue', 'provide', 'require', 'offer', 'gather', 'mention', 'expect',
-    'prepare', 'realize', 'recognize', 'compare', 'complete', 'discover', 'notice', 'reduce',
-    'succeed', 'appreciate', 'behave', 'consist', 'depend', 'develop', 'perform', 'remain',
-  ],
-  '3': [
-    'enjoy', 'practice', 'excited', 'bored', 'favorite', 'important', 'famous', 'careful',
-    'useful', 'dangerous', 'quiet', 'strange', 'special', 'kind', 'brave', 'polite',
-    'arrive', 'borrow', 'return', 'invite', 'agree', 'worry', 'hope', 'decide', 'promise',
-    'answer', 'believe', 'collect', 'explain', 'finish', 'happen', 'join', 'save', 'share',
-    'travel', 'understand', 'wait', 'win', 'wear', 'reach', 'plan', 'follow',
-  ],
-  '4': [
-    'breakfast', 'weather', 'hobby', 'animal', 'subject', 'holiday', 'garden', 'kitchen',
-    'letter', 'season', 'station', 'street', 'water', 'window', 'morning', 'evening',
-    'bring', 'carry', 'clean', 'cook', 'draw', 'fall', 'hurry', 'jump', 'ride', 'sing',
-    'buy', 'call', 'catch', 'climb', 'dance', 'help', 'leave', 'listen', 'open', 'send',
-    'sit', 'stand', 'stop', 'teach', 'walk', 'wash', 'watch', 'write',
-  ],
-  '5': [
-    'apple', 'dog', 'cat', 'red', 'blue', 'Monday', 'teacher', 'family', 'school', 'book',
-    'water', 'morning', 'friend', 'ball', 'bird', 'car', 'desk', 'egg', 'fish', 'hand',
-    'eat', 'run', 'play', 'read', 'sing', 'walk', 'swim', 'sleep', 'jump', 'go',
-    'like', 'have', 'see', 'sit', 'stand', 'open', 'look', 'make', 'sing', 'help',
-  ],
-};
-
-// 例文・題材の領域。同じ単語・文法でも領域を変えると内容が分散する
-const TOPIC_DOMAINS = [
-  '日常生活・家庭', '学校・部活', '科学・環境', 'ビジネス・経済', '感情・性格',
-  '旅行・異文化', '健康・スポーツ', 'テクノロジー・ニュース', '食べ物・買い物', '自然・動物',
-];
-
-// 教科書・過去投稿で使い古された頻出語。これらは避けさせる
-const OVERUSED_WORDS = [
-  'abandon', 'consequence', 'contribute', 'implement', 'discrepancy', 'postpone',
-  'acquire', 'inevitable', 'allocate', 'propose', 'environment', 'experience',
-];
-
-function sample(arr, n) {
-  const copy = [...arr];
-  const out = [];
-  for (let i = 0; i < n && copy.length; i++) {
-    out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
-  }
-  return out;
-}
-
-function pickDomain() {
-  return TOPIC_DOMAINS[Math.floor(Math.random() * TOPIC_DOMAINS.length)];
-}
-
-// 毎回異なる題材・例文になるよう、具体的な指定を組み立てる（語彙は実在語プールから抽選）
 function pickVariety(questionType, level) {
-  const seed = Math.floor(1000 + Math.random() * 9000); // 多様性シード
-  const domain = pickDomain();
-
-  if (questionType === 'vocabulary') {
-    const pool = WORD_POOLS[level] || WORD_POOLS['2'];
-    const candidates = sample(pool, 4);
-    return `今回の題材語の候補（この中から1語を選ぶ。難しければ同レベル・同カテゴリの別語でも可）: ${candidates.join(' / ')}
-・例文の場面は「${domain}」の文脈にする
-・次の使い古された語は使わない: ${OVERUSED_WORDS.join(', ')}
-・多様性シード ${seed}（同じ入力でも毎回、上の候補や場面を変えて別の語・別の例文にすること）`;
-  }
-
   const hints = VARIETY_HINTS[questionType];
-  let base = '';
-  if (hints) {
-    const list = Array.isArray(hints) ? hints : (hints[level] || hints['2'] || []);
-    if (list.length) base = list[Math.floor(Math.random() * list.length)];
-  }
-  const domainLine = `・例文・話題の場面は「${domain}」の文脈にする`;
-  const seedLine = `・多様性シード ${seed}（同じ入力でも毎回、切り口・例・言い回しを変えること）`;
-  return [base, domainLine, seedLine].filter(Boolean).join('\n');
+  if (!hints) return '';
+  const list = Array.isArray(hints) ? hints : (hints[level] || hints['2'] || []);
+  if (list.length === 0) return '';
+  return list[Math.floor(Math.random() * list.length)];
 }
 
 const LEVEL_CONFIG = {
@@ -355,7 +413,7 @@ const LEVEL_CONFIG = {
     label: '準2級',
     target: '中高生（高校入試や英語の基礎固めを目指す学習者）',
     hook: '準2級で英語に自信をつけたい中高生に響く冒頭フック',
-    hashtags: '#英検準2級 #英語学習',
+    hashtags: '#英検準2級 #高校受験',
     difficulty: '中学〜高校初級レベル。environment/experience/promise相当の語彙、不定詞・受動態・比較、日常的な話題を扱う。難しすぎる表現は使わない。',
   },
   pre2plus: {
@@ -376,7 +434,7 @@ const LEVEL_CONFIG = {
     label: '4級',
     target: '小中学生（英検4級を目指す学習者）',
     hook: '英語の基礎を楽しく学びたい小中学生に響く冒頭フック',
-    hashtags: '#英検4級 #英語学習',
+    hashtags: '#英検4級 #小学英語',
     difficulty: '小〜中学初級レベル。food/sport/family相当の日常語彙、be動詞・一般動詞・過去形・can、例文は10語以内のシンプルな文のみ。現在完了・仮定法は使わない。',
   },
   '5': {
@@ -388,207 +446,207 @@ const LEVEL_CONFIG = {
   },
 };
 
-// 一次試験（本会場）は全級共通日程。過去の日付は自動でスキップされる。
-const EXAM_SCHEDULE = [
-  { round: '2026年度第1回', date: '2026-05-31' },
-  { round: '2026年度第2回', date: '2026-10-04' },
-  { round: '2026年度第3回', date: '2027-01-24' },
-];
-
-// カウントダウンは直前期のみ（残り日数が大きいと訴求力がなく本文の文字数も削るため）
-const COUNTDOWN_WINDOW_DAYS = 60;
-
-function getNextExam() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  for (const exam of EXAM_SCHEDULE) {
-    const daysUntil = Math.ceil((new Date(exam.date) - today) / (1000 * 60 * 60 * 24));
-    if (daysUntil >= 0) return { ...exam, daysUntil };
-  }
-  return null;
-}
-
 const CTA_LINKS = {
-  pre1: { url: 'https://apps.apple.com/jp/app/id6762535365', label: '英検準１級Pass' },
-  '2':  { url: 'https://apps.apple.com/jp/app/id6761838561', label: '英検２級Pass' },
-  pre2: { url: 'https://apps.apple.com/jp/app/id6762229086', label: '英検準２級Pass' },
-  pre2plus: { url: 'https://apps.apple.com/jp/app/id6762537264', label: '英検準２級プラスPass' },
+  pre1: { url: 'https://apps.apple.com/jp/app/id6762535365', label: 'AI英検準1級 Pass' },
+  '2': { url: 'https://apps.apple.com/jp/app/id6761838561', label: '英検2級Pass（AI英作文・面接対策）' },
+  pre2: { url: 'https://apps.apple.com/jp/app/id6762229086', label: 'AI英検準2級 Pass' },
+  pre2plus: { url: 'https://apps.apple.com/jp/app/id6762537264', label: 'AI英検準2級プラス Pass' },
 };
 
-function buildCtaText(level) {
-  const cta = CTA_LINKS[level];
-  if (!cta) return null;
-  return `📲 ${cta.label} → ${cta.url}`;
-}
-
-// X の加重文字数（日本語・絵文字=2、URL=23）。認証なしで投稿できる基準は加重280。
-const calcXCharCount = xWeightedLength;
-
-// 投稿フォーマット:
-//  - quiz_reply: 本文はリンクなしのクイズ。解答・解説＋アプリリンクはリプ欄に投稿（リーチとCVの両立）
-//  - value:      リンクなしの価値提供投稿（Xは外部リンク付き投稿のリーチを下げるため通常はこちら）
-//  - promo:      本文にアプリリンクを含める宣伝投稿（週1回程度に抑える想定）
-const POST_FORMATS = ['quiz_reply', 'value', 'promo'];
-
-function defaultFormat(questionType) {
-  return ['vocabulary', 'grammar'].includes(questionType) ? 'quiz_reply' : 'value';
-}
-
-// Build the fixed suffix (hashtags, and CTA only for promo) with its X char cost
-function buildSuffix(lv, level, format) {
-  const ctaText = format === 'promo' ? buildCtaText(level) : null;
-  const suffix = ctaText ? `\n${ctaText}\n${lv.hashtags}` : `\n${lv.hashtags}`;
-  return { suffix, cost: calcXCharCount(suffix) };
-}
-
-// Build the fixed prefix (exam countdown, only within the countdown window)
-function buildPrefix() {
-  const exam = getNextExam();
-  if (!exam || exam.daysUntil > COUNTDOWN_WINDOW_DAYS) return { prefix: '', cost: 0 };
-  const prefix = `📅 1次試験まであと${exam.daysUntil}日！\n`;
-  return { prefix, cost: calcXCharCount(prefix) };
-}
-
-// 誇大表現・偽の限定性・エンゲージメント乞いはアカウントの信頼とリーチを毀損するため全生成で禁止する
-const CONTENT_QUALITY_RULES = `【コンテンツ品質ルール（厳守）】
-- 架空の統計・数字を作らない（「合格者の98%が知っている」「受験生の92%が間違える」等は禁止）
-- 「残り○時間限定」「正解者にプレゼント」など、実施していない企画や偽の限定性を書かない
-- 「いいね・RT・フォローお願いします」等のお願い・依頼文を入れない
-- 「これだけで合格」「絶対に出る」等の誇大な断定をしない
-- 読んだ人がこの投稿だけで1つ確実に学べる、具体的で正確な内容にする
-- 冒頭1行は挨拶や前置きではなく、続きを読みたくなる具体的なフックにする（問い・意外な事実・あるあるの失敗など）`;
-
-// docs/EIKEN_GROWTH_STRATEGY.md の要約。エージェントチームの共通コンテキスト
-const EIKEN_PLAYBOOK = `【マーケティング方針（要約）】
-- 目的: X（@optimalrnai）経由でAI英検Passアプリの認知・ダウンロードを増やす。ただし投稿の大半は売り込みではなく「価値提供」でリーチとフォローを稼ぐ（価値8:宣伝2）
-- リンク付き投稿はリーチが下がるため、アプリリンクは解答リプライまたは週1のpromo枠のみ
-- 勝ちパターン: ①リプ欄で答えたくなる参加型クイズ ②「知らなかった」と保存されるTips ③受験・進学に直結する実利情報
-- トーン: 上から目線の先生ではなく、頼れる先輩・伴走者。丁寧すぎず、チャラすぎず`;
-
-const HOOK_PATTERNS = `1. 問いかけ型（「〜、英語で言えますか？」）
-2. 意外な事実型（「実は◯◯には△△の意味もある」）
-3. あるある失敗型（「〜と訳した人、要注意」）
-4. ビフォーアフター型（「これを知る前と後で長文の読み方が変わる」）
-5. 共感型（「単語帳、3日で飽きた人へ」）
-6. 直球クイズ型（前置きなしでいきなり問題文から始める）
-7. ミニストーリー型（短い情景・会話の1文から入る）
-8. 手順型（「◯◯は3ステップで解ける」※実在する解き方のみ）`;
-
-const FORMAT_DESCRIPTIONS = {
-  quiz_reply: 'クイズ＋答えはリプ欄（本文はリンクなしの4択クイズ。正解・解説とアプリリンクはリプライに分離してエンゲージメントを稼ぐ）',
-  value: '価値提供（リンクなしのTips投稿。リーチとフォロー獲得が目的）',
-  promo: 'アプリ訴求（本文にApp Storeリンクを含む宣伝投稿。週1回の枠）',
+const KOYOMI_CTA = {
+  url: 'https://apps.apple.com/jp/app/id6794647918',
+  label: 'Koyomi -暦-（年表＆カレンダーで覚える日本史・世界史）',
 };
 
-// 投稿にはクイズ/Tipsカード画像を自動生成して添付する。カードが綺麗に組めるよう本文を構造化させる
-const CARD_LAYOUT_RULE = `【重要：文字数と画像】
-- この投稿には内容を要約したカード画像が自動生成され一緒に投稿されます。詳しい情報は画像が担うので、投稿テキストは要点だけ簡潔に。冗長な説明で文字数を使わないこと
-- Xは日本語1文字を2文字分として数えます。文字数制限は必ず守り、超えそうなら削ること
-
-【カード画像用の構造（カードが綺麗に組めるよう次の構造を守ること）】`;
-
-function buildFormatRequirements(format, lv, extra) {
-  const extraBlock = extra ? `\n【問題タイプ固有の指示】\n${extra}\n` : '';
-  if (format === 'quiz_reply') {
-    return `${extraBlock}${CARD_LAYOUT_RULE}
-- 1行目: パンチのある短い見出し（フック）を1行だけ。20文字以内
-- 2行目以降に、空所を1つだけ含む英文の問題文（空所は ( ) で表す。空所は必ず1つ）
-- 選択肢は①〜④の4択。**必ず1行に1つずつ改行して並べる**（例: 「①rose」で改行「②raised」…）。1行に詰め込まない
-- 最後に「答えはリプ欄👇」で締める
-- **正解・解説は絶対に書かない**
-- 絵文字は1〜2個まで
-
-【解答リプライ（reply）の要件】
-- 1行目で正解を明示（例：「正解は②！」）
-- なぜその答えになるか＋覚え方や関連知識を簡潔に解説
-- 絵文字は1個まで`;
-  }
-  return `${extraBlock}${CARD_LAYOUT_RULE}
-- 1行目: パンチのある短い見出し（フック）を1行だけ。20文字以内
-- 2行目以降: 本文（下記の要件を満たす）
-- ${lv.hook}
-- Tipsまたは例文を1つだけ。読者が今日から実践できる具体性を持たせる
-- **一般論・精神論だけの内容は禁止**（「毎日コツコツ」「スキマ時間を活用しよう」「集中できる環境を作ろう」のような、誰でも言える内容で終わらせない）
-- 次のいずれかを必ず含める: ①名前のある具体的テクニック ②数値（分数・回数・日数・語数） ③3ステップ以内の手順 ④実際の英文例1つ
-- 「今日、机に座ったら最初に何をすればいいか」が明確に分かる粒度まで具体化する
-- 絵文字は1〜2個まで
-- replyはnull`;
+function getCta(level) {
+  return CTA_LINKS[level] || null;
 }
 
-// prompt-onlyモード用: 外部AIに1回貼るだけで「そのままXに投稿できる完成形」を出力させる一括プロンプト
-// 単発投稿（value/promo）はプレーンテキスト出力（JSONだと外部AIの不正エスケープで壊れるため）。
-// クイズ＋リプ分離のみ、2つのテキストを区別する必要があるためJSONを使う
-function buildEikenSinglePrompt(task, fixed) {
-  const prefixRule = fixed.prefix
-    ? `- 投稿の先頭に次の固定文をそのまま置く: "${fixed.prefix}"`
-    : '- カウントダウンの固定文はなし（付けない）';
+function buildCountdownLine() {
+  const next = getCountdown();
+  if (!next) return '';
+  const [, m, d] = next.primaryDate.split('-');
+  if (next.daysUntil === 0) return `⏳ 今日が一次試験本番！`;
+  return `⏳ 一次試験まであと${next.daysUntil}日（${Number(m)}/${Number(d)}）`;
+}
 
-  const assemblyRules = task.format === 'quiz_reply'
-    ? `${prefixRule}
-- postの末尾に次の固定文をそのまま置く: "${fixed.suffix}"
-- replyの末尾に次の固定文をそのまま置く: "${fixed.replySuffix}"
-- 固定文を除いた本文部分は、postが${task.bodyLimit}文字以内、replyが${task.replyLimit}文字以内`
-    : `${prefixRule}
-- 投稿の末尾に次の固定文をそのまま置く: "${fixed.suffix}"
-- 固定文を除いた本文部分は${task.bodyLimit}文字以内`;
+function buildSuffix(lv) {
+  const countdown = buildCountdownLine();
+  const suffix = countdown ? `\n\n${countdown}\n${lv.hashtags}` : `\n\n${lv.hashtags}`;
+  return { suffix, cost: xLength(suffix) };
+}
 
-  const outputRules = task.format === 'quiz_reply'
-    ? `次の形式で、そのままXに貼れる2つの完成テキストだけを出力してください。
-JSON・コードブロック・前後の説明文は一切付けないこと。「【投稿欄】」「【リプ欄】」の見出しは一字一句このまま使うこと：
+function buildReplyText(explanation, cta) {
+  const parts = [];
+  if (explanation) parts.push(explanation.trim());
+  if (cta) parts.push(`📲 ${cta.label}\n${cta.url}`);
+  const text = parts.join('\n\n');
+  return xTruncate(text, X_LIMIT);
+}
 
-【投稿欄】
-（投稿欄にそのまま貼るテキスト）
+const BODY_MARK = '===本文===';
+const REPLY_MARK = '===リプライ===';
+const THREAD_MARK_REGEX = /===ツイート(\d+)===/g;
 
-【リプ欄】
-（リプ欄にそのまま貼るテキスト）`
-    : `そのままXに貼れる完成形の投稿テキストのみを出力してください。
-JSON・コードブロック・前後の説明文・見出しは一切付けず、投稿テキストだけを出力すること。`;
+function splitGenerated(raw) {
+  const text = (raw || '').trim();
+  const replyIdx = text.indexOf(REPLY_MARK);
+  const stripBody = (s) => s.replace(BODY_MARK, '').trim();
+  if (replyIdx === -1) return { body: stripBody(text), explanation: '' };
+  return {
+    body: stripBody(text.slice(0, replyIdx)),
+    explanation: text.slice(replyIdx + REPLY_MARK.length).trim(),
+  };
+}
 
-  return `あなたはマーケター・コピーライター・品質レビュアーの3役を1人でこなし、X（@optimalrnai）の英検${task.levelLabel}「${task.typeLabel}」投稿を完成させます。
+function splitThreadGenerated(raw) {
+  const text = (raw || '').trim();
+  const parts = text.split(/===ツイート\d+===/i).map(p => p.trim()).filter(Boolean);
+  if (parts.length > 0) return parts;
+  // Fallback: split by 2+ newlines or returns array of 1
+  return [text];
+}
 
-${task.playbook}
+function engagementRules(bodyLimit, replyLimit) {
+  return `【Xで伸びる投稿の条件（最重要・厳守）】
+タイムラインでは1投稿あたり0.5秒で読むか捨てるかが決まります。以下を必ず守ってください。
+1. 1行目（フック）だけで指を止めさせる。数字・意外性・損失回避を使った具体的な一文にする。
+   例:「9割が間違える1語です」「これ書くと英検本番で減点されます⚠️」
+   挨拶・前置き・「今日は〜を紹介します」のような入りは絶対に書かない。
+2. 1投稿1テーマ。詰め込まない。
+3. 箇条書きや記号（❌ ⭕ 🤖 💡 📝）を使い、パッと見で構造が伝わるようにする。
+4. 改行で3〜5ブロックに分ける。改行のない塊は読まれない。
+5. 最後は必ずリプライを誘う一文で締める（「無料添削はリプ欄👇」「正解はリプ欄👇」など）。
+   Xはリプライと保存が多い投稿を伸ばすため、これが表示回数に直結する。
+6. 絵文字は2〜4個まで。視認性を高める目的に限定する。
 
-【今回の投稿枠】
-フォーマット: ${task.formatDesc}
-ターゲット: ${task.target}
+【絶対に書いてはいけないもの】
+- URL・リンク（システムが別途リプライに付けます）
+- ハッシュタグ（システムが付けます）
+- 「いかがでしたか」「解説します」などブログ的な定型句
+- 試験日カウントダウン（システムが付けます）
+
+【出力フォーマット（この形式以外で返さない）】
+${BODY_MARK}
+（X本文。${bodyLimit}カウント以内。日本語1文字＝2カウントで数えること。つまり日本語なら約${Math.floor(bodyLimit / 2)}文字が上限）
+${REPLY_MARK}
+（本文にぶら下げるリプライの中身。クイズなら「答え＋なぜそうなるかの解説」、Tipsや添削なら「もう一歩踏み込んだ補足や具体例」。${replyLimit}カウント以内＝日本語で約${Math.floor(replyLimit / 2)}文字。ここにもURLとハッシュタグは書かない）`;
+}
+
+function threadRules(level, cta) {
+  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+  return `【スレッド（連ツイ）出力フォーマット（厳守）】
+以下の形式で3〜4ツイートを順番に出力してください。各ツイートは240カウント（日本語約120文字）以内に収めてください。
+
+===ツイート1===
+（フック＋導入。読者が思わずスレッドを開きたくなる強力な1文から始める。例:「英検${lv.label}ライティングで確実に高得点を取る型をまとめました。保存推奨👇」）
+
+===ツイート2===
+（1つ目の重要ポイント・添削Before/After・具体例）
+
+===ツイート3===
+（2つ目の重要ポイントまたは実践テクニック）
+
+===ツイート4===
+（まとめ＋「この練習がいつでもAIでできるアプリはこちら📲」などのCTA誘導。URLやハッシュタグは書かない）`;
+}
+
+function buildEikenPrompt(questionType, level, bodyLimit, replyLimit, variety = '') {
+  const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
+  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+  const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replaceAll('{level}', lv.label);
+  const varietyLine = variety ? `- 今回のテーマ・切り口：「${variety}」で書いてください（毎回違う内容にするため）` : '';
+
+  if (questionType === 'thread_summary') {
+    return `英検${lv.label}の学習コンテンツをX（旧Twitter）のスレッド（連ツイ）形式で投稿します。
+ターゲット: **${lv.target}**
+テーマ: ${variety || `${lv.label}合格のための要点まとめ`}
 
 【難易度・使用語彙の厳守事項】
-${task.difficulty}
+${lv.difficulty}
 
-${task.qualityRules}
+${threadRules(level, getCta(level))}`;
+  }
 
-${task.formatRequirements}
+  return `英検${lv.label}の学習コンテンツをX（旧Twitter）に投稿します。
+ターゲット: **${lv.target}**
+コンテンツタイプ: ${typeLabel}
 
-【最近の投稿（題材・フックの型・言い回しを絶対に被らせない）】
-${task.recentPosts?.length ? task.recentPosts.map((t, i) => `${i + 1}. ${t.replace(/\s+/g, ' ').slice(0, 120)}`).join('\n') : '（過去投稿なし）'}
+【難易度・使用語彙の厳守事項】
+${lv.difficulty}
+上記レベルを必ず守り、それより難しい語彙・文法を使わないこと。
 
-【フックの型（最近の投稿で使われていないものを選ぶ）】
-${task.hookPatterns}
+【内容の要件】
+- ${lv.hook}
+${extra ? `- ${extra}` : `- 英検${lv.label}の${typeLabel}に関するTipsまたは例文を1つだけ`}
+${varietyLine}
+- クイズ形式にする場合、選択肢は①②の2択のみ。答えは本文に書かず、リプライ側に書く
 
-【今回の題材指定（毎回違う内容にするため必ず従うこと）】
-${task.varietyHint || 'なし'}
+${engagementRules(bodyLimit, replyLimit)}`;
+}
 
-【完成形の組み立てルール（固定文は一字一句このまま出力に含めること）】
-${assemblyRules}
+async function generateBodyAndReply({ systemPrompt, buildPrompt, bodyLimit, replyLimit }) {
+  let body = '';
+  let explanation = '';
 
-【出力形式】
-${outputRules}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * (attempt === 1 ? 0.85 : 0.7));
+    const raw = await generateTextFull(systemPrompt, buildPrompt(limitForAttempt), {
+      maxTokens: 1000,
+      temperature: 1.0,
+    });
+    ({ body, explanation } = splitGenerated(raw));
+    if (xLength(body) <= bodyLimit) break;
+  }
+
+  return {
+    body: xTruncate(body, bodyLimit),
+    explanation: xTruncate(explanation, replyLimit),
+  };
+}
+
+async function generateThreadContent({ systemPrompt, buildPrompt, level }) {
+  const raw = await generateTextFull(systemPrompt, buildPrompt(240), {
+    maxTokens: 1500,
+    temperature: 0.9,
+  });
+  const parts = splitThreadGenerated(raw);
+  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+  const { suffix } = buildSuffix(lv);
+  const cta = getCta(level);
+
+  // Process parts: truncate each to limit, add suffix to last or first
+  const processed = parts.map((p, idx) => {
+    let t = p.trim();
+    if (idx === parts.length - 1 && cta) {
+      t = `${t}\n\n📲 ${cta.label}\n${cta.url}`;
+    }
+    return xTruncate(t, X_LIMIT);
+  });
+
+  return {
+    threadPosts: processed,
+    firstPost: processed[0] || '',
+  };
+}
+
+function replyBudget(cta) {
+  const ctaCost = cta ? xLength(`📲 ${cta.label}\n${cta.url}`) + 2 : 0;
+  return X_LIMIT - ctaCost - 2;
 }
 
 // GET /api/eiken/exam-info
 router.get('/exam-info', (req, res) => {
-  const next = getNextExam();
   res.json({
-    next,
-    countdownActive: !!next && next.daysUntil <= COUNTDOWN_WINDOW_DAYS,
-    schedule: EXAM_SCHEDULE,
+    exams: EIKEN_EXAMS,
+    next: getNextExam(),
+    countdown: getCountdown(),
   });
 });
 
 // POST /api/eiken/generate - Direct single-call generation (SSE)
 router.post('/generate', async (req, res) => {
   const { questionType = 'vocabulary', level = '2', prompt_only = false } = req.body;
-  const format = POST_FORMATS.includes(req.body.format) ? req.body.format : defaultFormat(questionType);
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -602,55 +660,61 @@ router.post('/generate', async (req, res) => {
   try {
     const postId = uuidv4();
     const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
-    const { prefix, cost: prefixCost } = buildPrefix();
-    const { suffix, cost: suffixCost } = buildSuffix(lv, level, format);
+    const cta = getCta(level);
+    const { suffix, cost: suffixCost } = buildSuffix(lv);
+    const bodyLimit = X_LIMIT - suffixCost - 4;
+    const replyLimit = replyBudget(cta);
 
-    // X の加重280（認証なしで投稿できる上限）から固定文分を引いた「本文に使える加重予算」。
-    // 本文の中身はカード画像に載せるため、テキストは短くても成立する。
-    const bodyWeightedBudget = X_MAX_WEIGHTED - prefixCost - suffixCost - 4;
-    const bodyLimit = actualCharBudget(bodyWeightedBudget); // 生成AIに提示する実文字数の目安
+    const systemPrompt = 'あなたはSNSマーケティングと英語教育の専門家です。Xで圧倒的に拡散されている教育アカウントの書き方を熟知しています。';
+    const variety = pickVariety(questionType, level);
+    const buildPrompt = (limit) => buildEikenPrompt(questionType, level, limit, replyLimit, variety);
 
-    // 解答リプにはCTAリンクを付ける（本文をリンクなしに保ちつつ、正解を見に来た人に届く）
-    const ctaText = buildCtaText(level);
-    const replySuffix = ctaText ? `\n\n${ctaText}` : '';
-    const replyWeightedBudget = X_MAX_WEIGHTED - calcXCharCount(replySuffix) - 4;
-    const replyLimit = actualCharBudget(replyWeightedBudget);
-
-    const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
-    const extra = (QUESTION_TYPE_EXTRA[questionType] || '').replaceAll('{level}', lv.label);
-    const recentPosts = db.prepare(
-      `SELECT post_text FROM sns_posts WHERE app_type = 'eiken' ORDER BY created_at DESC LIMIT 20`
-    ).all().map(r => r.post_text);
-
-    const task = {
-      format,
-      formatDesc: FORMAT_DESCRIPTIONS[format],
-      levelLabel: lv.label,
-      typeLabel,
-      target: lv.target,
-      difficulty: lv.difficulty,
-      qualityRules: CONTENT_QUALITY_RULES,
-      playbook: EIKEN_PLAYBOOK,
-      hookPatterns: HOOK_PATTERNS,
-      formatRequirements: buildFormatRequirements(format, lv, extra),
-      bodyLimit,
-      replyLimit,
-      bodyWeightedBudget,
-      replyWeightedBudget,
-      recentPosts,
-      varietyHint: pickVariety(questionType, level),
-    };
-
-    // prompt-onlyモード: 外部AIに貼るだけで完成形（固定文込み）が出る一括プロンプトを提示
     const promptInfo = [{
-      label: `英検${lv.label} ${typeLabel} 一括生成プロンプト（${format}・完成形出力）`,
-      system: 'あなたはSNSマーケティングと英語教育の専門家チームです。',
-      user: buildEikenSinglePrompt(task, { prefix, suffix, replySuffix }),
+      label: `英検${lv.label} ${QUESTION_TYPE_LABELS[questionType] || questionType} 投稿生成プロンプト`,
+      system: systemPrompt,
+      user: buildPrompt(bodyLimit),
     }];
+
+    if (questionType === 'thread_summary') {
+      const generated = await tryClaudeOrEmitPrompt(
+        promptInfo,
+        () => generateThreadContent({ systemPrompt, buildPrompt, level }),
+        sendEvent,
+        prompt_only,
+      );
+
+      if (generated == null) {
+        sendEvent('done', {});
+        return;
+      }
+
+      const mainPostText = generated.firstPost;
+      const metadata = {
+        questionType,
+        level,
+        is_thread: true,
+        thread_posts: generated.threadPosts,
+        reply_text: generated.threadPosts.slice(1).join('\n\n---(次のツイート)---\n\n'),
+      };
+
+      db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+        postId, 'eiken', mainPostText, JSON.stringify(metadata), 'draft'
+      );
+
+      sendEvent('final_post', {
+        post_id: postId,
+        post_text: mainPostText,
+        is_thread: true,
+        thread_posts: generated.threadPosts,
+        reply_text: metadata.reply_text,
+      });
+      sendEvent('done', {});
+      return;
+    }
 
     const generated = await tryClaudeOrEmitPrompt(
       promptInfo,
-      async () => orchestrateEikenPost(task, (msg) => sendEvent('agent_message', msg)),
+      () => generateBodyAndReply({ systemPrompt, buildPrompt, bodyLimit, replyLimit }),
       sendEvent,
       prompt_only,
     );
@@ -660,24 +724,14 @@ router.post('/generate', async (req, res) => {
       return;
     }
 
-    const postText = `${prefix}${generated.post}${suffix}`;
-    const replyText = generated.reply ? `${generated.reply}${replySuffix}` : null;
+    const postText = `${generated.body}${suffix}`;
+    const replyText = buildReplyText(generated.explanation, cta);
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'eiken', postText, JSON.stringify({ questionType, level, format, ...(replyText ? { reply_text: replyText } : {}) }), 'draft'
+      postId, 'eiken', postText,
+      JSON.stringify({ questionType, level, reply_text: replyText }),
+      'draft',
     );
-
-    // エージェントの協議ログを保存（投稿詳細画面で参照可能）
-    if (generated.conversation?.length) {
-      const convId = uuidv4();
-      db.prepare(`INSERT INTO agent_conversations (id, post_id) VALUES (?, ?)`).run(convId, postId);
-      const insertMsg = db.prepare(
-        `INSERT INTO agent_messages (id, conversation_id, agent_role, agent_name, round, content) VALUES (?, ?, ?, ?, ?, ?)`
-      );
-      for (const msg of generated.conversation) {
-        insertMsg.run(uuidv4(), convId, msg.agent, msg.name || msg.agent, msg.round, msg.content);
-      }
-    }
 
     sendEvent('final_post', { post_id: postId, post_text: postText, reply_text: replyText });
     sendEvent('done', {});
@@ -688,96 +742,203 @@ router.post('/generate', async (req, res) => {
   }
 });
 
-// POST /api/eiken/save-manual - Save externally-generated post text (stored verbatim)
-// 一括生成プロンプトは固定文込みの完成形を出力させるため、ここでは何も付与しない
+// POST /api/eiken/generate-batch - 1週間分（または複数件）一括生成 (SSE)
+router.post('/generate-batch', async (req, res) => {
+  const { level = '2', count = 7, prompt_only = false } = req.body;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sendEvent = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    // 1週間の黄金比率スケジュール
+    const scheduleTemplate = [
+      { type: 'ai_writing_correction', day: '月曜', title: '🔥 AI英作文 添削' },
+      { type: 'native_vs_japanese', day: '火曜', title: '💡 ネイティブ違和感表現' },
+      { type: 'controversial_quiz', day: '水曜', title: '❓ 議論型クイズ' },
+      { type: 'ai_interview', day: '木曜', title: '🎙️ AI面接シミュレーション' },
+      { type: 'thread_summary', day: '金曜', title: '🧵 要点まとめスレッド' },
+      { type: 'vocabulary', day: '土曜', title: '📚 重要語彙' },
+      { type: 'study_tips', day: '日曜', title: '💡 学習メソッド・コツ' },
+    ];
+
+    const targetList = scheduleTemplate.slice(0, count);
+    const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+    const cta = getCta(level);
+    const { suffix, cost: suffixCost } = buildSuffix(lv);
+    const bodyLimit = X_LIMIT - suffixCost - 4;
+    const replyLimit = replyBudget(cta);
+    const systemPrompt = 'あなたはSNSマーケティングと英語教育の専門家です。Xで圧倒的に拡散されている教育アカウントの書き方を熟知しています。';
+
+    const generatedPosts = [];
+
+    for (let i = 0; i < targetList.length; i++) {
+      const item = targetList[i];
+      sendEvent('batch_progress', {
+        current: i + 1,
+        total: targetList.length,
+        itemDay: item.day,
+        itemTitle: item.title,
+      });
+
+      const postId = uuidv4();
+      const variety = pickVariety(item.type, level);
+      const buildPrompt = (limit) => buildEikenPrompt(item.type, level, limit, replyLimit, variety);
+
+      if (item.type === 'thread_summary') {
+        const generated = await generateThreadContent({ systemPrompt, buildPrompt, level });
+        const metadata = {
+          questionType: item.type,
+          level,
+          day: item.day,
+          theme: item.title,
+          is_thread: true,
+          thread_posts: generated.threadPosts,
+          reply_text: generated.threadPosts.slice(1).join('\n\n---(次のツイート)---\n\n'),
+        };
+        db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+          postId, 'eiken', generated.firstPost, JSON.stringify(metadata), 'draft'
+        );
+        generatedPosts.push({
+          post_id: postId,
+          post_text: generated.firstPost,
+          metadata,
+          day: item.day,
+          type: item.type,
+          title: item.title,
+        });
+      } else {
+        const generated = await generateBodyAndReply({ systemPrompt, buildPrompt, bodyLimit, replyLimit });
+        const postText = `${generated.body}${suffix}`;
+        const replyText = buildReplyText(generated.explanation, cta);
+        const metadata = {
+          questionType: item.type,
+          level,
+          day: item.day,
+          theme: item.title,
+          reply_text: replyText,
+        };
+        db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+          postId, 'eiken', postText, JSON.stringify(metadata), 'draft'
+        );
+        generatedPosts.push({
+          post_id: postId,
+          post_text: postText,
+          reply_text: replyText,
+          metadata,
+          day: item.day,
+          type: item.type,
+          title: item.title,
+        });
+      }
+    }
+
+    sendEvent('batch_complete', { posts: generatedPosts });
+    sendEvent('done', {});
+  } catch (err) {
+    sendEvent('error', { message: err.message });
+  } finally {
+    res.end();
+  }
+});
+
+// POST /api/eiken/save-manual - Save manually-generated post text
 router.post('/save-manual', (req, res) => {
-  const { questionType, level = '2', body_text } = req.body;
-  const format = POST_FORMATS.includes(req.body.format) ? req.body.format : defaultFormat(questionType);
-  if (!body_text?.trim()) return res.status(400).json({ error: 'body_text is required' });
+  const { questionType, level = '2', body_text, reply_text, is_thread = false, thread_posts } = req.body;
+  if (!body_text?.trim() && (!thread_posts || thread_posts.length === 0)) {
+    return res.status(400).json({ error: 'body_text or thread_posts is required' });
+  }
+
+  const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+  const cta = getCta(level);
   const postId = uuidv4();
 
-  // quiz_reply は「【投稿欄】/【リプ欄】」区切りテキストが基本形式。
-  // 旧形式のJSON（スマートクォート・不正エスケープ含む）や、単発投稿のプレーンテキストも受け付ける
-  const trimmed = body_text.trim();
-  const looksLikeJson = trimmed.startsWith('{') || trimmed.startsWith('```');
-  const parsed = parseEikenMarkedText(trimmed)
-    || ((format === 'quiz_reply' || looksLikeJson) ? parseEikenPostJson(trimmed) : null);
-  const postText = parsed ? parsed.post : trimmed.replace(/```(?:json)?/gi, '').trim();
-  const replyText = parsed?.reply || null;
+  if (is_thread && Array.isArray(thread_posts) && thread_posts.length > 0) {
+    const mainPost = thread_posts[0];
+    const metadata = {
+      questionType,
+      level,
+      manual: true,
+      is_thread: true,
+      thread_posts,
+      reply_text: thread_posts.slice(1).join('\n\n---(次のツイート)---\n\n'),
+    };
+    db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+      postId, 'eiken', mainPost, JSON.stringify(metadata), 'draft'
+    );
+    return res.json({ post_id: postId, post_text: mainPost, metadata });
+  }
+
+  const { suffix } = buildSuffix(lv);
+  const { body, explanation } = splitGenerated(body_text);
+  const postText = `${body}${suffix}`;
+  const finalReplyText = buildReplyText(reply_text?.trim() || explanation, cta);
 
   db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-    postId, 'eiken', postText, JSON.stringify({ questionType, level, format, manual: true, ...(replyText ? { reply_text: replyText } : {}) }), 'draft'
+    postId, 'eiken', postText,
+    JSON.stringify({ questionType, level, manual: true, reply_text: finalReplyText }),
+    'draft',
   );
-  res.json({ post_id: postId, post_text: postText, reply_text: replyText });
+  res.json({ post_id: postId, post_text: postText, reply_text: finalReplyText });
 });
 
 // POST /api/eiken/generate-script - TikTok/Reels script generation
 router.post('/generate-script', async (req, res) => {
-  const { questionType = 'vocabulary', level = '2' } = req.body;
+  const { questionType = 'ai_writing_correction', level = '2' } = req.body;
   const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
   const typeLabel = QUESTION_TYPE_LABELS[questionType] || questionType;
 
-  const nextExam = getNextExam();
-  const examHook = nextExam && nextExam.daysUntil <= COUNTDOWN_WINDOW_DAYS
-    ? `\n- フック冒頭で「1次試験まであと${nextExam.daysUntil}日！」を必ず入れる` : '';
-  const cta = CTA_LINKS[level];
+  const next = getCountdown();
+  const examHook = next
+    ? `\n- フック冒頭で「一次試験まであと${next.daysUntil}日！」を必ず入れる` : '';
+  const cta = getCta(level);
   const ctaLabel = cta ? cta.label : 'AI英検Pass';
   const ctaUrl = cta ? cta.url : '';
 
   const prompt = `英検${lv.label}の学習コンテンツのTikTok・Instagram Reels用動画台本を作成してください。
 ターゲット: ${lv.target}
-問題タイプ: ${typeLabel}
+テーマ: ${typeLabel}
 
 【台本の構成（約30秒）】
 以下のセクション構成で台本を作成してください：
 
 ■ フック（0〜3秒）
-画面テキスト: （大きく表示する文字）
+画面テキスト: （大きく表示する文字。例:「英検${lv.label}でコレ書いたら0点です⚠️」など強烈なフック）
 ナレーション: （話す言葉）
 
-■ 問題提示（3〜15秒）
-画面テキスト: （英検${lv.label}の${typeLabel}問題または重要Tips）
+■ 問題提示・添削前の文（3〜12秒）
+画面テキスト: （生徒の惜しい英語や問題）
 ナレーション: （話す言葉）
 
-■ 考える間（15〜20秒）
-画面テキスト: （「考えてみて！」など）
+■ AIの添削・解説（12〜22秒）
+画面テキスト: （赤ペン指摘＆合格答案）
 ナレーション: （話す言葉）
 
-■ 正解・解説（20〜27秒）
-画面テキスト: （正解と簡単な解説）
-ナレーション: （話す言葉）
-
-■ CTA（27〜30秒）
-画面テキスト: 「${ctaLabel}でもっと練習！」${ctaUrl ? `\nURL（キャプションに記載）: ${ctaUrl}` : ''}
+■ CTA（22〜30秒）
+画面テキスト: 「${ctaLabel}で今すぐ無料AI添削！」${ctaUrl ? `\nURL: ${ctaUrl}` : ''}
 ナレーション: （アプリへ誘導する言葉）
 
 【要件】
-- ${lv.target}が最初の3秒で止まりたくなるフック${examHook}
-- 実際の英検${lv.label}レベルのサンプル問題を使う（難易度: ${lv.difficulty}）
-- ナレーションは話し言葉で自然に
-- 画面テキストは短く大きく
+- 最初の3秒でスクロールを止めるフック${examHook}
+- 実際の英検${lv.label}レベル（難易度: ${lv.difficulty}）
+- ナレーションはテンポよく自然な話し言葉
+- 画面テキストは短くインパクト重視
 
 台本のみを出力してください。前後に説明文を入れないでください。`;
 
-  const systemPrompt = 'あなたはTikTok・Instagram Reelsの動画制作と英語教育の専門家です。高校生に刺さる短尺動画の台本を作成します。';
-  const promptInfo = [{
-    label: `英検${lv.label} ${typeLabel} 動画台本プロンプト`,
-    system: systemPrompt,
-    user: prompt,
-  }];
-
-  // APIキーなし運用: プロンプトのみモード、またはAPIが使えない場合はプロンプトを返して外部AIで実行してもらう
-  if (req.body.prompt_only) {
-    return res.json({ fallback: { reason: 'prompt_only', prompts: promptInfo } });
-  }
-
   try {
-    const script = await generateTextFull(systemPrompt, prompt, { maxTokens: 1000 });
+    const script = await generateTextFull(
+      'あなたはTikTok・Instagram Reelsのバズ動画制作と英語教育の専門家です。短尺で強烈に引きつける台本を作成します。',
+      prompt,
+      { maxTokens: 1000 }
+    );
     res.json({ script: script.trim() });
   } catch (err) {
-    if (isClaudeCreditError(err)) {
-      return res.json({ fallback: { reason: 'api_error', message: err.message, prompts: promptInfo } });
-    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -805,54 +966,96 @@ router.get('/posts/:id', (req, res) => {
 
 // PUT /api/eiken/posts/:id
 router.put('/posts/:id', (req, res) => {
-  const { post_text, reply_text } = req.body;
+  const { post_text, reply_text, metadata: newMeta } = req.body;
   const post = db.prepare(`SELECT * FROM sns_posts WHERE id = ? AND app_type = 'eiken'`).get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
 
   const metadata = JSON.parse(post.metadata || '{}');
-  if (reply_text !== undefined) {
-    if (reply_text) metadata.reply_text = reply_text;
-    else delete metadata.reply_text;
+  if (reply_text !== undefined) metadata.reply_text = reply_text;
+  if (newMeta && typeof newMeta === 'object') {
+    Object.assign(metadata, newMeta);
   }
+
   db.prepare(`UPDATE sns_posts SET post_text = ?, metadata = ? WHERE id = ? AND app_type = 'eiken'`)
     .run(post_text ?? post.post_text, JSON.stringify(metadata), req.params.id);
   res.json({ success: true });
 });
 
 // POST /api/eiken/posts/:id/publish
-// body.image / body.reply_image: クライアントで生成したカード画像（data URL）。省略可
+// 本文を投稿し、CTA入りのリプライをぶら下げる。
 router.post('/posts/:id/publish', async (req, res) => {
   const post = db.prepare(`SELECT * FROM sns_posts WHERE id = ? AND app_type = 'eiken'`).get(req.params.id);
   if (!post) return res.status(404).json({ error: 'Post not found' });
 
-  const { image, reply_image } = req.body || {};
+  const metadata = JSON.parse(post.metadata || '{}');
 
-  try {
-    const result = await postTweet(post.post_text, { image });
-    db.prepare(
-      `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP WHERE id = ?`
-    ).run(result.id, post.id);
+  // スレッド投稿の場合
+  if (metadata.is_thread && Array.isArray(metadata.thread_posts) && metadata.thread_posts.length > 1) {
+    const threadPosts = metadata.thread_posts;
+    const tweetIds = [];
+    let lastTweetId = null;
 
-    // quiz_reply: 解答（＋アプリリンク）をリプ欄にぶら下げる
-    const metadata = JSON.parse(post.metadata || '{}');
-    let replyTweetId = null;
-    let replyError = null;
-    if (metadata.reply_text) {
-      try {
-        const replyResult = await postTweet(metadata.reply_text, { replyToId: result.id, image: reply_image });
-        replyTweetId = replyResult.id;
-      } catch (err) {
-        replyError = err.message;
-        db.prepare(`UPDATE sns_posts SET error_message = ? WHERE id = ?`)
-          .run(`本文は投稿済み。解答リプの投稿に失敗: ${err.message}`, post.id);
+    try {
+      for (let i = 0; i < threadPosts.length; i++) {
+        const text = threadPosts[i];
+        if (xLength(text) > X_LIMIT) {
+          throw new Error(`スレッド第${i + 1}ツイートが${xLength(text)}カウントで上限を超えています。`);
+        }
+        const resTweet = await postTweet(text, { replyToId: lastTweetId });
+        tweetIds.push(resTweet.id);
+        lastTweetId = resTweet.id;
       }
-    }
 
-    res.json({ success: true, tweet_id: result.id, reply_tweet_id: replyTweetId, reply_error: replyError });
+      metadata.thread_tweet_ids = tweetIds;
+      db.prepare(
+        `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP, metadata = ?, error_message = NULL WHERE id = ?`
+      ).run(tweetIds[0], JSON.stringify(metadata), post.id);
+
+      return res.json({ success: true, tweet_id: tweetIds[0], thread_tweet_ids: tweetIds });
+    } catch (err) {
+      metadata.thread_tweet_ids = tweetIds;
+      db.prepare(
+        `UPDATE sns_posts SET status = 'failed', error_message = ?, metadata = ? WHERE id = ?`
+      ).run(err.message, JSON.stringify(metadata), post.id);
+      return res.status(500).json({ error: err.message, posted_tweets: tweetIds });
+    }
+  }
+
+  // 単発投稿＋リプライの場合
+  const replyText = metadata.reply_text;
+
+  if (xLength(post.post_text) > X_LIMIT) {
+    return res.status(400).json({
+      error: `本文が${xLength(post.post_text)}カウントで上限${X_LIMIT}を超えています（日本語は1文字2カウント）。短くしてから投稿してください。`,
+    });
+  }
+
+  let tweet;
+  try {
+    tweet = await postTweet(post.post_text);
   } catch (err) {
     db.prepare(`UPDATE sns_posts SET status = 'failed', error_message = ? WHERE id = ?`).run(err.message, post.id);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
+
+  let replyId = null;
+  let replyError = null;
+  if (replyText?.trim()) {
+    try {
+      const reply = await postTweet(replyText, { replyToId: tweet.id });
+      replyId = reply.id;
+    } catch (err) {
+      replyError = err.message;
+    }
+  }
+
+  metadata.reply_tweet_id = replyId;
+  metadata.reply_error = replyError;
+  db.prepare(
+    `UPDATE sns_posts SET status = 'posted', social_post_id = ?, social_posted_at = CURRENT_TIMESTAMP, metadata = ?, error_message = ? WHERE id = ?`
+  ).run(tweet.id, JSON.stringify(metadata), replyError, post.id);
+
+  res.json({ success: true, tweet_id: tweet.id, reply_tweet_id: replyId, reply_error: replyError });
 });
 
 // POST /api/eiken/generate-university-post
@@ -870,45 +1073,36 @@ router.post('/generate-university-post', async (req, res) => {
 
   try {
     const postId = uuidv4();
-    const levelLabel = level === 'pre1' ? '準1級' : level === '2' ? '2級' : level === 'pre2' ? '準2級' : level;
-    const hashtags = `#英検${levelLabel} #推薦入試`;
-    // X の加重280（認証なしで投稿できる上限）。日本語は2文字換算のため実文字数は約半分
-    const bodyLimit = actualCharBudget(X_MAX_WEIGHTED - xWeightedLength(`\n${hashtags}`) - 4);
+    const lv = LEVEL_CONFIG[level] || LEVEL_CONFIG['2'];
+    const suffix = `\n\n#大学受験 #英検${lv.label} #推薦入試`;
+    const bodyLimit = X_LIMIT - xLength(suffix) - 4;
+    const cta = KOYOMI_CTA;
+    const replyLimit = replyBudget(cta);
 
-    const systemPrompt = 'あなたはSNSマーケティングと大学受験の専門家です。';
-    const userPrompt = `大学受験で英検を活用できる情報を、そのままX（旧Twitter）に投稿できる完成形で書いてください。
-
-【大学情報】
+    const systemPrompt = 'あなたは高校生向け大学受験・推薦入試の専門家です。英検を活用した推薦入試のお得感や魅力を伝えるX投稿を作成します。';
+    const buildPrompt = (limit) => `英検${lv.label}を利用できる大学の推薦入試情報をXに投稿します。
 大学名: ${university}
 学部: ${faculty}
-英検レベル: 英検${levelLabel}
 出願条件: ${condition}
-英語試験の扱い: ${exemption}
-ポイント: ${tips}
+免除・優遇内容: ${exemption}
+おすすめポイント: ${tips}
 
-【要件】
-- 高校生・受験生が「これは知らなかった！」と思う情報にする
-- 英検を持っている人に刺さる内容
-- 英語試験が免除・不要である点を強調
-- 記載された事実のみを使い、誇張・断定（「必ず受かる」等）をしない
-- 絵文字は2〜3個
-- 本文は${bodyLimit}文字以内
-- 末尾に次のハッシュタグを一字一句このまま置く: "${hashtags}"
-- URLは含めない
-- 投稿テキストのみを出力（前後に説明文を付けない）`;
+【内容の要件】
+- 「英検${lv.label}を持っていれば、英語試験免除で受けられる！」というメリットを強調
+- 高校生が保存（ブックマーク）したくなる情報量の密度にする
+- 最後に「詳細は公式HPをチェック👇」とリプライを促す
+
+${engagementRules(limit, replyLimit)}`;
 
     const promptInfo = [{
-      label: `${university} 大学受験X投稿プロンプト（完成形出力）`,
+      label: `${university} 推薦入試 投稿生成プロンプト`,
       system: systemPrompt,
-      user: userPrompt,
+      user: buildPrompt(bodyLimit),
     }];
 
     const generated = await tryClaudeOrEmitPrompt(
       promptInfo,
-      async () => {
-        const body = (await generateTextFull(systemPrompt, userPrompt, { maxTokens: 300 })).trim();
-        return body;
-      },
+      () => generateBodyAndReply({ systemPrompt, buildPrompt, bodyLimit, replyLimit }),
       sendEvent,
       prompt_only,
     );
@@ -918,14 +1112,16 @@ router.post('/generate-university-post', async (req, res) => {
       return;
     }
 
-    // 完成形出力（末尾ハッシュタグ込み）。念のため欠けていた場合のみ付与する
-    const postText = generated.includes(hashtags) ? generated : `${generated}\n${hashtags}`;
+    const postText = `${generated.body}${suffix}`;
+    const replyText = buildReplyText(generated.explanation, cta);
 
     db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
-      postId, 'eiken', postText, JSON.stringify({ university, level, type: 'university' }), 'draft'
+      postId, 'eiken', postText,
+      JSON.stringify({ type: 'university', university, level, faculty, reply_text: replyText }),
+      'draft',
     );
 
-    sendEvent('final_post', { post_id: postId, post_text: postText });
+    sendEvent('final_post', { post_id: postId, post_text: postText, reply_text: replyText });
     sendEvent('done', {});
   } catch (err) {
     sendEvent('error', { message: err.message });
@@ -934,10 +1130,230 @@ router.post('/generate-university-post', async (req, res) => {
   }
 });
 
+// 日本史・世界史（Koyomi）
+const HISTORY_TYPES = {
+  // 🔥 センター試験・共通テスト相当 1問1答（キラーコンテンツ）
+  japanese_center_qa: {
+    label: '🇯🇵 日本史 センター1問1答',
+    hashtags: '#日本史 #共通テスト #大学受験',
+    isQa: true,
+    hints: [
+      '古代・ヤマト政権〜律令国家（国分寺建立・墾田永年私財法などの政策と天皇）',
+      '平安・摂関政治と院政（藤原道長・白河上皇・保元平治の乱の因果）',
+      '中世・鎌倉〜室町幕府（御恩と奉公・惣村・応仁の乱の構造）',
+      '織豊政権・太閤検地と刀狩（兵農分離の意義）',
+      '江戸初期・幕藩体制（武家諸法度・鎖国の完成手順）',
+      '江戸中期・三大改革（享保・寛政・天保の政策の違いと結果）',
+      '幕末・開国から明治維新（日米修好通商条約・尊皇攘夷・倒幕の流れ）',
+      '明治・立憲体制と日清日露戦争（大日本帝国憲法・条約改正）',
+      '大正・デモクラシーと政党政治（普通選挙法・治安維持法）',
+      '昭和・恐慌から戦時体制・戦後改革（農地改革・財閥解体・日本国憲法）',
+    ],
+  },
+  world_center_qa: {
+    label: '🌍 世界史 センター1問1答',
+    hashtags: '#世界史 #共通テスト #大学受験',
+    isQa: true,
+    hints: [
+      'オリエント・地中海世界（アケメネス朝・ポリス民主政・ローマ帝国）',
+      '中国王朝史（秦・漢の統一政策・唐の律令制・宋の文治主義）',
+      'イスラム世界（ウマイヤ朝・アッバース朝・オスマン帝国の拡大）',
+      '中世ヨーロッパ（封建社会・十字軍・教皇権の盛衰）',
+      'ルネサンス・大航海時代・宗教改革（世界の一体化と商業革命）',
+      '主権国家体制・絶対王政（三十年戦争・ルイ14世・議会政治）',
+      '市民革命・産業革命（アメリカ独立・フランス革命・ナポレオン）',
+      '19世紀の欧米（ウィーン体制・イタリア/ドイツ統一・帝国主義）',
+      '第一次世界大戦・ロシア革命・ヴェルサイユ体制',
+      '第二次世界大戦・冷戦構造（キューバ危機・中東戦争・東欧革命）',
+    ],
+  },
+  same_era_qa: {
+    label: '🔄 同時代比較 センター1問1答',
+    hashtags: '#日本史 #世界史 #大学受験',
+    isQa: true,
+    hints: [
+      '1600年頃: 関ヶ原の戦いの時、ヨーロッパでは何が起きていた？（東インド会社・三十年戦争前夜）',
+      '1192/1185年: 鎌倉幕府成立の頃、中国や中東では？（南宋・第3回十字軍）',
+      '1853/1868年: ペリー来航・明治維新の頃、清や欧米では？（アヘン戦争/太平天国・南北戦争・普仏戦争）',
+      '710/794年: 奈良・平安初期、世界では何帝国が最盛期？（唐・アッバース朝・カール大帝）',
+      '1543/1549年: 鉄砲伝来・キリスト教伝来と大航海時代（宗教改革・イエズス会）',
+      '1904年: 日露戦争の頃、ヨーロッパの同盟関係は？（英仏協商・三国協商）',
+    ],
+  },
+  // 歴史解説・コラム
+  japanese_history: {
+    label: '日本史 要点解説',
+    hashtags: '#日本史 #大学受験',
+    isQa: false,
+    hints: [
+      '鎌倉幕府の成立をめぐる年号と実態のズレ',
+      '応仁の乱が戦国時代を生んだ流れ',
+      '織豊政権の政策（検地・刀狩）の狙い',
+      '江戸幕府の三大改革の違いと結果',
+      '開国から明治維新までの条約と国内対立',
+      '自由民権運動と憲法制定の流れ',
+      '大正デモクラシーと政党政治',
+      '昭和恐慌から戦時体制への転換点',
+      '戦後改革（農地改革・財閥解体）の中身',
+      '摂関政治と院政の権力構造の違い',
+    ],
+  },
+  world_history: {
+    label: '世界史 要点解説',
+    hashtags: '#世界史 #大学受験',
+    isQa: false,
+    hints: [
+      '十字軍が結果的に何を変えたか',
+      'ルネサンスと宗教改革のつながり',
+      '大航海時代がもたらした世界の一体化',
+      '市民革命（英・米・仏）の共通点と違い',
+      '産業革命が社会構造をどう変えたか',
+      'ウィーン体制とその崩壊',
+      '帝国主義とアフリカ分割',
+      '第一次世界大戦の原因と戦後処理',
+      '冷戦の始まりと分断の構造',
+      '中国王朝の交代パターンと統治制度',
+    ],
+  },
+  mnemonic: {
+    label: '年号の覚え方（ゴロ合わせ）',
+    hashtags: '#日本史 #世界史 #受験勉強',
+    isQa: false,
+    hints: [
+      '中世の重要年号のゴロ合わせ',
+      '近世（江戸）の重要年号のゴロ合わせ',
+      '近代（明治〜大正）の重要年号のゴロ合わせ',
+      '世界史の重要年号のゴロ合わせ',
+      '紛らわしい年号ペアの区別のしかた',
+    ],
+  },
+};
+
+function buildHistoryPrompt(contentType, bodyLimit, replyLimit, variety) {
+  const type = HISTORY_TYPES[contentType] || HISTORY_TYPES.japanese_center_qa;
+
+  if (type.isQa) {
+    return `大学入試センター試験・共通テスト相当の【${type.label}】の1問1答問題をX（旧Twitter）に投稿します。
+ターゲット: 共通テスト・大学入試で日本史/世界史を受験する高校生・浪人生
+テーマ・時代: ${variety}
+
+【問題の要件（センター試験・共通テストレベルの良問）】
+- 教科書の重要事項・正誤判定・因果関係・同時代把握に直結する良問を作成してください。
+- 難易度: センター試験・共通テスト標準〜やや難（正答率40〜60%の差がつく問題）。
+
+【本文の構成（厳守）】
+1行目: フック（例:「【センター${type.label.includes('日本史') ? '日本史' : '世界史'}】9割が悩む正誤判定。あなたは解けますか？」「【共通テスト頻出】差がつく1問👇」）
+2. 📝【問題文】（時代背景を簡潔に示し、下線部や設問を提示）
+3. 選択肢: ① 〜  ② 〜 （※紛らわしく考えさせる2択。確実に教科書の根拠があるもの）
+4. 締め: 「①と②どっちが正しい？理由をリプで教えてください👇（正解と年表・因果関係の解説はリプ欄へ）」
+
+【リプライの構成（厳守）】
+- 正解（「正解は①（または②）！」）
+- なぜそれが正解か、もう一方がなぜ誤りかの詳細な解説（年号・背景・因果関係）
+- 年表での位置づけや覚え方のポイント
+（※アプリリンクはシステムが自動追加します）
+
+${engagementRules(bodyLimit, replyLimit)}`;
+  }
+
+  return `${type.label}の学習コンテンツをX（旧Twitter）に投稿します。
+ターゲット: 大学受験で日本史・世界史を使う高校生・浪人生
+テーマ: ${variety}
+
+【内容の要件】
+- 高校の教科書・入試で扱われる範囲の定説だけを書く
+- 年号・人名・出来事は確実なものだけ使う。少しでも曖昧なものは扱わない
+- 用語の暗記ではなく「なぜそうなったか」の因果や流れが分かる内容にする
+- クイズ形式にする場合、選択肢は①②の2択のみ。答えは本文に書かず、リプライ側に書く
+
+${engagementRules(bodyLimit, replyLimit)}`;
+}
+
+// POST /api/eiken/generate-history
+router.post('/generate-history', async (req, res) => {
+  const { contentType = 'japanese_history', prompt_only = false } = req.body;
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const sendEvent = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const postId = uuidv4();
+    const type = HISTORY_TYPES[contentType] || HISTORY_TYPES.japanese_history;
+    const suffix = `\n\n${type.hashtags}`;
+    const bodyLimit = X_LIMIT - xLength(suffix) - 4;
+    const cta = KOYOMI_CTA;
+    const replyLimit = replyBudget(cta);
+    const variety = type.hints[Math.floor(Math.random() * type.hints.length)];
+
+    const systemPrompt = 'あなたはSNSマーケティングと高校歴史教育の専門家です。事実の正確さを最優先しつつ、Xで伸びる書き方を熟知しています。';
+    const buildPrompt = (limit) => buildHistoryPrompt(contentType, limit, replyLimit, variety);
+
+    const promptInfo = [{
+      label: `${type.label} 投稿生成プロンプト`,
+      system: systemPrompt,
+      user: buildPrompt(bodyLimit),
+    }];
+
+    const generated = await tryClaudeOrEmitPrompt(
+      promptInfo,
+      () => generateBodyAndReply({ systemPrompt, buildPrompt, bodyLimit, replyLimit }),
+      sendEvent,
+      prompt_only,
+    );
+
+    if (generated == null) {
+      sendEvent('done', {});
+      return;
+    }
+
+    const postText = `${generated.body}${suffix}`;
+    const replyText = buildReplyText(generated.explanation, cta);
+
+    db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+      postId, 'eiken', postText,
+      JSON.stringify({ contentType, type: 'koyomi', theme: variety, reply_text: replyText }),
+      'draft',
+    );
+
+    sendEvent('final_post', { post_id: postId, post_text: postText, reply_text: replyText });
+    sendEvent('done', {});
+  } catch (err) {
+    sendEvent('error', { message: err.message });
+  } finally {
+    res.end();
+  }
+});
+
+// POST /api/eiken/save-manual-history
+router.post('/save-manual-history', (req, res) => {
+  const { contentType = 'japanese_history', body_text, reply_text } = req.body;
+  if (!body_text?.trim()) return res.status(400).json({ error: 'body_text is required' });
+
+  const type = HISTORY_TYPES[contentType] || HISTORY_TYPES.japanese_history;
+  const { body, explanation } = splitGenerated(body_text);
+  const postId = uuidv4();
+  const postText = `${body}\n\n${type.hashtags}`;
+  const replyText = buildReplyText(reply_text?.trim() || explanation, KOYOMI_CTA);
+
+  db.prepare(`INSERT INTO sns_posts (id, app_type, post_text, metadata, status) VALUES (?, ?, ?, ?, ?)`).run(
+    postId, 'eiken', postText,
+    JSON.stringify({ contentType, type: 'koyomi', manual: true, reply_text: replyText }),
+    'draft',
+  );
+  res.json({ post_id: postId, post_text: postText, reply_text: replyText });
+});
+
 // DELETE /api/eiken/posts/:id
 router.delete('/posts/:id', (req, res) => {
   db.prepare(`DELETE FROM sns_posts WHERE id = ? AND app_type = 'eiken'`).run(req.params.id);
   res.status(204).end();
 });
 
+export { KOYOMI_CTA, engagementRules, buildReplyText, generateBodyAndReply, replyBudget, X_LIMIT };
 export default router;

@@ -26,3 +26,16 @@ export function xWeightedLength(text) {
   }
   return weight;
 }
+
+// Alias for xLength
+export const xLength = xWeightedLength;
+
+export function xTruncate(text, maxWeight = X_MAX_WEIGHTED) {
+  if (xWeightedLength(text) <= maxWeight) return text;
+  let res = '';
+  for (const ch of text) {
+    if (xWeightedLength(res + ch) > maxWeight) break;
+    res += ch;
+  }
+  return res;
+}

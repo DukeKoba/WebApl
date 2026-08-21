@@ -4,6 +4,7 @@ import db from '../database.js';
 import { generateTextFull } from '../services/claudeService.js';
 import { tryClaudeOrEmitPrompt } from '../services/claudeFallback.js';
 import { postTweet } from '../services/xService.js';
+import { xLength, xTruncate } from '../utils/xText.js';
 
 const router = express.Router();
 
@@ -162,11 +163,9 @@ const CTA_URL = process.env.ITPASS_APP_URL || 'https://apps.apple.com/jp/app/id6
 const CTA_TEXT = `📲 続きはITパスポート対策アプリで → ${CTA_URL}`;
 const HASHTAGS = '#ITパスポート #IT資格 #ITパスポート試験';
 
-// X counts every URL as exactly 23 chars regardless of length
-function calcXCharCount(text) {
-  const urlRegex = /https?:\/\/\S+/g;
-  return text.replace(urlRegex, 'x'.repeat(23)).length;
-}
+// X は日本語1文字・絵文字を2カウントするので、必ず重み付きで数える
+// （.length で数えると上限内に見えたまま X API に403で弾かれる）
+const calcXCharCount = xLength;
 
 function buildSuffix() {
   const suffix = `\n${CTA_TEXT}\n${HASHTAGS}`;
@@ -177,7 +176,7 @@ function buildPrefix() {
   const days = getDaysUntilExam();
   if (days === null) return { prefix: '', cost: 0 };
   const prefix = `📅 試験日まであと${days}日！\n`;
-  return { prefix, cost: prefix.length };
+  return { prefix, cost: xLength(prefix) };
 }
 
 function buildItPassPrompt(contentType, bodyLimit, variety = '') {
@@ -212,7 +211,8 @@ ${varietyLine}
 - ITパスポート試験のシラバスに準拠した正確な内容
 - 専門用語は1〜2語までに抑え、必ず噛み砕いた説明を添える
 - 絵文字は1〜3個まで（多すぎ厳禁）
-- **本文は${bodyLimit}文字以内**（厳守、超えたら強制カットされます）
+- **本文は${bodyLimit}カウント以内**（厳守、超えたら強制カットされます）
+  ※Xは日本語1文字を2カウントで数えるため、日本語なら約${Math.floor(bodyLimit / 2)}文字が上限です
 
 【出力形式】
 本文テキストのみ。URL・ハッシュタグ・試験日カウントダウン・前置き・説明文は一切含めないこと。`;
@@ -264,11 +264,11 @@ router.post('/generate', async (req, res) => {
         for (let attempt = 0; attempt < 3; attempt++) {
           const limitForAttempt = attempt === 0 ? bodyLimit : Math.floor(bodyLimit * 0.85);
           const prompt = buildItPassPrompt(contentType, limitForAttempt, variety);
-          body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 500 })).trim();
-          if (body.length <= bodyLimit) break;
+          body = (await generateTextFull(systemPrompt, prompt, { maxTokens: 500, temperature: 1.0 })).trim();
+          if (xLength(body) <= bodyLimit) break;
         }
-        if (body.length > bodyLimit) body = body.slice(0, bodyLimit).trimEnd();
-        return body;
+        // 溢れたら文末（。！？改行）まで戻して切る。文の途中で切ると日本語が壊れるため。
+        return xTruncate(body, bodyLimit);
       },
       sendEvent,
       prompt_only,

@@ -25,6 +25,8 @@ import OptimaLrnLanding from './pages/optimalrn/OptimaLrnLanding';
 import SubsidyGenerator from './pages/cocreo/SubsidyGenerator';
 import CocreoConsulting from './pages/cocreo/CocreoConsulting';
 import FamilySheetApp from './features/family-sheet/FamilySheetApp';
+import MediaExtractor from './pages/media/MediaExtractor';
+import MovConverter from './pages/media/MovConverter';
 import { useApp } from './contexts/AppContext';
 
 function ShiftSyncApp() {
@@ -60,18 +62,7 @@ function ShiftSyncApp() {
   );
 }
 
-export default function App() {
-  const [token, setToken] = useState(localStorage.getItem('auth_token') || '');
-
-  // 公開ツール(ログイン不要)。認証ゲートより前に処理する。
-  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/family-sheet')) {
-    return (
-      <Routes>
-        <Route path="/family-sheet/*" element={<FamilySheetApp />} />
-      </Routes>
-    );
-  }
-
+function AuthenticatedApp({ token, setToken }) {
   if (!token) {
     return <LoginScreen onLogin={setToken} />;
   }
@@ -94,7 +85,32 @@ export default function App() {
       <Route path="/optimalrn" element={<OptimaLrnLanding />} />
       <Route path="/cocreo/subsidy-generator" element={<SubsidyGenerator />} />
       <Route path="/cocreo/consulting" element={<CocreoConsulting />} />
+      <Route path="/media-extractor" element={<MediaExtractor />} />
+      <Route path="/mov-converter" element={<MovConverter />} />
       <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  const [token, setToken] = useState(localStorage.getItem('auth_token') || '');
+
+  // 公開ツール(ログイン不要)
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/family-sheet')) {
+    return (
+      <Routes>
+        <Route path="/family-sheet/*" element={<FamilySheetApp />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+      {import.meta.env.VITE_BASENAME && <Route path="/" element={<OptimaLrnLanding />} />}
+      <Route path="/optimalrn" element={<OptimaLrnLanding />} />
+      <Route path="/cocreo/subsidy-generator" element={<SubsidyGenerator />} />
+      <Route path="/cocreo/consulting" element={<CocreoConsulting />} />
+      <Route path="*" element={<AuthenticatedApp token={token} setToken={setToken} />} />
     </Routes>
   );
 }

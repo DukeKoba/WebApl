@@ -1,7 +1,12 @@
 node_modules/
 dist/
 build/
+.next/
+.vercel/
+*.tsbuildinfo
 .env
+.env.local
+.env.*.local
 *.db
 *.sqlite
 .DS_Store
@@ -10,3 +15,8 @@ server/uploads/
 
 # macOS metadata (ExFAT)
 ._*
+
+# Sub-repositories / standalone projects
+eiken-support/
+optimalrn-eiken-support/
+insurance-compare/

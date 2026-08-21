@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowRight, CheckCircle, ChevronDown, Menu, X,
@@ -50,11 +50,21 @@ const products = [
     id: 'itpassport',
     name: 'AI ITPassport Pass',
     sub: 'IT',
-    badge: '近日公開',
-    badgeStyle: 'bg-orange-500 text-white',
+    badge: '配信中',
+    badgeStyle: 'bg-emerald-500 text-white',
     desc: 'ストラテジ・マネジメント・テクノロジ系の3分野をAIが効率よくカバー。',
-    available: false,
-    href: '',
+    available: true,
+    href: 'https://apps.apple.com/jp/app/id6763835091',
+  },
+  {
+    id: 'koyomi',
+    name: 'Koyomi -暦-',
+    sub: '暦',
+    badge: '配信中',
+    badgeStyle: 'bg-emerald-500 text-white',
+    desc: '日本史・世界史を年表とカレンダーでつなげて理解。同じ年に世界で何が起きたかが一目で分かる。',
+    available: true,
+    href: 'https://apps.apple.com/jp/app/id6794647918',
   },
 ];
 
@@ -84,7 +94,8 @@ const features = [
 const faqs = [
   { q: 'どのデバイスで使えますか？', a: 'iPhone / iPad に対応しています。App Storeからダウンロードいただけます。' },
   { q: '各アプリは独立していますか？', a: 'はい、各資格ごとに独立したアプリです。目標の試験に合わせてお選びください。' },
-  { q: 'AI ITPassport Passはいつ配信されますか？', a: '現在提出準備中です。近日中に審査申請予定です。リリースをお楽しみに。' },
+  { q: 'AI ITPassport Passはどこでダウンロードできますか？', a: 'App Storeで配信中です。「AI ITPassport Pass」で検索するか、アプリ一覧のボタンからダウンロードしてください。' },
+  { q: 'Koyomi -暦- はどんなアプリですか？', a: '日本史・世界史を年表とカレンダーで学ぶアプリです。出来事を時代順に追うだけでなく、同じ年に日本と世界で何が起きていたかを横に並べて確認できます。App Storeで配信中です。' },
   { q: '問題数はどのくらいですか？', a: '各アプリとも数百問以上を収録。AIが学習履歴に基づき最適な問題を選んで出題します。' },
 ];
 
@@ -104,6 +115,12 @@ export default function OptimaLrnLanding() {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
+
+  useEffect(() => {
+    const prev = document.title;
+    document.title = 'OptimaLrn｜AI英検・ITパスポートPassシリーズ';
+    return () => { document.title = prev; };
+  }, []);
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -158,7 +175,7 @@ export default function OptimaLrnLanding() {
             <img
               src="/optimalrn-logo.png"
               alt="OptimaLrn — 努力を科学する"
-              className="h-20 sm:h-28 w-auto object-contain"
+              className="h-20 sm:h-28 w-auto object-contain mix-blend-multiply"
             />
           </div>
 
@@ -167,7 +184,7 @@ export default function OptimaLrnLanding() {
           </span>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-6 text-black">
-            <span className="text-orange-500">AIが選ぶ問題</span>だけを解いて、<br className="hidden sm:block" />
+            <span className="text-orange-500">AIが過去問から分析して生成した問題</span>だけを解いて、<br className="hidden sm:block" />
             最短合格。
           </h1>
 
