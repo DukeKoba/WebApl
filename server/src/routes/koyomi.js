@@ -457,4 +457,45 @@ router.delete('/posts/:id', (req, res) => {
   res.status(204).end();
 });
 
+
+// POST /api/koyomi/batch-prompts (1週間分のプロンプト一覧を取得)
+router.post('/batch-prompts', (req, res) => {
+  const { count = 7 } = req.body;
+  const scheduleTemplate = [
+    { type: 'japanese_center_qa', day: '月曜', title: '🇯🇵 日本史 センター1問1答' },
+    { type: 'world_center_qa', day: '火曜', title: '🌍 世界史 センター1問1答' },
+    { type: 'same_era_qa', day: '水曜', title: '🔄 同時代 センター1問1答' },
+    { type: 'japanese_history', day: '木曜', title: '🇯🇵 日本史 重要因果解説' },
+    { type: 'world_history', day: '金曜', title: '🌍 世界史 重要因果解説' },
+    { type: 'mnemonic', day: '土曜', title: '💡 年号ゴロ合わせ' },
+    { type: 'japanese_center_qa', day: '日曜', title: '🇯🇵 日本史 週末良問演習' },
+  ];
+
+  const targetList = scheduleTemplate.slice(0, count);
+  const systemPrompt = 'あなたはSNSマーケティングと高校歴史教育の専門家です。事実の正確さを最優先しつつ、Xで圧倒的に伸びる書き方を熟知しています。';
+  const cta = KOYOMI_CTA;
+  const replyLimit = replyBudget(cta);
+
+  const prompts = targetList.map((item, idx) => {
+    const type = HISTORY_TYPES[item.type] || HISTORY_TYPES.japanese_center_qa;
+    const suffix = `\n\n${type.hashtags}`;
+    const bodyLimit = X_LIMIT - xLength(suffix) - 4;
+    const variety = type.hints[Math.floor(Math.random() * type.hints.length)];
+    const userPrompt = buildHistoryPrompt(item.type, bodyLimit, replyLimit, variety);
+
+    return {
+      day: item.day,
+      title: item.title,
+      label: `【${item.day}】${item.title} プロンプト`,
+      system: systemPrompt,
+      user: userPrompt,
+    };
+  });
+
+  const fullPromptCombined = `【高校歴史 X投稿 1週間分（7投稿）の一括生成指示】\n\n以下の7つのテーマに従って、それぞれの投稿本文とリプライを出力してください。\n各投稿は「===Day 1===」「===Day 2===」で区切って出力してください。\n\n` +
+    prompts.map((p, i) => `--- Day ${i + 1} (${p.day}: ${p.title}) ---\n${p.user}`).join('\n\n');
+
+  res.json({ prompts, combined_prompt: fullPromptCombined });
+});
+
 export default router;

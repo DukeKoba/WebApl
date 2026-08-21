@@ -1356,4 +1356,34 @@ router.delete('/posts/:id', (req, res) => {
 });
 
 export { KOYOMI_CTA, engagementRules, buildReplyText, generateBodyAndReply, replyBudget, X_LIMIT };
+
+// POST /api/eiken/batch-prompts (1週間分のプロンプト一覧を取得)
+router.post('/batch-prompts', (req, res) => {
+  const { level = '2', count = 7 } = req.body;
+  const targetList = WEEKLY_SCHEDULE.slice(0, count);
+  const systemPrompt = 'あなたは英検指導のトッププロであり、SNSマーケティングの専門家です。事実の正確さと学習効果を最優先しつつ、Xで圧倒的にエンゲージメントが高く保存される書き方を熟知しています。';
+  const cta = getEikenCta(level);
+  const replyLimit = replyBudget(cta);
+
+  const prompts = targetList.map((item, idx) => {
+    const type = QUESTION_TYPES[item.type] || QUESTION_TYPES.vocabulary;
+    const suffix = `\n\n${type.hashtags} #英検${level}級`;
+    const bodyLimit = X_LIMIT - xLength(suffix) - 4;
+    const userPrompt = buildPromptForType(item.type, level, bodyLimit, replyLimit, item.variety);
+
+    return {
+      day: item.day,
+      title: item.title,
+      label: `【${item.day}】${item.title} プロンプト`,
+      system: systemPrompt,
+      user: userPrompt,
+    };
+  });
+
+  const fullPromptCombined = `【AI英検${level}級 X投稿 1週間分（7投稿）の一括生成指示】\n\n以下の7つの指示に従って、それぞれの投稿本文とリプライを出力してください。\n各投稿は「===Day 1===」「===Day 2===」で区切って出力してください。\n\n` +
+    prompts.map((p, i) => `--- Day ${i + 1} (${p.day}: ${p.title}) ---\n${p.user}`).join('\n\n');
+
+  res.json({ prompts, combined_prompt: fullPromptCombined });
+});
+
 export default router;

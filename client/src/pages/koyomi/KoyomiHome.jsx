@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Scroll, Sparkles, History, ArrowLeft, Download, Zap,
-  CheckCircle2, RefreshCw, AlertTriangle, ExternalLink
+  CheckCircle2, RefreshCw, AlertTriangle, FileText, Copy, Check, ExternalLink
 } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
@@ -96,18 +96,40 @@ async function readSse(res, onEvent) {
 }
 
 function HistoryBatchSection() {
+  const [aiMode] = useAiMode();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(null);
   const [batchPosts, setBatchPosts] = useState([]);
+  const [batchPrompts, setBatchPrompts] = useState(null);
   const [publishingIds, setPublishingIds] = useState({});
   const [postStatuses, setPostStatuses] = useState({});
+  const [copiedBatch, setCopiedBatch] = useState(false);
   const [error, setError] = useState('');
 
   const handleGenerateBatch = async () => {
     setIsGenerating(true);
     setProgress({ current: 0, total: 7, itemTitle: '準備中...' });
     setBatchPosts([]);
+    setBatchPrompts(null);
     setError('');
+
+    if (aiMode === 'prompt') {
+      try {
+        const res = await authFetch('/koyomi/batch-prompts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ count: 7 }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        setBatchPrompts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
 
     try {
       const res = await authFetch('/koyomi/generate-batch', {
@@ -132,6 +154,13 @@ function HistoryBatchSection() {
     }
   };
 
+  const handleCopyCombined = () => {
+    if (!batchPrompts?.combined_prompt) return;
+    navigator.clipboard.writeText(batchPrompts.combined_prompt);
+    setCopiedBatch(true);
+    setTimeout(() => setCopiedBatch(false), 2000);
+  };
+
   const handlePublishPost = async (postId) => {
     setPublishingIds(prev => ({ ...prev, [postId]: true }));
     try {
@@ -154,7 +183,7 @@ function HistoryBatchSection() {
           <h2 className="font-bold text-lg">歴史 1週間分（7問）の一括量産ジェネレーター</h2>
         </div>
         <p className="text-sm text-amber-100 leading-relaxed mb-4">
-          日本史共テ問・世界史共テ問・同時代比較・因果関係解説・年号ゴロ合わせなど、1週間分のストックを一撃で自動生成します。
+          日本史共テ問・世界史共テ問・同時代比較・因果関係解説・年号ゴロ合わせなど、1週間分のストックを一撃で自動作成します。
         </p>
 
         <button
@@ -165,12 +194,12 @@ function HistoryBatchSection() {
           {isGenerating ? (
             <>
               <RefreshCw className="w-4 h-4 animate-spin text-gray-900" />
-              <span>7問一括生成中... ({progress?.current || 0}/7)</span>
+              <span>作成中...</span>
             </>
           ) : (
             <>
               <Zap className="w-4 h-4 fill-gray-900" />
-              <span>1週間分（7投稿）を一括生成する</span>
+              <span>{aiMode === 'prompt' ? '1週間分のプロンプトを一括作成' : '1週間分（7投稿）を直接AI生成'}</span>
             </>
           )}
         </button>
@@ -180,6 +209,47 @@ function HistoryBatchSection() {
         <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           {error}
+        </div>
+      )}
+
+      {batchPrompts && (
+        <div className="space-y-4 bg-amber-50/60 border border-amber-300 rounded-2xl p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-amber-700" />
+              1週間分（7投稿）の生成プロンプト
+            </h3>
+            <button
+              onClick={handleCopyCombined}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                copiedBatch ? 'bg-green-600 text-white' : 'bg-amber-600 hover:bg-amber-700 text-white'
+              }`}
+            >
+              {copiedBatch ? <><Check className="w-4 h-4" />7日分まとめてコピー完了！</> : <><Copy className="w-4 h-4" />7日分まとめてコピー</>}
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {batchPrompts.prompts?.map((p, idx) => (
+              <div key={idx} className="bg-white border border-gray-200 rounded-xl p-3 shadow-2xs">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-bold text-xs text-gray-800">{p.label}</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${p.system ? `【システム】\n${p.system}\n\n` : ''}${p.user}`);
+                      alert(`${p.day}のプロンプトをコピーしました`);
+                    }}
+                    className="text-xs text-amber-700 hover:text-amber-900 font-bold flex items-center gap-1"
+                  >
+                    <Copy className="w-3.5 h-3.5" /> コピー
+                  </button>
+                </div>
+                <p className="text-xs text-gray-600 font-mono bg-gray-50 p-2 rounded max-h-24 overflow-y-auto whitespace-pre-wrap">
+                  {p.user}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -440,6 +510,7 @@ export default function KoyomiHome() {
                 })}
               </div>
 
+              {/* 生成ボタン */}
               <button
                 onClick={handleGeneratePost}
                 disabled={isGenerating}
@@ -448,12 +519,12 @@ export default function KoyomiHome() {
                 {isGenerating ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>センター1問1答を生成中...</span>
+                    <span>プロンプトを作成中...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>センター試験レベルの1問1答を生成</span>
+                    {promptOnly ? <FileText className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                    <span>{promptOnly ? '✨ センター試験1問1答の生成プロンプトを作成' : '🤖 センター試験レベルの1問1答を自動生成'}</span>
                   </>
                 )}
               </button>
@@ -481,7 +552,8 @@ export default function KoyomiHome() {
                         setReplyText(d.reply_text);
                         setPostId(d.post_id);
                         setFallbackPrompt(null);
-                      });
+                      })
+                      .catch(err => setError(err.message));
                   }}
                 />
               )}

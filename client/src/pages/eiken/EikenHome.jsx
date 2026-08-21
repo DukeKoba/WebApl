@@ -178,11 +178,34 @@ function BatchGenerationSection({ level, setLevel }) {
   const [postStatuses, setPostStatuses] = useState({});
   const [error, setError] = useState('');
 
+  const [aiMode] = useAiMode();
+  const [batchPrompts, setBatchPrompts] = useState(null);
+  const [copiedBatch, setCopiedBatch] = useState(false);
+
   const handleGenerateBatch = async () => {
     setIsGenerating(true);
     setProgress({ current: 0, total: 7, itemTitle: '準備中...' });
     setBatchPosts([]);
+    setBatchPrompts(null);
     setError('');
+
+    if (aiMode === 'prompt') {
+      try {
+        const res = await authFetch('/eiken/batch-prompts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ level, count: 7 }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        setBatchPrompts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsGenerating(false);
+      }
+      return;
+    }
 
     try {
       const res = await authFetch('/eiken/generate-batch', {
@@ -261,7 +284,7 @@ function BatchGenerationSection({ level, setLevel }) {
             ) : (
               <>
                 <Zap className="w-4 h-4 fill-gray-900" />
-                <span>1週間分（7投稿）を一括生成する</span>
+                <span>{aiMode === 'prompt' ? '1週間分のプロンプトを一括作成' : '1週間分（7投稿）を一括生成する'}</span>
               </>
             )}
           </button>
@@ -842,12 +865,12 @@ export default function EikenHome() {
               {isGenerating ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>AI英検コンテンツを生成中...</span>
+                  <span>プロンプトを作成中...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>X投稿を生成する</span>
+                  <span>{promptOnly ? '✨ AI英検の生成プロンプトを作成' : '🤖 AI英検X投稿を直接自動生成'}</span>
                 </>
               )}
             </button>
