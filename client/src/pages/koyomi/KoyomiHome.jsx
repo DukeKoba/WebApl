@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Scroll, Sparkles, History, ArrowLeft, Copy, Check, Download, Zap,
-  Flame, HelpCircle, CheckCircle2, RefreshCw, AlertTriangle, BookOpen, Layers
+  Scroll, Sparkles, History, ArrowLeft, Download, Zap,
+  CheckCircle2, RefreshCw, AlertTriangle, ExternalLink
 } from 'lucide-react';
 import PostPreview from '../../components/shared/PostPreview';
-import XLogo from '../../components/shared/XLogo';
 import AiModeToggle, { useAiMode } from '../../components/shared/AiModeToggle';
 import PromptFallbackPanel from '../../components/shared/PromptFallbackPanel';
 import { authFetch } from '../../utils/api';
@@ -64,7 +63,14 @@ const HISTORY_TYPES = [
 const KOYOMI_URL = 'https://apps.apple.com/jp/app/id6794647918';
 
 async function readSse(res, onEvent) {
-  const reader = res.body.getReader();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || `サーバー通信エラー (${res.status})`);
+  }
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new Error('ストリームの読み込みに失敗しました');
+  }
   const decoder = new TextDecoder();
   let buffer = '';
   let event = '';
@@ -251,6 +257,7 @@ export default function KoyomiHome() {
   const [status, setStatus] = useState('draft');
   const [error, setError] = useState('');
   const [fallbackPrompt, setFallbackPrompt] = useState(null);
+  const outputRef = useRef(null);
 
   const resetOutput = () => {
     setPostText('');
@@ -260,6 +267,12 @@ export default function KoyomiHome() {
     setError('');
     setFallbackPrompt(null);
   };
+
+  useEffect(() => {
+    if ((postText || fallbackPrompt || error) && outputRef.current) {
+      outputRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [postText, fallbackPrompt, error]);
 
   const handleGeneratePost = async () => {
     setIsGenerating(true);
@@ -430,7 +443,7 @@ export default function KoyomiHome() {
               <button
                 onClick={handleGeneratePost}
                 disabled={isGenerating}
-                className="w-full py-3.5 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-500 hover:to-orange-500 disabled:from-gray-400 disabled:to-gray-500 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
               >
                 {isGenerating ? (
                   <>
@@ -446,44 +459,46 @@ export default function KoyomiHome() {
               </button>
             </div>
 
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
-                {error}
-              </div>
-            )}
+            <div ref={outputRef} className="space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600">
+                  {error}
+                </div>
+              )}
 
-            {fallbackPrompt && (
-              <PromptFallbackPanel
-                prompts={fallbackPrompt.prompts}
-                onSaveManual={(text) => {
-                  authFetch('/koyomi/save-manual', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contentType, body_text: text }),
-                  })
-                    .then(r => r.json())
-                    .then(d => {
-                      setPostText(d.post_text);
-                      setReplyText(d.reply_text);
-                      setPostId(d.post_id);
-                      setFallbackPrompt(null);
-                    });
-                }}
-              />
-            )}
+              {fallbackPrompt && (
+                <PromptFallbackPanel
+                  prompts={fallbackPrompt.prompts}
+                  onSaveManual={(text) => {
+                    authFetch('/koyomi/save-manual', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ contentType, body_text: text }),
+                    })
+                      .then(r => r.json())
+                      .then(d => {
+                        setPostText(d.post_text);
+                        setReplyText(d.reply_text);
+                        setPostId(d.post_id);
+                        setFallbackPrompt(null);
+                      });
+                  }}
+                />
+              )}
 
-            {postText && (
-              <PostPreview
-                platform="x"
-                text={postText}
-                onChange={postId ? setPostText : undefined}
-                postId={postId}
-                onPublish={handlePublish}
-                isPublishing={isPublishing}
-                status={status}
-                ctaText={replyText}
-              />
-            )}
+              {postText && (
+                <PostPreview
+                  platform="x"
+                  text={postText}
+                  onChange={postId ? setPostText : undefined}
+                  postId={postId}
+                  onPublish={handlePublish}
+                  isPublishing={isPublishing}
+                  status={status}
+                  ctaText={replyText}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>

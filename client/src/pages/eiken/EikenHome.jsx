@@ -91,7 +91,14 @@ const APP_LINKS = {
 };
 
 async function readSse(res, onEvent) {
-  const reader = res.body.getReader();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || `サーバー通信エラー (${res.status})`);
+  }
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new Error('ストリームの読み込みに失敗しました');
+  }
   const decoder = new TextDecoder();
   let buffer = '';
   let event = '';
